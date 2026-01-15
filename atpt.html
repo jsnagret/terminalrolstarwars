@@ -2,12 +2,15 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AT-PT Felucia Prison Break Terminal</title>
+<title>AT-PT Felucia Tactical Terminal</title>
 <style>
 body{
     background:#040b09;
     color:#3aff7a;
     font-family: monospace;
+    margin:0;
+    padding:20px;
+    overflow-x:hidden;
 }
 #terminal{
     width:1100px;
@@ -15,72 +18,256 @@ body{
     border:2px solid #3aff7a;
     padding:20px;
     box-shadow:0 0 25px #0f5;
+    position:relative;
 }
 #header{
     text-align:center;
     letter-spacing:2px;
-    margin-bottom:10px;
+    margin-bottom:15px;
+    line-height:1.4;
+    text-shadow:0 0 10px #0f5;
 }
 #screen{
     display:flex;
     gap:20px;
+    min-height:600px;
 }
 #mapFrame{
     border:1px solid #3aff7a;
     background:#031a12;
+    flex:1;
+    position:relative;
 }
 canvas{
     background:#052e1e;
+    display:block;
 }
 #ui{
-    width:260px;
+    width:300px;
     border:1px solid #3aff7a;
-    padding:10px;
+    padding:15px;
+    display:flex;
+    flex-direction:column;
 }
-.lever{ margin:20px 0; }
-.slider{ width:100%; }
+.lever{ margin:15px 0; }
+.slider{ 
+    width:100%;
+    height:20px;
+    background:#031a12;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor:pointer;
+}
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #3aff7a;
+    cursor: pointer;
+}
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #3aff7a;
+    cursor: pointer;
+    border:none;
+}
+
+#timer{
+    text-align:center;
+    font-size:24px;
+    color:#ff4;
+    margin:10px 0;
+    border:1px dashed #3aff7a;
+    padding:8px;
+    background:rgba(0,0,0,0.3);
+    text-shadow:0 0 5px #ff4;
+}
+
+#message{
+    text-align:center;
+    margin:10px 0;
+    min-height:28px;
+    color:#ff4;
+    font-size:14px;
+    padding:5px;
+    background:rgba(0,0,0,0.3);
+    border:1px solid #3aff7a;
+}
+
+#healthBox{
+    margin:15px 0;
+}
+
+#healthBar{
+    width:100%;
+    height:16px;
+    border:1px solid #3aff7a;
+    background:#031a12;
+    overflow:hidden;
+}
+
+#healthFill{
+    height:100%;
+    background:linear-gradient(90deg, #f00, #ff0, #0f0);
+    transition:width 0.3s;
+}
+
+.wallBtn{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    background:linear-gradient(180deg, #0a2, #084);
+    color:black;
+    font-weight:bold;
+    border:1px solid #3aff7a;
+    cursor:pointer;
+    font-family:monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    transition:all 0.2s;
+}
+.wallBtn:hover:not(:disabled){
+    background:linear-gradient(180deg, #0c4, #0a2);
+    box-shadow:0 0 10px #0f5;
+}
+.wallBtn:disabled{
+    background:#222;
+    color:#666;
+    cursor:not-allowed;
+}
 
 #legend{
+    font-size:11px;
+    margin-top:auto;
+    padding-top:15px;
+    border-top:1px dashed #3aff7a;
+    line-height:1.6;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    margin:3px 0;
+}
+.legend-color{
+    width:12px;
+    height:12px;
+    margin-right:8px;
+    border:1px solid #3aff7a;
+}
+
+#stats{
     font-size:12px;
-    margin-top:15px;
+    margin-top:10px;
+    color:#0af;
+}
+
+#objective{
+    margin:15px 0;
+    padding:10px;
+    background:rgba(0,50,30,0.3);
+    border:1px solid #3aff7a;
+    font-size:12px;
+}
+#objective h4{
+    margin:0 0 5px 0;
+    color:#0f5;
+}
+
+#alarm{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(255,0,0,0.3);
+    display:none;
+    pointer-events:none;
+    animation:alarmFlash 0.5s infinite;
+}
+
+@keyframes alarmFlash {
+    0%, 100% { opacity:0.3; }
+    50% { opacity:0.7; }
 }
 </style>
 </head>
 
 <body>
 <div id="terminal">
+<div id="alarm"></div>
 
 <div id="header">
-██ AT-PT TACTICAL TERMINAL ██  
-<br>FELUCIA — PRISON BREAK → BUNKER RUN
+<span style="color:#0af">██ AT-PT TACTICAL TERMINAL ██</span><br>
+<span style="color:#ff4">FELUCIA — PRISON BREAK → BUNKER RUN</span><br>
+<span style="color:#0f5;font-size:12px">CLASSIFIED: IMPERIAL PRISON COMPLEX ALPHA</span>
 </div>
 
 <div id="screen">
-
 <div id="mapFrame">
-<canvas id="map" width="900" height="600"></canvas>
+<canvas id="map" width="800" height="600"></canvas>
 </div>
 
 <div id="ui">
+<div id="timer">05:00</div>
+<div id="message">ESCAPE THE PRISON!</div>
+
+<div id="healthBox">
+<div style="display:flex;justify-content:space-between">
+    <span>AT-PT HEALTH</span>
+    <span id="healthValue">100%</span>
+</div>
+<div id="healthBar">
+    <div id="healthFill" style="width:100%"></div>
+</div>
+</div>
+
+<div id="objective">
+<h4>OBJECTIVE:</h4>
+1. Open central wall (Control A)<br>
+2. Open north corridor (Control B)<br>
+3. Open south corridor (Control C)<br>
+4. Open bunker gate (Control D)<br>
+5. Enter bunker
+</div>
+
+<button class="wallBtn" id="btnWall0">A: OPEN CENTRAL WALL</button>
+<button class="wallBtn" id="btnWall1">B: OPEN NORTH CORRIDOR</button>
+<button class="wallBtn" id="btnWall2">C: OPEN SOUTH CORRIDOR</button>
+<button class="wallBtn" id="btnWall3">D: OPEN BUNKER GATE</button>
+
 <div class="lever">
 <label>▲ THRUST (Forward)</label>
-<input id="thrust" type="range" min="0" max="6" value="0" class="slider">
+<input id="thrust" type="range" min="0" max="8" value="0" class="slider">
+<span id="thrustValue">0</span>
 </div>
 
 <div class="lever">
 <label>◀ STEERING ▶</label>
-<input id="steer" type="range" min="-4" max="4" value="0" class="slider">
+<input id="steer" type="range" min="-5" max="5" value="0" class="slider">
+<span id="steerValue">0</span>
+</div>
+
+<div id="stats">
+POSITION: <span id="posX">180</span>, <span id="posY">300</span><br>
+SPEED: <span id="speed">0</span> units/sec<br>
+WALLS OPENED: <span id="wallsOpened">0/4</span>
 </div>
 
 <div id="legend">
-BLUE = Your AT-PT  
-GRAY = Rocks (solid)  
-WHITE = Walls  
-RED = Prison  
-YELLOW = Bunker  
+<div class="legend-item"><div class="legend-color" style="background:#aaa"></div> AT-PT Walker</div>
+<div class="legend-item"><div class="legend-color" style="background:#666"></div> Rocks (Damage)</div>
+<div class="legend-item"><div class="legend-color" style="background:#fff"></div> Walls</div>
+<div class="legend-item"><div class="legend-color" style="background:red"></div> Prison (Start)</div>
+<div class="legend-item"><div class="legend-color" style="background:yellow"></div> Bunker (Goal)</div>
+<div class="legend-item"><div class="legend-color" style="background:#FFD700"></div> B1 Battle Droids</div>
+<div class="legend-item"><div class="legend-color" style="background:cyan"></div> Control Zones</div>
+<div class="legend-item"><div class="legend-color" style="background:#0f5"></div> Open Paths</div>
 </div>
 </div>
-
 </div>
 </div>
 
@@ -88,87 +275,299 @@ YELLOW = Bunker
 const c = document.getElementById("map");
 const ctx = c.getContext("2d");
 
-// --- START INSIDE PRISON ---
+// GAME STATE
 let x = 180;
 let y = 300;
 let angle = 0;
+let timeLeft = 300;
+let timerActive = true;
+let maxHealth = 100;
+let health = 100;
+let gameWon = false;
+let gameLost = false;
+let wallsOpenedCount = 0;
+let lastDamageTime = 0;
+let legAnimation = 0; // For leg movement animation
 
-// Prison compound (start area)
+// Prison & bunker
 const prison = {x:120,y:200,w:260,h:200};
-
-// Bunker objective
 const bunker = {x:680,y:260,w:140,h:80};
 
-// Walls (you cannot cross these)
+// Enhanced wall layout
 const walls = [
- {x:380,y:0,w:20,h:600},      // central wall
- {x:550,y:0,w:20,h:250},      // upper corridor wall
- {x:550,y:350,w:20,h:250},    // lower corridor wall
- {x:700,y:200,w:20,h:200}     // bunker gate wall
+ // Prison exit - central wall
+ {x:380,y:250,w:20,h:100, active:true, id:0},
+ 
+ // Main corridor walls
+ {x:400,y:0,w:20,h:200, active:true, id:1},
+ {x:400,y:400,w:20,h:200, active:true, id:2},
+ 
+ // Corridor maze
+ {x:450,y:280,w:100,h:20, active:true, id:1},
+ {x:450,y:300,w:100,h:20, active:true, id:2},
+ 
+ // North path barriers
+ {x:550,y:0,w:20,h:180, active:true, id:1},
+ {x:600,y:150,w:150,h:20, active:true, id:1},
+ {x:480,y:80,w:20,h:120, active:true, id:1},
+ 
+ // South path barriers
+ {x:550,y:420,w:20,h:180, active:true, id:2},
+ {x:600,y:430,w:150,h:20, active:true, id:2},
+ {x:480,y:400,w:20,h:120, active:true, id:2},
+ 
+ // Bunker area defenses
+ {x:700,y:150,w:20,h:100, active:true, id:3},
+ {x:700,y:350,w:20,h:100, active:true, id:3},
+ {x:660,y:200,w:40,h:20, active:true, id:3},
+ {x:660,y:380,w:40,h:20, active:true, id:3},
+ {x:620,y:250,w:80,h:20, active:true, id:3},
+ {x:620,y:330,w:80,h:20, active:true, id:3},
+ 
+ // Additional obstacles
+ {x:300,y:100,w:20,h:80, active:true, id:0},
+ {x:300,y:420,w:20,h:80, active:true, id:0}
 ];
 
-// Rocks
+// Control zones with labels
+const controls = [
+ {x:200,y:150,r:30, label:"A"},
+ {x:450,y:80,r:30, label:"B"},
+ {x:450,y:520,r:30, label:"C"},
+ {x:760,y:300,r:30, label:"D"}
+];
+
+// Rocks with varied sizes
 const rocks = [
  {x:450,y:150,r:45},
  {x:520,y:450,r:55},
  {x:650,y:120,r:35},
- {x:300,y:480,r:50}
+ {x:300,y:480,r:50},
+ {x:580,y:280,r:30},
+ {x:720,y:200,r:40},
+ {x:720,y:400,r:40},
+ {x:500,y:300,r:25},
+ {x:250,y:350,r:40},
+ {x:380,y:450,r:35}
 ];
 
+// Enhanced guard patrols - B1 Droid colors
+const guards = [
+ {x:600,y:120, path:[{x:600,y:120},{x:820,y:120}], t:0, speed:0.002, alert:false},
+ {x:600,y:480, path:[{x:600,y:480},{x:820,y:480}], t:0, speed:0.002, alert:false},
+ {x:350,y:300, path:[{x:350,y:180},{x:350,y:420}], t:0, speed:0.0015, alert:false},
+ {x:650,y:300, path:[{x:650,y:200},{x:650,y:400}], t:0, speed:0.0018, alert:false},
+ {x:500,y:200, path:[{x:500,y:200},{x:500,y:100}], t:0, speed:0.002, alert:false}
+];
+
+const openWalls = new Set();
+
 function drawMap(){
- ctx.clearRect(0,0,900,600);
-
- // jungle swamp background
- ctx.fillStyle="#052e1e";
- ctx.fillRect(0,0,900,600);
-
- // prison zone
+ ctx.clearRect(0,0,800,600);
+ 
+ // Background grid
+ ctx.strokeStyle="rgba(0,255,122,0.05)";
+ ctx.lineWidth=1;
+ for(let i=0;i<800;i+=40){
+   ctx.beginPath();
+   ctx.moveTo(i,0);
+   ctx.lineTo(i,600);
+   ctx.stroke();
+ }
+ for(let i=0;i<600;i+=40){
+   ctx.beginPath();
+   ctx.moveTo(0,i);
+   ctx.lineTo(800,i);
+   ctx.stroke();
+ }
+ 
+ // Prison
  ctx.strokeStyle="red";
  ctx.lineWidth=2;
  ctx.strokeRect(prison.x,prison.y,prison.w,prison.h);
- ctx.fillStyle="rgba(255,0,0,0.08)";
+ ctx.fillStyle="rgba(255,0,0,0.1)";
  ctx.fillRect(prison.x,prison.y,prison.w,prison.h);
-
- // bunker
- ctx.strokeStyle="yellow";
- ctx.lineWidth=2;
+ 
+ // Bunker
+ ctx.strokeStyle=openWalls.has(3) ? "#0f0" : "yellow";
+ ctx.lineWidth=openWalls.has(3) ? 3 : 2;
  ctx.strokeRect(bunker.x,bunker.y,bunker.w,bunker.h);
- ctx.fillStyle="rgba(255,255,0,0.08)";
+ ctx.fillStyle=openWalls.has(3) ? "rgba(0,255,0,0.2)" : "rgba(255,255,0,0.1)";
  ctx.fillRect(bunker.x,bunker.y,bunker.w,bunker.h);
-
- // walls
+ 
+ // Control zones
+ controls.forEach(c=>{
+   ctx.fillStyle="rgba(0,255,255,0.2)";
+   ctx.beginPath();
+   ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+   ctx.fill();
+   ctx.strokeStyle="#0ff";
+   ctx.lineWidth=2;
+   ctx.stroke();
+   
+   // Control label
+   ctx.fillStyle="#0ff";
+   ctx.font="bold 14px monospace";
+   ctx.textAlign="center";
+   ctx.textBaseline="middle";
+   ctx.fillText(c.label, c.x, c.y);
+ });
+ 
+ // Open paths visualization
+ ctx.fillStyle="rgba(0,255,122,0.1)";
+ openWalls.forEach(id=>{
+   walls.filter(w=>w.id===id).forEach(w=>{
+     ctx.fillRect(w.x-2,w.y-2,w.w+4,w.h+4);
+   });
+ });
+ 
+ // Walls
  ctx.fillStyle="white";
  walls.forEach(w=>{
-   ctx.fillRect(w.x,w.y,w.w,w.h);
+   if(w.active && !openWalls.has(w.id)){
+     ctx.fillRect(w.x,w.y,w.w,w.h);
+   }
  });
-
- // rocks
+ 
+ // Rocks
  ctx.fillStyle="#666";
  rocks.forEach(r=>{
    ctx.beginPath();
    ctx.arc(r.x,r.y,r.r,0,Math.PI*2);
    ctx.fill();
+   ctx.strokeStyle="#444";
+   ctx.lineWidth=2;
+   ctx.stroke();
  });
+ 
+ // B1 Battle Droids - Tan/yellow color scheme
+ guards.forEach(g=>{
+   // Droid body (main chassis)
+   ctx.fillStyle=g.alert ? "#FFA500" : "#FFD700"; // Gold/yellow, orange when alert
+   ctx.fillRect(g.x-8, g.y-12, 16, 24);
+   
+   // Droid head
+   ctx.fillStyle="#DAA520"; // Darker gold
+   ctx.fillRect(g.x-6, g.y-16, 12, 8);
+   
+   // Droid details
+   ctx.fillStyle="#B8860B"; // Even darker for contrast
+   // Eye/sensor
+   ctx.fillRect(g.x-2, g.y-14, 4, 4);
+   // Chest panel
+   ctx.fillRect(g.x-4, g.y-4, 8, 8);
+   
+   // Droid legs (thin)
+   ctx.fillStyle="#8B6508";
+   ctx.fillRect(g.x-6, g.y+12, 4, 10); // Left leg
+   ctx.fillRect(g.x+2, g.y+12, 4, 10); // Right leg
+   
+   // Droid arms
+   ctx.fillStyle="#DAA520";
+   ctx.fillRect(g.x-12, g.y-8, 8, 4); // Left arm
+   ctx.fillRect(g.x+4, g.y-8, 8, 4); // Right arm
+   
+   // Droid vision cone (more subtle for B1 droids)
+   if(g.alert){
+     ctx.fillStyle="rgba(255,165,0,0.1)";
+     ctx.beginPath();
+     ctx.moveTo(g.x,g.y);
+     ctx.arc(g.x,g.y,60, -Math.PI/4, Math.PI/4);
+     ctx.closePath();
+     ctx.fill();
+   }
+ });
+ 
+ // AT-PT Walker - Grey with moving legs
+ drawATPT();
+ 
+ // Update leg animation
+ const thrust = document.getElementById("thrust").value;
+ if(thrust > 0){
+   legAnimation += 0.3;
+ }
+}
 
- // AT-PT marker
+function drawATPT(){
  ctx.save();
  ctx.translate(x,y);
  ctx.rotate(angle);
- ctx.fillStyle="#4af";
+ 
+ // AT-PT Body (main chassis) - Grey color
+ ctx.fillStyle="#aaa";
  ctx.beginPath();
- ctx.moveTo(14,0);
- ctx.lineTo(-10,8);
- ctx.lineTo(-10,-8);
+ ctx.moveTo(15,0); // Front center
+ ctx.lineTo(-10,8); // Back right
+ ctx.lineTo(-10,-8); // Back left
  ctx.closePath();
  ctx.fill();
+ 
+ // Cockpit/dome
+ ctx.fillStyle="#888";
+ ctx.beginPath();
+ ctx.arc(8,0,6,0,Math.PI*2);
+ ctx.fill();
+ 
+ // Cockpit window
+ ctx.fillStyle="#4af";
+ ctx.beginPath();
+ ctx.arc(8,0,3,0,Math.PI*2);
+ ctx.fill();
+ 
+ // Calculate leg movement based on animation
+ const legOffset = Math.sin(legAnimation) * 3;
+ 
+ // Left Leg (front left)
+ ctx.fillStyle="#999";
+ ctx.fillRect(-5, -12 - legOffset, 8, 25); // Longer, stretched rectangle
+ 
+ // Right Leg (front right) - opposite phase
+ ctx.fillStyle="#999";
+ ctx.fillRect(-5, 12 + legOffset, 8, 25);
+ 
+ // Back Left Leg
+ ctx.fillStyle="#999";
+ ctx.fillRect(-15, -10 + legOffset, 8, 22);
+ 
+ // Back Right Leg
+ ctx.fillStyle="#999";
+ ctx.fillRect(-15, 10 - legOffset, 8, 22);
+ 
+ // Leg joints/feet
+ ctx.fillStyle="#777";
+ // Front left foot
+ ctx.fillRect(-5, -12 - legOffset + 22, 10, 4);
+ // Front right foot
+ ctx.fillRect(-5, 12 + legOffset + 22, 10, 4);
+ // Back left foot
+ ctx.fillRect(-15, -10 + legOffset + 20, 10, 4);
+ // Back right foot
+ ctx.fillRect(-15, 10 - legOffset + 20, 10, 4);
+ 
+ // Thrust effect (rear exhaust)
+ const thrust = document.getElementById("thrust").value;
+ if(thrust > 0){
+   ctx.fillStyle="#ff4";
+   ctx.beginPath();
+   ctx.ellipse(-20,0,8+thrust*2,4,0,0,Math.PI*2);
+   ctx.fill();
+ }
+ 
  ctx.restore();
+}
+
+function checkCollision(nx,ny){
+ if(hitsRock(nx,ny)) return "rock";
+ if(hitsWall(nx,ny)) return "wall";
+ if(hitsGuard(nx,ny)) return "guard";
+ return false;
 }
 
 function hitsRock(nx,ny){
  for(let r of rocks){
    let dx = nx - r.x;
    let dy = ny - r.y;
-   if(Math.sqrt(dx*dx+dy*dy) < r.r + 10){
+   if(Math.sqrt(dx*dx+dy*dy) < r.r + 14){ // Slightly larger collision for AT-PT
      return true;
    }
  }
@@ -177,7 +576,8 @@ function hitsRock(nx,ny){
 
 function hitsWall(nx,ny){
  for(let w of walls){
-   if(nx > w.x && nx < w.x+w.w &&
+   if(w.active && !openWalls.has(w.id) &&
+      nx > w.x && nx < w.x+w.w &&
       ny > w.y && ny < w.y+w.h){
         return true;
    }
@@ -185,30 +585,276 @@ function hitsWall(nx,ny){
  return false;
 }
 
+function hitsGuard(nx,ny){
+ const now = Date.now();
+ for(let g of guards){
+   // Check collision with droid's bounding box
+   if(nx > g.x - 12 && nx < g.x + 12 &&
+      ny > g.y - 16 && ny < g.y + 22){
+     if(now - lastDamageTime > 500){ // Prevent rapid damage
+       g.alert = true;
+       setTimeout(() => g.alert = false, 2000);
+       lastDamageTime = now;
+       return true;
+     }
+   }
+   
+   // Check vision cone
+   let dx = nx - g.x;
+   let dy = ny - g.y;
+   let distance = Math.sqrt(dx*dx+dy*dy);
+   
+   if(distance < 50){
+     // B1 droids have poor sensors but can detect close objects
+     let angleToDroid = Math.atan2(dy,dx);
+     let droidAngle = Math.atan2(g.path[1].y-g.path[0].y, g.path[1].x-g.path[0].x);
+     let angleDiff = Math.abs(angleToDroid - droidAngle);
+     
+     if(angleDiff < Math.PI/3){ // Wider cone for B1 droids
+       if(now - lastDamageTime > 500){
+         g.alert = true;
+         setTimeout(() => g.alert = false, 1500);
+         lastDamageTime = now;
+         return true;
+       }
+     }
+   }
+ }
+ return false;
+}
+
+function updateGuards(){
+ guards.forEach(g=>{
+   g.t += g.speed;
+   if(g.t>1){ 
+     g.t=0; 
+     let temp = g.path[0];
+     g.path[0] = g.path[1];
+     g.path[1] = temp;
+   }
+   g.x = g.path[0].x + (g.path[1].x-g.path[0].x)*g.t;
+   g.y = g.path[0].y + (g.path[1].y-g.path[0].y)*g.t;
+ });
+}
+
+function inControlZone(i){
+ let c = controls[i];
+ let dx = x - c.x;
+ let dy = y - c.y;
+ return Math.sqrt(dx*dx+dy*dy) < c.r;
+}
+
+function checkBunker(){
+ if(x > bunker.x && x < bunker.x + bunker.w &&
+    y > bunker.y && y < bunker.y + bunker.h &&
+    openWalls.has(3) && !gameWon){
+   gameWon = true;
+   timerActive = false;
+   document.getElementById("message").innerText = "✓ MISSION ACCOMPLISHED! BUNKER SECURED";
+   document.getElementById("message").style.color = "#0f0";
+   document.getElementById("timer").style.color = "#0f0";
+ }
+}
+
+function tryOpen(i){
+ if(!inControlZone(i)){
+   document.getElementById("message").innerText = "ACCESS DENIED: Navigate to Control " + controls[i].label;
+   document.getElementById("message").style.color = "#f44";
+   return;
+ }
+ 
+ if(!openWalls.has(i)){
+   walls.forEach(w => {
+     if(w.id === i) {
+       openWalls.add(i);
+     }
+   });
+   
+   wallsOpenedCount++;
+   updateStats();
+   
+   const labels = ["CENTRAL WALL", "NORTH CORRIDOR", "SOUTH CORRIDOR", "BUNKER GATE"];
+   const messages = [
+     "✓ Central wall opened! Exit prison and find Control B.",
+     "✓ North corridor opened! Find Control C in south corridor.",
+     "✓ South corridor opened! Proceed to bunker area.",
+     "✓ Bunker gate opened! Enter bunker to complete mission!"
+   ];
+   
+   document.getElementById("btnWall"+i).innerText = labels[i] + " ✓";
+   document.getElementById("btnWall"+i).disabled = true;
+   document.getElementById("message").innerText = messages[i];
+   document.getElementById("message").style.color = "#0f5";
+   
+   // Sound effect simulation
+   console.log("Beep! Wall " + i + " opened.");
+ }
+}
+
+function updateTimer(){
+ if(!timerActive || gameWon || gameLost) return;
+
+ let minutes = Math.floor(timeLeft / 60);
+ let seconds = timeLeft % 60;
+
+ document.getElementById("timer").innerText =
+  (minutes<10?"0":"") + minutes + ":" +
+  (seconds<10?"0":"") + seconds;
+
+ if(timeLeft <= 30){
+   document.getElementById("timer").style.color = "#f44";
+   document.getElementById("alarm").style.display = "block";
+ }
+ 
+ if(timeLeft<=0){
+   timerActive=false;
+   gameLost = true;
+   document.getElementById("timer").innerText="00:00";
+   document.getElementById("message").innerText = "⨯ ALARM TRIGGERED - MISSION FAILED";
+   document.getElementById("message").style.color = "#f00";
+ }
+ timeLeft--;
+}
+
+function damage(amount, source){
+ if(gameWon || gameLost) return;
+ 
+ const now = Date.now();
+ if(now - lastDamageTime < 500) return; // Cooldown
+ 
+ health -= amount;
+ if(health<0) health=0;
+ 
+ document.getElementById("healthFill").style.width = (health/maxHealth*100)+"%";
+ document.getElementById("healthValue").innerText = Math.round(health) + "%";
+ 
+ if(source === 'guard'){
+   document.getElementById("message").innerText = "WARNING: Battle Droid contact!";
+   document.getElementById("message").style.color = "#f44";
+ }
+ 
+ if(health<=0){
+   health=0;
+   gameLost = true;
+   timerActive = false;
+   document.getElementById("message").innerText = "⨯ AT-PT DESTROYED - MISSION FAILED";
+   document.getElementById("message").style.color = "#f00";
+   document.getElementById("healthValue").innerText = "0%";
+ }
+ 
+ lastDamageTime = now;
+}
+
+function updateStats(){
+ document.getElementById("posX").innerText = Math.round(x);
+ document.getElementById("posY").innerText = Math.round(y);
+ const thrust = document.getElementById("thrust").value;
+ document.getElementById("speed").innerText = thrust;
+ document.getElementById("wallsOpened").innerText = wallsOpenedCount + "/4";
+}
+
 function update(){
- let thrust = document.getElementById("thrust").value;
- let steer = document.getElementById("steer").value;
+ if(gameWon){
+   document.getElementById("message").innerText = "✓ MISSION SUCCESS! Return for debrief.";
+   return;
+ }
+ if(gameLost) return;
+ 
+ updateGuards();
+ updateStats();
 
- angle += steer * 0.02;
+ let thrust = parseInt(document.getElementById("thrust").value);
+ let steer = parseInt(document.getElementById("steer").value);
+ 
+ document.getElementById("thrustValue").innerText = thrust;
+ document.getElementById("steerValue").innerText = steer;
 
- let nx = x + Math.cos(angle) * thrust;
- let ny = y + Math.sin(angle) * thrust;
+ angle += steer * 0.03;
 
- if(!hitsRock(nx,ny) && !hitsWall(nx,ny)){
+ // Smooth movement with momentum
+ let nx = x + Math.cos(angle) * thrust * 0.8;
+ let ny = y + Math.sin(angle) * thrust * 0.8;
+
+ const collision = checkCollision(nx, ny);
+ if(!collision){
    x = nx;
    y = ny;
+ } else {
+   // Bounce back slightly on collision
+   x -= Math.cos(angle) * thrust * 0.3;
+   y -= Math.sin(angle) * thrust * 0.3;
+   
+   if(collision === 'rock'){
+     damage(0.5, 'rock');
+   } else if(collision === 'guard'){
+     damage(2, 'guard');
+   }
  }
 
- x = Math.max(10, Math.min(890,x));
- y = Math.max(10, Math.min(590,y));
+ // Continuous damage while colliding
+ if(hitsRock(x,y)){
+   damage(0.1, 'rock');
+ }
+ if(hitsGuard(x,y)){
+   damage(0.5, 'guard');
+ }
+
+ checkBunker();
+
+ // Boundary limits
+ x = Math.max(20, Math.min(780,x));
+ y = Math.max(20, Math.min(580,y));
 
  drawMap();
  requestAnimationFrame(update);
 }
 
+// Initialize controls
+document.getElementById("btnWall0").onclick=()=>tryOpen(0);
+document.getElementById("btnWall1").onclick=()=>tryOpen(1);
+document.getElementById("btnWall2").onclick=()=>tryOpen(2);
+document.getElementById("btnWall3").onclick=()=>tryOpen(3);
+
+// Slider value displays
+document.getElementById("thrust").oninput=function(){
+ document.getElementById("thrustValue").innerText = this.value;
+};
+document.getElementById("steer").oninput=function(){
+ document.getElementById("steerValue").innerText = this.value;
+};
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+ if(gameWon || gameLost) return;
+ 
+ const thrust = document.getElementById("thrust");
+ const steer = document.getElementById("steer");
+ 
+ switch(e.key){
+   case 'w': case 'ArrowUp':
+     thrust.value = Math.min(8, parseInt(thrust.value) + 2);
+     break;
+   case 's': case 'ArrowDown':
+     thrust.value = Math.max(0, parseInt(thrust.value) - 2);
+     break;
+   case 'a': case 'ArrowLeft':
+     steer.value = Math.max(-5, parseInt(steer.value) - 1);
+     break;
+   case 'd': case 'ArrowRight':
+     steer.value = Math.min(5, parseInt(steer.value) + 1);
+     break;
+   case ' ': // Space to brake
+     thrust.value = 0;
+     break;
+ }
+ 
+ document.getElementById("thrustValue").innerText = thrust.value;
+ document.getElementById("steerValue").innerText = steer.value;
+});
+
+setInterval(updateTimer,1000);
 drawMap();
 update();
 </script>
-
 </body>
 </html>
