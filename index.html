@@ -672,12 +672,24 @@
         }
 
         // Add line to terminal output
-        function addLine(text, className = '') {
+        function addLine(text, className = '', typing = false) {
             const line = document.createElement('div');
             line.className = 'line ' + className;
-            line.textContent = text;
             output.appendChild(line);
             output.scrollTop = output.scrollHeight;
+
+            if (!typing) {
+                line.textContent = text;
+                return;
+            }
+
+            let i = 0;
+            const interval = setInterval(() => {
+                line.textContent += text.charAt(i);
+                i++;
+                output.scrollTop = output.scrollHeight;
+                if (i >= text.length) clearInterval(interval);
+            }, 15);
         }
 
         // Power on the terminal
