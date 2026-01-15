@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal de Acceso Seguro</title>
+    <title>Republic Security Terminal</title>
     <style>
         * {
             margin: 0;
@@ -19,35 +19,237 @@
             align-items: center;
             min-height: 100vh;
             color: #0f0;
+            overflow: hidden;
         }
 
-        .terminal {
-            width: 90%;
-            max-width: 800px;
-            background: #0a0a0a;
-            border: 2px solid #0f0;
+        /* Screen container - FIXED SIZE */
+        .screen-container {
+            width: 900px; /* Fixed width */
+            height: 700px; /* Fixed height */
+            background: #111;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 0 0 1px #333,
+                0 0 30px rgba(0, 50, 0, 0.7),
+                inset 0 0 20px rgba(0, 0, 0, 0.9);
+            position: relative;
+            z-index: 2;
+            border: 2px solid #222;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Power controls */
+        .power-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .power-btn {
+            background: linear-gradient(to bottom, #333, #111);
+            color: #aaa;
+            border: 1px solid #444;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .power-btn:hover {
+            color: #fff;
+            border-color: #666;
+            box-shadow: 0 0 10px rgba(100, 100, 100, 0.5);
+        }
+
+        .power-btn:active {
+            transform: translateY(1px);
+        }
+
+        .power-btn.on {
+            color: #0f0;
+            border-color: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .power-btn.off {
+            color: #f00;
+            border-color: #f00;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            color: #666;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .status-light {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #300;
+            margin-right: 8px;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .status-light.on {
+            background: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        .screen-label {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        /* Main screen area - FIXED SIZE */
+        .screen-area {
+            flex: 1;
+            background: #000;
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+            min-height: 0; /* Important for flex child */
+        }
+
+        /* Screen effects INSIDE the screen area */
+        .screen-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .screen-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+            background: 
+                linear-gradient(transparent 0%, rgba(0, 255, 0, 0.05) 2%, transparent 5%),
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            mix-blend-mode: overlay;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            z-index: 2;
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .flicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            z-index: 3;
+            opacity: 0;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.05; }
+        }
+
+        .noise {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            z-index: 4;
+            opacity: 0.25;
+            mix-blend-mode: overlay;
+        }
+
+        /* Terminal styling - FIXED SIZE INSIDE SCREEN */
+        .terminal {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .terminal-header {
             border-bottom: 1px solid #0f0;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
-            font-size: 18px;
+            font-size: 16px;
             letter-spacing: 2px;
+            flex-shrink: 0;
         }
 
         .terminal-output {
-            min-height: 300px;
-            margin-bottom: 20px;
+            flex: 1;
+            overflow-y: auto;
             line-height: 1.6;
+            padding-right: 5px;
+            min-height: 0; /* Important for flex child */
+        }
+
+        .terminal-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-output::-webkit-scrollbar-track {
+            background: rgba(0, 30, 0, 0.3);
+        }
+
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.5);
+            border-radius: 4px;
         }
 
         .line {
-            margin: 5px 0;
+            margin: 4px 0;
             animation: fadeIn 0.3s;
         }
 
@@ -68,6 +270,10 @@
         .input-line {
             display: flex;
             align-items: center;
+            border-top: 1px solid rgba(0, 255, 0, 0.3);
+            padding-top: 10px;
+            margin-top: 10px;
+            flex-shrink: 0;
         }
 
         .prompt {
@@ -103,7 +309,6 @@
         .yellow-mode {
             color: #ffff00 !important;
             border-color: #ffff00 !important;
-            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3) !important;
         }
 
         .yellow-mode .prompt,
@@ -119,7 +324,6 @@
         .blue-mode {
             color: #4da6ff !important;
             border-color: #4da6ff !important;
-            box-shadow: 0 0 20px rgba(77, 166, 255, 0.3) !important;
         }
 
         .blue-mode .prompt,
@@ -133,7 +337,7 @@
         }
 
         .hexagon {
-            font-size: 80px;
+            font-size: 60px;
             text-align: center;
             margin: 20px 0;
             animation: pulse 2s infinite;
@@ -152,37 +356,168 @@
 
         .door-animation {
             text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
+            font-size: 20px;
+            margin-top: 15px;
         }
 
+        /* Screen off state - COMPLETELY BLACK */
+        .screen-off .screen-area {
+            background: #000 !important;
+        }
+
+        .screen-off .terminal {
+            display: none !important;
+        }
+
+        .screen-off .screen-effects {
+            display: none !important;
+        }
+
+        /* Screen corners */
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            z-index: 6;
+        }
+
+        .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Hidden elements */
         .hidden {
-            display: none;
+            display: none !important;
+        }
+
+        /* Power on animation */
+        .powering-on .terminal {
+            animation: powerOn 1.5s ease-out;
+        }
+
+        @keyframes powerOn {
+            0% { 
+                opacity: 0;
+                filter: brightness(0);
+            }
+            20% { 
+                opacity: 0.1;
+                filter: brightness(0.1);
+            }
+            40% { 
+                opacity: 0.3;
+                filter: brightness(0.3);
+            }
+            60% { 
+                opacity: 0.6;
+                filter: brightness(0.6);
+            }
+            80% { 
+                opacity: 0.8;
+                filter: brightness(0.9);
+            }
+            100% { 
+                opacity: 1;
+                filter: brightness(1);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="terminal-header">
-            ═══ REPUBLIC SECURITY TERMINAL ═══
+    <!-- Main screen container -->
+    <div class="screen-container">
+        <!-- Power controls -->
+        <div class="power-controls">
+            <button id="powerOn" class="power-btn on">Power On</button>
+            <div class="status-indicator">
+                <div id="statusLight" class="status-light"></div>
+                <span id="statusText">OFFLINE</span>
+            </div>
+            <button id="powerOff" class="power-btn off">Power Off</button>
         </div>
-        <div class="terminal-output" id="output">
-            <div class="line">System initialized...</div>
-            <div class="line">Connecting to secure network...</div>
-            <div class="line success">Connection established.</div>
-            <div class="line">─────────────────────────────────</div>
-            <div class="line">Enter access code to proceed:</div>
+        
+        <!-- Screen label -->
+        <div class="screen-label">Republic Security Terminal v2.1</div>
+        
+        <!-- Main screen area -->
+        <div class="screen-area">
+            <!-- Screen corners -->
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            
+            <!-- Screen effects INSIDE the screen -->
+            <div class="screen-effects">
+                <div class="screen-overlay"></div>
+                <div class="scan-line"></div>
+                <div class="flicker"></div>
+                <div class="noise"></div>
+            </div>
+            
+            <!-- Terminal (only visible when powered on) -->
+            <div class="terminal" id="terminal">
+                <div class="terminal-header">
+                    ═══ REPUBLIC SECURITY TERMINAL ═══
+                </div>
+                <div class="terminal-output" id="output">
+                    <!-- Terminal content will be generated here -->
+                </div>
+                <div class="input-line">
+                    <span class="prompt">></span>
+                    <input type="password" id="userInput" autocomplete="off" disabled>
+                    <span class="blink">█</span>
+                </div>
+            </div>
         </div>
-        <div class="input-line">
-            <span class="prompt">></span>
-            <input type="password" id="userInput" autofocus autocomplete="off">
-            <span class="blink">█</span>
+        
+        <!-- Bottom label -->
+        <div class="screen-label" style="margin-top: 15px;">
+            Galactic Republic • Secure Channel 7 • Encryption Active
         </div>
     </div>
 
     <script>
+        // DOM Elements
+        const terminal = document.getElementById('terminal');
         const output = document.getElementById('output');
         const userInput = document.getElementById('userInput');
+        const powerOnBtn = document.getElementById('powerOn');
+        const powerOffBtn = document.getElementById('powerOff');
+        const statusLight = document.getElementById('statusLight');
+        const statusText = document.getElementById('statusText');
+        const screenContainer = document.querySelector('.screen-container');
+        const screenArea = document.querySelector('.screen-area');
+        const screenEffects = document.querySelector('.screen-effects');
+        const flickerEffect = document.querySelector('.flicker');
+        const scanLine = document.querySelector('.scan-line');
+        
+        // Terminal state
         const correctPassword = 'OPEN 2001';
         const secretPhrase = 'CONFEDERACY OF EQUALITY';
         const secretCode = 'CII';
@@ -190,7 +525,10 @@
         let attempts = 0;
         const maxAttempts = 5;
         let helpShown = false;
+        let isPoweredOn = false;
+        let isInitialized = false;
         
+        // Terminal entries data
         const entries = {
             1: {
                 title: "INCIDENT REPORT - UNIDENTIFIED COMBATANTS",
@@ -298,13 +636,10 @@
                     "Reported by: Commander Bly, 327th Star Corps",
                     "",
                     "During patrol on Felucia, squad encountered unknown droid.",
-                    "Designation appeared to be 'SF-1207' (non-standard).",
+                    "Designation appeared to be 'F-01' (non-standard).",
                     "",
                     "Droid did not engage. Did not flee.",
                     "Stood motionless. Appeared to be... observing us.",
-                    "",
-                    "When approached, droid spoke:",
-                    "'I do not wish to harm you. I am... learning.'",
                     "",
                     "Droid vanished before capture. Method unknown.",
                     "No hyperdrive signature. No cloaking device detected.",
@@ -317,6 +652,26 @@
             }
         };
 
+        // Initialize terminal
+        function initializeTerminal() {
+            if (isInitialized) return;
+            
+            addLine("System initializing...", "warning");
+            setTimeout(() => {
+                addLine("Booting Republic security protocols...", "warning");
+                setTimeout(() => {
+                    addLine("Connecting to secure network...", "warning");
+                    setTimeout(() => {
+                        addLine("Connection established.", "success");
+                        addLine("─────────────────────────────────");
+                        addLine("Hello Trooper. type 'HELP' to see the available commands.");
+                        isInitialized = true;
+                    }, 800);
+                }, 800);
+            }, 800);
+        }
+
+        // Add line to terminal output
         function addLine(text, className = '') {
             const line = document.createElement('div');
             line.className = 'line ' + className;
@@ -325,6 +680,61 @@
             output.scrollTop = output.scrollHeight;
         }
 
+        // Power on the terminal
+        function powerOn() {
+            if (isPoweredOn) return;
+            
+            isPoweredOn = true;
+            screenContainer.classList.remove('screen-off');
+            statusLight.classList.add('on');
+            statusText.textContent = "ONLINE";
+            statusText.style.color = "#0f0";
+            
+            // Show terminal with animation
+            terminal.classList.add('powering-on');
+            
+            // Clear any previous output
+            output.innerHTML = '';
+            
+            // Enable input
+            setTimeout(() => {
+                userInput.disabled = false;
+                userInput.focus();
+                initializeTerminal();
+            }, 1500);
+        }
+
+        // Power off the terminal
+        function powerOff() {
+            if (!isPoweredOn) return;
+            
+            addLine("", "warning");
+            addLine("Shutting down terminal...", "warning");
+            
+            // Flicker effect during shutdown
+            let flickerCount = 0;
+            const flickerInterval = setInterval(() => {
+                flickerEffect.style.opacity = Math.random() * 0.5;
+                flickerCount++;
+                
+                if (flickerCount > 10) {
+                    clearInterval(flickerInterval);
+                    screenContainer.classList.add('screen-off');
+                    statusLight.classList.remove('on');
+                    statusText.textContent = "OFFLINE";
+                    statusText.style.color = "#666";
+                    userInput.disabled = true;
+                    userInput.value = "";
+                    isPoweredOn = false;
+                    isInitialized = false;
+                    
+                    // Remove powering-on class
+                    terminal.classList.remove('powering-on');
+                }
+            }, 150);
+        }
+
+        // Open door sequence
         function openDoor() {
             addLine('─────────────────────────────────');
             addLine('Password correct!', 'success');
@@ -360,8 +770,8 @@
             }, 1000);
         }
 
+        // Activate secret mode
         function activateSecretMode() {
-            const terminal = document.querySelector('.terminal');
             terminal.classList.add('yellow-mode');
             
             addLine('─────────────────────────────────');
@@ -391,8 +801,8 @@
             }, 1000);
         }
 
+        // Activate CIS mode
         function activateCISMode() {
-            const terminal = document.querySelector('.terminal');
             terminal.classList.add('blue-mode');
             
             addLine('─────────────────────────────────');
@@ -430,6 +840,7 @@
             }, 1000);
         }
         
+        // Show help
         function showHelp() {
             addLine('─────────────────────────────────');
             addLine('AVAILABLE COMMANDS:');
@@ -437,13 +848,20 @@
             addLine('ENTRY [number] - Access classified files');
             addLine('               Available: ENTRY 1-6');
             addLine('');
+            addLine('OPEN [code]  - Door control system');
+            addLine('               Requires authorization code');
+            addLine('');
+            addLine('STATUS       - Display terminal diagnostics');
+            addLine('');
             addLine('Examples:');
             addLine('> ENTRY 1');
-            addLine('> ENTRY 5');
+            addLine('> OPEN THE DOOR');
+            addLine('> STATUS');
             addLine('─────────────────────────────────');
             helpShown = true;
         }
         
+        // Show entry
         function showEntry(num) {
             const entry = entries[num];
             if (!entry) {
@@ -466,14 +884,43 @@
             addLine('');
             addLine('─────────────────────────────────');
         }
+        
+        // Show status
+        function showStatus() {
+            addLine('─────────────────────────────────');
+            addLine('TERMINAL DIAGNOSTICS');
+            addLine('─────────────────────────────────');
+            addLine('System Status: OPERATIONAL');
+            addLine('Security Level: MAXIMUM');
+            addLine('Network: Republic Encrypted Channel 7');
+            addLine('');
+            addLine('Connected Databases:');
+            addLine('  ✓ Republic Intelligence Network');
+            addLine('  ✓ Clone Army Command Structure');
+            addLine('  ✓ Jedi Temple Archives (Limited)');
+            addLine('');
+            addLine('Active Protocols:');
+            addLine('  ✓ Intrusion Detection: ACTIVE');
+            addLine('  ✓ Failed Login Monitor: ACTIVE');
+            addLine('  ✓ Force Signature Scanner: ACTIVE');
+            addLine('');
+            addLine('Login Attempts: ' + attempts + '/' + maxAttempts);
+            addLine('');
+            addLine('Current Time: ' + new Date().toLocaleTimeString());
+            addLine('Galactic Standard Date: 21 BBY');
+            addLine('');
+            addLine('May the Force be with you, Commander.');
+            addLine('─────────────────────────────────');
+        }
 
+        // Handle user input
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const input = userInput.value.trim().toUpperCase();
                 const displayInput = userInput.value.trim();
                 
                 // Don't show asterisks for HELP and ENTRY commands
-                if (input.startsWith('HELP') || input.startsWith('ENTRY')) {
+                if (input.startsWith('HELP') || input.startsWith('ENTRY') || input === 'STATUS') {
                     addLine('> ' + displayInput);
                 } else {
                     addLine('> ' + '*'.repeat(displayInput.length));
@@ -482,6 +929,13 @@
                 // Check for HELP command
                 if (input === 'HELP') {
                     showHelp();
+                    userInput.value = '';
+                    return;
+                }
+                
+                // Check for STATUS command
+                if (input === 'STATUS') {
+                    showStatus();
                     userInput.value = '';
                     return;
                 }
@@ -503,36 +957,18 @@
                 }
                 
                 // Easter egg OPEN commands
-                if (input === 'OPEN SESAME') {
-                    addLine('─────────────────────────────────');
-                    addLine('Nice try, but this isn\'t a cave on Tatooine.', 'warning');
-                    addLine('─────────────────────────────────');
-                    userInput.value = '';
-                    return;
-                }
+                const easterEggs = {
+                    'OPEN SESAME': 'Nice try, but this isn\'t a cave on Tatooine.',
+                    'OPEN PLEASE': 'Politeness detected. We appreciate that.\nBut you still need the correct code.',
+                    'OPEN NOW': 'Impatience detected.\nThis is why Jedi teach patience, General.',
+                    'OPEN THE DOOR': 'Instructions unclear. Please specify WHICH door.\nWe have 2,847 doors on this cruiser.'
+                };
                 
-                if (input === 'OPEN PLEASE') {
+                if (easterEggs[input]) {
                     addLine('─────────────────────────────────');
-                    addLine('Politeness detected. We appreciate that.', 'success');
-                    addLine('But you still need the correct code.', 'warning');
-                    addLine('─────────────────────────────────');
-                    userInput.value = '';
-                    return;
-                }
-                
-                if (input === 'OPEN NOW') {
-                    addLine('─────────────────────────────────');
-                    addLine('Impatience detected.', 'error');
-                    addLine('This is why Jedi teach patience, General.', 'error');
-                    addLine('─────────────────────────────────');
-                    userInput.value = '';
-                    return;
-                }
-                
-                if (input === 'OPEN THE DOOR') {
-                    addLine('─────────────────────────────────');
-                    addLine('Instructions unclear. Please specify WHICH door.', 'warning');
-                    addLine('We have 2,847 doors on this cruiser.', 'warning');
+                    easterEggs[input].split('\n').forEach(line => {
+                        addLine(line, 'warning');
+                    });
                     addLine('─────────────────────────────────');
                     userInput.value = '';
                     return;
@@ -563,6 +999,12 @@
                     addLine('─────────────────────────────────');
                     addLine('Access denied. Invalid code.', 'error');
                     
+                    // Trigger flicker on error
+                    flickerEffect.style.opacity = 0.3;
+                    setTimeout(() => {
+                        flickerEffect.style.opacity = 0.1;
+                    }, 200);
+                    
                     if (remaining > 0) {
                         addLine(`Attempts remaining: ${remaining}`, 'warning');
                         
@@ -585,7 +1027,34 @@
             }
         });
 
-        userInput.focus();
+        // Power button event listeners
+        powerOnBtn.addEventListener('click', powerOn);
+        powerOffBtn.addEventListener('click', powerOff);
+
+        // Random screen flicker effect
+        setInterval(() => {
+            if (isPoweredOn) {
+                // Random chance of flicker
+                if (Math.random() < 0.02) {
+                    flickerEffect.style.opacity = Math.random() * 0.4;
+                    setTimeout(() => {
+                        flickerEffect.style.opacity = 0.1;
+                    }, 100 + Math.random() * 200);
+                }
+                
+                // Random scan line speed variation
+                if (Math.random() < 0.05) {
+                    const randomSpeed = 5 + Math.random() * 10;
+                    scanLine.style.animationDuration = `${randomSpeed}s`;
+                }
+            }
+        }, 1000);
+
+        // Start with terminal off
+        window.addEventListener('load', () => {
+            screenContainer.classList.add('screen-off');
+            userInput.disabled = true;
+        });
     </script>
 </body>
 </html>
