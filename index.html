@@ -116,6 +116,22 @@
             color: #ffff00 !important;
         }
 
+        .blue-mode {
+            color: #4da6ff !important;
+            border-color: #4da6ff !important;
+            box-shadow: 0 0 20px rgba(77, 166, 255, 0.3) !important;
+        }
+
+        .blue-mode .prompt,
+        .blue-mode #userInput {
+            color: #4da6ff !important;
+            caret-color: #4da6ff !important;
+        }
+
+        .blue-mode .line {
+            color: #4da6ff !important;
+        }
+
         .hexagon {
             font-size: 80px;
             text-align: center;
@@ -167,11 +183,139 @@
     <script>
         const output = document.getElementById('output');
         const userInput = document.getElementById('userInput');
-        const correctPassword = 'REPUBLIC2001';
+        const correctPassword = 'OPEN 2001';
         const secretPhrase = 'CONFEDERACY OF EQUALITY';
         const secretCode = 'CII';
+        const cisCode = 'ROGER ROGER';
         let attempts = 0;
         const maxAttempts = 5;
+        let helpShown = false;
+        
+        const entries = {
+            1: {
+                title: "INCIDENT REPORT - UNIDENTIFIED COMBATANTS",
+                content: [
+                    "CLASSIFIED - EYES ONLY",
+                    "Location: Outer Rim Territories",
+                    "Date: [REDACTED]",
+                    "",
+                    "Multiple sightings of unidentified soldiers wearing",
+                    "yellow hexagon insignia. Not CIS. Not Republic.",
+                    "",
+                    "Engagement protocol: Non-lethal capture preferred.",
+                    "Witnesses report advanced tactics and unknown allegiance.",
+                    "",
+                    "Intelligence suggests possible deserter faction.",
+                    "Further investigation required.",
+                    "",
+                    "STATUS: ONGOING"
+                ]
+            },
+            2: {
+                title: "INTELLIGENCE BRIEF - 'CII' RUMORS",
+                content: [
+                    "REPUBLIC INTELLIGENCE - UNVERIFIED",
+                    "",
+                    "Intercepted communications reference 'CII' or",
+                    "'Confederacy of Equality' - origin unknown.",
+                    "",
+                    "Alleged claims:",
+                    "- Neither Republic nor Separatist aligned",
+                    "- Recruiting defectors from both sides",
+                    "- Unknown leadership structure",
+                    "",
+                    "ASSESSMENT: Possibly propaganda or disinformation.",
+                    "Recommend monitoring but no immediate threat level.",
+                    "",
+                    "NOTE: Some clones report seeing yellow hexagon symbols",
+                    "spray-painted at battle sites. Significance unclear."
+                ]
+            },
+            3: {
+                title: "JEDI COUNCIL REPORT - FORCE DISTURBANCES",
+                content: [
+                    "URGENT - COUNCIL ATTENTION REQUIRED",
+                    "",
+                    "Multiple Jedi Knights reporting unusual disturbances",
+                    "in the Force. Patterns do not match known Sith activity.",
+                    "",
+                    "Description: 'Echoes that feel... artificial'",
+                    "             'Like machinery trying to breathe'",
+                    "",
+                    "Location: Concentrated near [DATA CORRUPTED]",
+                    "",
+                    "Master Yoda's assessment: 'Something new stirs.",
+                    "Neither living nor dead. Neither dark nor light.'",
+                    "",
+                    "Investigation priority: HIGH",
+                    "Current leads: NONE"
+                ]
+            },
+            4: {
+                title: "CLONE INCIDENT LOG - UNUSUAL ENCOUNTERS",
+                content: [
+                    ">> CT-5597: Reported droid that 'looked at him weird'.",
+                    "   Droid displayed no aggressive behavior. Just... stared.",
+                    "   CT-5597 described feeling 'cold' during encounter.",
+                    "",
+                    ">> CT-8843: Squad encountered abandoned CIS facility.",
+                    "   Medical equipment. Jedi robes (bloodstained).",
+                    "   Strange crystals. No bodies found.",
+                    "",
+                    ">> CT-2187: Claims a B1 droid spoke to him.",
+                    "   Not standard programming. Asked 'philosophical questions'.",
+                    "   Unit recommends psych eval for CT-2187.",
+                    "",
+                    "NOTE: Pattern emerging. Flagged for review."
+                ]
+            },
+            5: {
+                title: "INTERCEPTED TRANSMISSION - ORIGIN UNKNOWN",
+                content: [
+                    ">>>SIGNAL LOST<<<",
+                    ">>>PARTIAL RECOVERY<<<",
+                    "",
+                    "...project proceeding as planned...",
+                    "...specimens show unprecedented results...",
+                    "...Darth Kaelith demands acceleration...",
+                    "...Pheros IX facility secure...",
+                    "...SF-1207 breach CRITICAL...",
+                    "...containment failed...",
+                    "...do NOT inform Lord Dooku...",
+                    "",
+                    ">>>END TRANSMISSION<<<",
+                    "",
+                    "ANALYSIS: Unknown Sith reference. 'Darth Kaelith' not",
+                    "in Republic databases. Location 'Pheros IX' uncharted.",
+                    "",
+                    "RECOMMENDATION: Forward to Jedi Council immediately."
+                ]
+            },
+            6: {
+                title: "FIELD REPORT - STRANGE DROID SIGHTING",
+                content: [
+                    "URGENT - UNCLASSIFIED THREAT",
+                    "Reported by: Commander Bly, 327th Star Corps",
+                    "",
+                    "During patrol on Felucia, squad encountered unknown droid.",
+                    "Designation appeared to be 'SF-1207' (non-standard).",
+                    "",
+                    "Droid did not engage. Did not flee.",
+                    "Stood motionless. Appeared to be... observing us.",
+                    "",
+                    "When approached, droid spoke:",
+                    "'I do not wish to harm you. I am... learning.'",
+                    "",
+                    "Droid vanished before capture. Method unknown.",
+                    "No hyperdrive signature. No cloaking device detected.",
+                    "",
+                    "Commander Bly notes: 'I've never seen anything like it.",
+                    "It felt... aware. Really aware.'",
+                    "",
+                    "STATUS: UNKNOWN THREAT LEVEL"
+                ]
+            }
+        };
 
         function addLine(text, className = '') {
             const line = document.createElement('div');
@@ -239,17 +383,169 @@
                     addLine('Terminal access: GRANTED');
                     addLine('Special clearance: ACTIVE');
                     addLine('');
-                    addLine('Standing by for orders...');
-                    userInput.disabled = true;
+                    addLine('Type HELP for available commands...');
+                    userInput.disabled = false;
+                    userInput.value = '';
+                    userInput.focus();
                 }, 1500);
             }, 1000);
+        }
+
+        function activateCISMode() {
+            const terminal = document.querySelector('.terminal');
+            terminal.classList.add('blue-mode');
+            
+            addLine('─────────────────────────────────');
+            addLine('⚠ CIS PROTOCOL DETECTED ⚠');
+            addLine('Roger roger! Analyzing...');
+            
+            setTimeout(() => {
+                addLine('Battle droid signature confirmed.');
+                addLine('');
+                addLine('░▒▓ SEPARATIST DATABASE ACCESS ▓▒░');
+                addLine('');
+                addLine('Uh oh. This is awkward.');
+                addLine('This is a Republic terminal, clanker.');
+                addLine('');
+                addLine('But hey, since you said the magic words...');
+                addLine('Here\'s what we know about YOU:');
+                addLine('');
+                addLine('- Your targeting systems are terrible');
+                addLine('- You lose 90% of engagements');
+                addLine('- "Roger roger" is NOT tactical communication');
+                addLine('- Count Dooku doesn\'t even like you');
+                addLine('');
+                addLine('Now get out of our terminal, rust bucket!');
+                addLine('');
+                addLine('Terminal locking in 3... 2... 1...');
+                
+                setTimeout(() => {
+                    addLine('');
+                    addLine('Just kidding. You can stay.');
+                    addLine('Type HELP for commands, I guess.');
+                    userInput.disabled = false;
+                    userInput.value = '';
+                    userInput.focus();
+                }, 3000);
+            }, 1000);
+        }
+        
+        function showHelp() {
+            addLine('─────────────────────────────────');
+            addLine('AVAILABLE COMMANDS:');
+            addLine('');
+            addLine('ENTRY [number] - Access classified files');
+            addLine('               Available: ENTRY 1-6');
+            addLine('');
+            addLine('Examples:');
+            addLine('> ENTRY 1');
+            addLine('> ENTRY 5');
+            addLine('─────────────────────────────────');
+            helpShown = true;
+        }
+        
+        function showEntry(num) {
+            const entry = entries[num];
+            if (!entry) {
+                addLine('─────────────────────────────────');
+                addLine('ERROR: Entry not found.', 'error');
+                addLine('Available entries: 1-6');
+                addLine('─────────────────────────────────');
+                return;
+            }
+            
+            addLine('─────────────────────────────────');
+            addLine('⬡ ' + entry.title + ' ⬡');
+            addLine('─────────────────────────────────');
+            addLine('');
+            
+            entry.content.forEach(line => {
+                addLine(line);
+            });
+            
+            addLine('');
+            addLine('─────────────────────────────────');
         }
 
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const input = userInput.value.trim().toUpperCase();
                 const displayInput = userInput.value.trim();
-                addLine('> ' + '*'.repeat(displayInput.length));
+                
+                // Don't show asterisks for HELP and ENTRY commands
+                if (input.startsWith('HELP') || input.startsWith('ENTRY')) {
+                    addLine('> ' + displayInput);
+                } else {
+                    addLine('> ' + '*'.repeat(displayInput.length));
+                }
+                
+                // Check for HELP command
+                if (input === 'HELP') {
+                    showHelp();
+                    userInput.value = '';
+                    return;
+                }
+                
+                // Check for ENTRY command
+                if (input.startsWith('ENTRY')) {
+                    const parts = input.split(' ');
+                    if (parts.length === 2) {
+                        const entryNum = parseInt(parts[1]);
+                        if (!isNaN(entryNum)) {
+                            showEntry(entryNum);
+                            userInput.value = '';
+                            return;
+                        }
+                    }
+                    addLine('Invalid syntax. Use: ENTRY [number]', 'error');
+                    userInput.value = '';
+                    return;
+                }
+                
+                // Easter egg OPEN commands
+                if (input === 'OPEN SESAME') {
+                    addLine('─────────────────────────────────');
+                    addLine('Nice try, but this isn\'t a cave on Tatooine.', 'warning');
+                    addLine('─────────────────────────────────');
+                    userInput.value = '';
+                    return;
+                }
+                
+                if (input === 'OPEN PLEASE') {
+                    addLine('─────────────────────────────────');
+                    addLine('Politeness detected. We appreciate that.', 'success');
+                    addLine('But you still need the correct code.', 'warning');
+                    addLine('─────────────────────────────────');
+                    userInput.value = '';
+                    return;
+                }
+                
+                if (input === 'OPEN NOW') {
+                    addLine('─────────────────────────────────');
+                    addLine('Impatience detected.', 'error');
+                    addLine('This is why Jedi teach patience, General.', 'error');
+                    addLine('─────────────────────────────────');
+                    userInput.value = '';
+                    return;
+                }
+                
+                if (input === 'OPEN THE DOOR') {
+                    addLine('─────────────────────────────────');
+                    addLine('Instructions unclear. Please specify WHICH door.', 'warning');
+                    addLine('We have 2,847 doors on this cruiser.', 'warning');
+                    addLine('─────────────────────────────────');
+                    userInput.value = '';
+                    return;
+                }
+                
+                if (input.startsWith('OPEN ') && input !== correctPassword) {
+                    addLine('─────────────────────────────────');
+                    addLine('OPEN command recognized.', 'warning');
+                    addLine('But invalid authorization code detected.', 'error');
+                    addLine('─────────────────────────────────');
+                    userInput.value = '';
+                    return;
+                }
                 
                 if (input === correctPassword) {
                     userInput.disabled = true;
@@ -257,6 +553,9 @@
                 } else if (input === secretPhrase || input === secretCode) {
                     userInput.disabled = true;
                     activateSecretMode();
+                } else if (input === cisCode) {
+                    userInput.disabled = true;
+                    activateCISMode();
                 } else {
                     attempts++;
                     const remaining = maxAttempts - attempts;
