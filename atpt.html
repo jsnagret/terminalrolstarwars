@@ -2,62 +2,43 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AT-PT Felucia Terminal</title>
+<title>AT-PT Felucia Prison Break Terminal</title>
 <style>
 body{
-    background:#050b0a;
+    background:#040b09;
     color:#3aff7a;
     font-family: monospace;
 }
-
 #terminal{
-    width:900px;
+    width:1100px;
     margin:auto;
     border:2px solid #3aff7a;
     padding:20px;
-    box-shadow:0 0 20px #0f5;
+    box-shadow:0 0 25px #0f5;
 }
-
 #header{
     text-align:center;
     letter-spacing:2px;
     margin-bottom:10px;
 }
-
 #screen{
     display:flex;
     gap:20px;
 }
-
 #mapFrame{
     border:1px solid #3aff7a;
     background:#031a12;
-    position:relative;
 }
-
 canvas{
-    background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="600" height="400" fill="%23041a12"/><circle cx="450" cy="200" r="80" fill="%230a301f" opacity="0.5"/></svg>');
+    background:#052e1e;
 }
-
 #ui{
-    width:250px;
+    width:260px;
     border:1px solid #3aff7a;
     padding:10px;
 }
-
-.lever{
-    margin:20px 0;
-}
-
-label{display:block;margin-bottom:5px;}
-
-.slider{
-    width:100%;
-}
-
-.warning{
-    color:#ff4;
-}
+.lever{ margin:20px 0; }
+.slider{ width:100%; }
 
 #legend{
     font-size:12px;
@@ -71,35 +52,32 @@ label{display:block;margin-bottom:5px;}
 
 <div id="header">
 ██ AT-PT TACTICAL TERMINAL ██  
-<br>SECTOR: FELUCIA — PRISON PERIMETER
+<br>FELUCIA — PRISON BREAK → BUNKER RUN
 </div>
 
 <div id="screen">
 
 <div id="mapFrame">
-<canvas id="map" width="600" height="400"></canvas>
+<canvas id="map" width="900" height="600"></canvas>
 </div>
 
 <div id="ui">
 <div class="lever">
 <label>▲ THRUST (Forward)</label>
-<input id="thrust" type="range" min="0" max="5" value="0" class="slider">
+<input id="thrust" type="range" min="0" max="6" value="0" class="slider">
 </div>
 
 <div class="lever">
 <label>◀ STEERING ▶</label>
-<input id="steer" type="range" min="-3" max="3" value="0" class="slider">
-</div>
-
-<div class="warning">
-! COLLISION DETECTION ACTIVE
+<input id="steer" type="range" min="-4" max="4" value="0" class="slider">
 </div>
 
 <div id="legend">
-GREEN = Swamp / Jungle  
+BLUE = Your AT-PT  
 GRAY = Rocks (solid)  
-RED ZONE = Prison Complex  
-BLUE = Your AT-PT
+WHITE = Walls  
+RED = Prison  
+YELLOW = Bunker  
 </div>
 </div>
 
@@ -110,34 +88,59 @@ BLUE = Your AT-PT
 const c = document.getElementById("map");
 const ctx = c.getContext("2d");
 
-let x = 100;
-let y = 200;
+// --- START INSIDE PRISON ---
+let x = 180;
+let y = 300;
 let angle = 0;
 
-// rock obstacles (Felucia boulders)
-const rocks = [
- {x:200,y:120,r:35},
- {x:260,y:300,r:40},
- {x:380,y:180,r:30},
- {x:500,y:250,r:50}
+// Prison compound (start area)
+const prison = {x:120,y:200,w:260,h:200};
+
+// Bunker objective
+const bunker = {x:680,y:260,w:140,h:80};
+
+// Walls (you cannot cross these)
+const walls = [
+ {x:380,y:0,w:20,h:600},      // central wall
+ {x:550,y:0,w:20,h:250},      // upper corridor wall
+ {x:550,y:350,w:20,h:250},    // lower corridor wall
+ {x:700,y:200,w:20,h:200}     // bunker gate wall
 ];
 
-// prison zone
-const prison = {x:480,y:100,w:100,h:200};
+// Rocks
+const rocks = [
+ {x:450,y:150,r:45},
+ {x:520,y:450,r:55},
+ {x:650,y:120,r:35},
+ {x:300,y:480,r:50}
+];
 
 function drawMap(){
- ctx.clearRect(0,0,600,400);
+ ctx.clearRect(0,0,900,600);
 
- // swamp background
+ // jungle swamp background
  ctx.fillStyle="#052e1e";
- ctx.fillRect(0,0,600,400);
+ ctx.fillRect(0,0,900,600);
 
  // prison zone
  ctx.strokeStyle="red";
  ctx.lineWidth=2;
  ctx.strokeRect(prison.x,prison.y,prison.w,prison.h);
- ctx.fillStyle="rgba(255,0,0,0.05)";
+ ctx.fillStyle="rgba(255,0,0,0.08)";
  ctx.fillRect(prison.x,prison.y,prison.w,prison.h);
+
+ // bunker
+ ctx.strokeStyle="yellow";
+ ctx.lineWidth=2;
+ ctx.strokeRect(bunker.x,bunker.y,bunker.w,bunker.h);
+ ctx.fillStyle="rgba(255,255,0,0.08)";
+ ctx.fillRect(bunker.x,bunker.y,bunker.w,bunker.h);
+
+ // walls
+ ctx.fillStyle="white";
+ walls.forEach(w=>{
+   ctx.fillRect(w.x,w.y,w.w,w.h);
+ });
 
  // rocks
  ctx.fillStyle="#666";
@@ -147,26 +150,36 @@ function drawMap(){
    ctx.fill();
  });
 
- // AT-PT marker (triangle)
+ // AT-PT marker
  ctx.save();
  ctx.translate(x,y);
  ctx.rotate(angle);
  ctx.fillStyle="#4af";
  ctx.beginPath();
- ctx.moveTo(10,0);
- ctx.lineTo(-8,6);
- ctx.lineTo(-8,-6);
+ ctx.moveTo(14,0);
+ ctx.lineTo(-10,8);
+ ctx.lineTo(-10,-8);
  ctx.closePath();
  ctx.fill();
  ctx.restore();
 }
 
-function collides(nx,ny){
+function hitsRock(nx,ny){
  for(let r of rocks){
    let dx = nx - r.x;
    let dy = ny - r.y;
-   if(Math.sqrt(dx*dx+dy*dy) < r.r + 8){
+   if(Math.sqrt(dx*dx+dy*dy) < r.r + 10){
      return true;
+   }
+ }
+ return false;
+}
+
+function hitsWall(nx,ny){
+ for(let w of walls){
+   if(nx > w.x && nx < w.x+w.w &&
+      ny > w.y && ny < w.y+w.h){
+        return true;
    }
  }
  return false;
@@ -181,14 +194,13 @@ function update(){
  let nx = x + Math.cos(angle) * thrust;
  let ny = y + Math.sin(angle) * thrust;
 
- if(!collides(nx,ny)){
+ if(!hitsRock(nx,ny) && !hitsWall(nx,ny)){
    x = nx;
    y = ny;
  }
 
- // keep inside map
- x = Math.max(10, Math.min(590,x));
- y = Math.max(10, Math.min(390,y));
+ x = Math.max(10, Math.min(890,x));
+ y = Math.max(10, Math.min(590,y));
 
  drawMap();
  requestAnimationFrame(update);
