@@ -884,7 +884,17 @@
             addLine('');
             addLine('─────────────────────────────────');
         }
-        
+        function showCustomLog(title, lines, type = '') {
+            addLine('─────────────────────────────────');
+            addLine(title, type);
+            addLine('─────────────────────────────────');
+            addLine('');
+            lines.forEach(line => addLine(line));
+            addLine('');
+            addLine('─────────────────────────────────');
+        }
+
+
         // Show status
         function showStatus() {
             addLine('─────────────────────────────────');
@@ -955,7 +965,96 @@
                     userInput.value = '';
                     return;
                 }
-                
+                // === SECRET KEYWORDS ===
+
+                // TONY D EWOK — Funny Ewok joke
+                if (input === 'TONY D EWOK') {
+                    showCustomLog(
+                        'EWOK COMMUNICATION INTERCEPT',
+                        [
+                            'Source: Forest Moon of Endor',
+                            'Translation confidence: LOW',
+                            '',
+                            '"Yub nub! Big metal trooper fall down go boom!"',
+                            '"Then Ewok take helmet. Helmet too big."',
+                            '',
+                            'Analysis:',
+                            '- Ewoks appear to believe helmets are hats',
+                            '- Subject Tony D. Ewok considered "local legend"',
+                            '',
+                            'Threat Level: ADORABLE BUT CONCERNING'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // JOHN DIVER — Dangerous prisoner log (cool tone)
+                if (input === 'JOHN DIVER') {
+                    showCustomLog(
+                        'REPUBLIC PRISONER LOG — TERMINATED',
+                        [
+                            'Name: John Diver',
+                            'Classification: EXTREME RISK',
+                            'Detention Facility: Black Site R-9',
+                            '',
+                            'Crimes:',
+                            '- Sabotage of three Republic cruisers',
+                            '- Confirmed Jedi casualties',
+                            '- Unauthorized Force-adjacent experimentation',
+                            '',
+                            'Incident Report:',
+                            'During transfer, facility suffered a containment breach.',
+                            'Security footage shows an Assassin Spider Droid',
+                            'entering Cell Block D.',
+                            '',
+                            'Audio recovered:',
+                            '"Wait— that thing isn’t scheduled—"',
+                            '',
+                            'Result:',
+                            'Prisoner terminated.',
+                            'Spider Droid unrecovered.',
+                            '',
+                            'Status: CASE CLOSED'
+                        ],
+                        'error'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // GUNGA GREG — Escaped prisoner
+                if (input === 'GUNGA GREG') {
+                    showCustomLog(
+                        'ESCAPE INCIDENT REPORT',
+                        [
+                            'Subject: Gunga Greg',
+                            'Species: Gungan',
+                            'Former Status: Detained Agitator',
+                            '',
+                            'Details:',
+                            'Subject was last seen complaining loudly',
+                            'about food portions and "unfair cell vibes."',
+                            '',
+                            'Security failure occurred at 0300 hours.',
+                            'Cell found empty.',
+                            'Walls wet.',
+                            'Very wet.',
+                            '',
+                            'Note:',
+                            'Several guards report hearing:',
+                            '"Mesa free now!"',
+                            '',
+                            'Current Status: AT LARGE',
+                            'Recommendation: Do NOT pursue near water.'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
                 // Easter egg OPEN commands
                 const easterEggs = {
                     'OPEN SESAME': 'Nice try, but this isn\'t a cave on Tatooine.',
