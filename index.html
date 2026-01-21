@@ -3,82 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <title>Resonance Lattice</title>
+
 <style>
-    body {
-        background: #000;
-        color: #0f0;
-        font-family: "Courier New", monospace;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        overflow: hidden;
-    }
+body {
+    background:
+        radial-gradient(circle at center, #3a2a12 0%, #140c04 70%);
+    color: #ffd36a;
+    font-family: "Courier New", monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
 
-    h1 {
-        margin-bottom: 10px;
-        letter-spacing: 2px;
-    }
+h1 {
+    letter-spacing: 3px;
+    color: #ffcc55;
+    text-shadow: 0 0 8px #664400;
+}
 
-    #strain {
-        margin-bottom: 15px;
-        color: #ff5555;
-    }
+#strain {
+    margin-bottom: 12px;
+    color: #ff9966;
+}
 
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(3, 100px);
-        grid-template-rows: repeat(3, 100px);
-        gap: 10px;
-    }
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    grid-template-rows: repeat(3, 110px);
+    gap: 12px;
+}
 
-    .rune {
-        border: 2px solid #0f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
-        user-select: none;
-    }
+.rune {
+    position: relative;
+    background:
+        radial-gradient(circle at top left, #5a3c1a, #2b1a08);
+    border: 2px solid #cfa44a;
+    border-radius: 10px;
+    box-shadow:
+        inset 0 0 15px rgba(0,0,0,0.8),
+        0 0 10px rgba(255,200,80,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
 
-    .center {
-        background: #003300;
-        cursor: default;
-    }
+.rune:hover {
+    box-shadow: 0 0 15px rgba(255,210,120,0.4);
+}
 
-    .locked {
-        border-color: #ff0;
-        color: #ff0;
-    }
+.center {
+    cursor: default;
+    background:
+        radial-gradient(circle, #7a5522, #2d1b07);
+}
 
-    .active {
-        background: #004400;
-    }
+.locked {
+    border-color: #ffdd66;
+    box-shadow: 0 0 12px rgba(255,220,120,0.6);
+}
 
-    #log {
-        margin-top: 15px;
-        height: 40px;
-        text-align: center;
-        width: 320px;
-    }
+.symbol {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    font-size: 14px;
+    opacity: 0.6;
+}
 
-    button {
-        margin-top: 10px;
-        background: #000;
-        color: #0f0;
-        border: 1px solid #0f0;
-        padding: 5px 15px;
-        cursor: pointer;
-    }
+.arrow {
+    width: 25px;
+    height: 25px;
+    transition: transform 0.25s;
+}
 
-    button:hover {
-        background: #003300;
-    }
+.active {
+    box-shadow: 0 0 25px rgba(255,220,120,0.8);
+}
+
+#log {
+    margin-top: 15px;
+    width: 340px;
+    text-align: center;
+    min-height: 40px;
+    color: #ffcc88;
+}
+
+button {
+    margin-top: 10px;
+    background: #2b1a08;
+    color: #ffd36a;
+    border: 1px solid #cfa44a;
+    padding: 6px 18px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #3b260c;
+}
 </style>
 </head>
+
 <body>
 
 <h1>RESONANCE LATTICE</h1>
@@ -88,24 +115,27 @@
 
 <button onclick="useForce()">Channel the Force</button>
 
-<div id="log">The runes lie dormant.</div>
+<div id="log">Dust coats the ancient mechanism.</div>
 
 <script>
-const directions = ["↑","→","↓","←"];
+const rotations = [0, 90, 180, 270];
 let strain = 0;
 const maxStrain = 5;
 
-// index positions that should point toward center (index 4)
+// Required rotations pointing inward
 const required = {
-    0: "↓",
-    1: "↓",
-    2: "↓",
-    3: "→",
-    5: "←",
-    6: "↑",
-    7: "↑",
-    8: "↑"
+    0: 180,
+    1: 180,
+    2: 180,
+    3: 90,
+    5: 270,
+    6: 0,
+    7: 0,
+    8: 0
 };
+
+// Ancient-looking symbols
+const symbols = ["⟁","⌖","⟡","⌁","⍜","⎔","⟢","⟁"];
 
 let runes = [];
 const forceRuneIndex = Math.floor(Math.random() * 8);
@@ -122,11 +152,22 @@ function createRunes() {
 
         if (i === 4) {
             div.classList.add("center");
-            div.textContent = "◉";
+            div.innerHTML = `<span class="symbol">◉</span>`;
         } else {
-            const dirIndex = Math.floor(Math.random() * 4);
-            runes[i] = dirIndex;
-            div.textContent = directions[dirIndex];
+            const rotIndex = Math.floor(Math.random() * 4);
+            runes[i] = rotIndex;
+
+            const img = document.createElement("img");
+            img.src = "arrow.png";
+            img.classList.add("arrow");
+            img.style.transform = `rotate(${rotations[rotIndex]}deg)`;
+
+            const sym = document.createElement("div");
+            sym.classList.add("symbol");
+            sym.textContent = symbols[i % symbols.length];
+
+            div.appendChild(img);
+            div.appendChild(sym);
 
             if (i === forceRuneIndex) {
                 div.classList.add("locked");
@@ -141,11 +182,12 @@ function createRunes() {
 
 function rotateRune(i) {
     if (i === forceRuneIndex) {
-        log.textContent = "This rune resists logic.";
+        log.textContent = "The rune refuses logic. It hums softly.";
         return;
     }
     runes[i] = (runes[i] + 1) % 4;
-    grid.children[i].textContent = directions[runes[i]];
+    grid.children[i].querySelector(".arrow")
+        .style.transform = `rotate(${rotations[runes[i]]}deg)`;
     checkWin();
 }
 
@@ -154,25 +196,27 @@ function useForce() {
     strainDiv.textContent = `Mental Strain: ${strain} / ${maxStrain}`;
 
     if (strain >= maxStrain) {
-        log.textContent = "Your vision fractures. The lattice rejects you.";
+        log.textContent =
+            "Pain fractures your thoughts. Sand fills the chamber.";
         grid.style.opacity = "0.3";
         return;
     }
 
     runes[forceRuneIndex] = (runes[forceRuneIndex] + 1) % 4;
-    grid.children[forceRuneIndex].textContent =
-        directions[runes[forceRuneIndex]];
+    grid.children[forceRuneIndex].querySelector(".arrow")
+        .style.transform = `rotate(${rotations[runes[forceRuneIndex]]}deg)`;
 
-    log.textContent = "The rune trembles and turns.";
+    log.textContent = "The locked rune yields… reluctantly.";
     checkWin();
 }
 
 function checkWin() {
     for (let i in required) {
-        if (directions[runes[i]] !== required[i]) return;
+        if (rotations[runes[i]] !== required[i]) return;
     }
 
-    log.textContent = "Resonance achieved. The ruins awaken.";
+    log.textContent =
+        "The lattice aligns. Stone grinds open beneath the sand.";
     grid.querySelectorAll(".rune").forEach(r => r.classList.add("active"));
 }
 
