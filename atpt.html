@@ -524,26 +524,14 @@ function drawATPT(){
  // Right Leg (front right) - opposite phase
  ctx.fillStyle="#999";
  ctx.fillRect(-5, 12 + legOffset, 8, 25);
- 
- // Back Left Leg
- ctx.fillStyle="#999";
- ctx.fillRect(-15, -10 + legOffset, 8, 22);
- 
- // Back Right Leg
- ctx.fillStyle="#999";
- ctx.fillRect(-15, 10 - legOffset, 8, 22);
- 
+
  // Leg joints/feet
  ctx.fillStyle="#777";
  // Front left foot
  ctx.fillRect(-5, -12 - legOffset + 22, 10, 4);
  // Front right foot
  ctx.fillRect(-5, 12 + legOffset + 22, 10, 4);
- // Back left foot
- ctx.fillRect(-15, -10 + legOffset + 20, 10, 4);
- // Back right foot
- ctx.fillRect(-15, 10 - legOffset + 20, 10, 4);
- 
+
  // Thrust effect (rear exhaust)
  const thrust = document.getElementById("thrust").value;
  if(thrust > 0){
