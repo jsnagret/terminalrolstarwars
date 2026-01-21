@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal de Acceso Seguro</title>
+    <title>Republic Security Terminal</title>
     <style>
         * {
             margin: 0;
@@ -19,35 +19,237 @@
             align-items: center;
             min-height: 100vh;
             color: #0f0;
+            overflow: hidden;
         }
 
-        .terminal {
-            width: 90%;
-            max-width: 800px;
-            background: #0a0a0a;
-            border: 2px solid #0f0;
+        /* Screen container - FIXED SIZE */
+        .screen-container {
+            width: 900px; /* Fixed width */
+            height: 700px; /* Fixed height */
+            background: #111;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 0 0 1px #333,
+                0 0 30px rgba(0, 50, 0, 0.7),
+                inset 0 0 20px rgba(0, 0, 0, 0.9);
+            position: relative;
+            z-index: 2;
+            border: 2px solid #222;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Power controls */
+        .power-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .power-btn {
+            background: linear-gradient(to bottom, #333, #111);
+            color: #aaa;
+            border: 1px solid #444;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .power-btn:hover {
+            color: #fff;
+            border-color: #666;
+            box-shadow: 0 0 10px rgba(100, 100, 100, 0.5);
+        }
+
+        .power-btn:active {
+            transform: translateY(1px);
+        }
+
+        .power-btn.on {
+            color: #0f0;
+            border-color: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .power-btn.off {
+            color: #f00;
+            border-color: #f00;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            color: #666;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .status-light {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #300;
+            margin-right: 8px;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .status-light.on {
+            background: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        .screen-label {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        /* Main screen area - FIXED SIZE */
+        .screen-area {
+            flex: 1;
+            background: #000;
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+            min-height: 0; /* Important for flex child */
+        }
+
+        /* Screen effects INSIDE the screen area */
+        .screen-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .screen-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+            background: 
+                linear-gradient(transparent 0%, rgba(0, 255, 0, 0.05) 2%, transparent 5%),
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            mix-blend-mode: overlay;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            z-index: 2;
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .flicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            z-index: 3;
+            opacity: 0;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.05; }
+        }
+
+        .noise {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            z-index: 4;
+            opacity: 0.25;
+            mix-blend-mode: overlay;
+        }
+
+        /* Terminal styling - FIXED SIZE INSIDE SCREEN */
+        .terminal {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .terminal-header {
             border-bottom: 1px solid #0f0;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
-            font-size: 18px;
+            font-size: 16px;
             letter-spacing: 2px;
+            flex-shrink: 0;
         }
 
         .terminal-output {
-            min-height: 300px;
-            margin-bottom: 20px;
+            flex: 1;
+            overflow-y: auto;
             line-height: 1.6;
+            padding-right: 5px;
+            min-height: 0; /* Important for flex child */
+        }
+
+        .terminal-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-output::-webkit-scrollbar-track {
+            background: rgba(0, 30, 0, 0.3);
+        }
+
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.5);
+            border-radius: 4px;
         }
 
         .line {
-            margin: 5px 0;
+            margin: 4px 0;
             animation: fadeIn 0.3s;
         }
 
@@ -68,6 +270,10 @@
         .input-line {
             display: flex;
             align-items: center;
+            border-top: 1px solid rgba(0, 255, 0, 0.3);
+            padding-top: 10px;
+            margin-top: 10px;
+            flex-shrink: 0;
         }
 
         .prompt {
@@ -103,7 +309,6 @@
         .yellow-mode {
             color: #ffff00 !important;
             border-color: #ffff00 !important;
-            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3) !important;
         }
 
         .yellow-mode .prompt,
@@ -119,7 +324,6 @@
         .blue-mode {
             color: #4da6ff !important;
             border-color: #4da6ff !important;
-            box-shadow: 0 0 20px rgba(77, 166, 255, 0.3) !important;
         }
 
         .blue-mode .prompt,
@@ -133,7 +337,7 @@
         }
 
         .hexagon {
-            font-size: 80px;
+            font-size: 60px;
             text-align: center;
             margin: 20px 0;
             animation: pulse 2s infinite;
@@ -152,21 +356,139 @@
 
         .door-animation {
             text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
+            font-size: 20px;
+            margin-top: 15px;
         }
 
+        /* Screen off state - COMPLETELY BLACK */
+        .screen-off .screen-area {
+            background: #000 !important;
+        }
+
+        .screen-off .terminal {
+            display: none !important;
+        }
+
+        .screen-off .screen-effects {
+            display: none !important;
+        }
+
+        /* Screen corners */
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            z-index: 6;
+        }
+
+        .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Hidden elements */
         .hidden {
-            display: none;
+            display: none !important;
+        }
+
+        /* Power on animation */
+        .powering-on .terminal {
+            animation: powerOn 1.5s ease-out;
+        }
+
+        @keyframes powerOn {
+            0% { 
+                opacity: 0;
+                filter: brightness(0);
+            }
+            20% { 
+                opacity: 0.1;
+                filter: brightness(0.1);
+            }
+            40% { 
+                opacity: 0.3;
+                filter: brightness(0.3);
+            }
+            60% { 
+                opacity: 0.6;
+                filter: brightness(0.6);
+            }
+            80% { 
+                opacity: 0.8;
+                filter: brightness(0.9);
+            }
+            100% { 
+                opacity: 1;
+                filter: brightness(1);
+            }
+        }
+
+        /* Special animation for General Grievous mode */
+        @keyframes grievousPulse {
+            0%, 100% { 
+                color: #ff6600;
+                text-shadow: 0 0 10px #ff6600;
+            }
+            50% { 
+                color: #ff3300;
+                text-shadow: 0 0 20px #ff3300;
+            }
+        }
+
+        .grievous-mode {
+            color: #ff6600 !important;
+            border-color: #ff6600 !important;
+            animation: grievousPulse 2s infinite;
+        }
+
+        .grievous-mode .prompt,
+        .grievous-mode #userInput {
+            color: #ff6600 !important;
+            caret-color: #ff6600 !important;
+        }
+
+        .grievous-mode .line {
+            color: #ff6600 !important;
+            animation: grievousPulse 2s infinite;
         }
     </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="terminal-header">
-            ═══ REPUBLIC SECURITY TERMINAL ═══
+    <!-- Main screen container -->
+    <div class="screen-container">
+        <!-- Power controls -->
+        <div class="power-controls">
+            <button id="powerOn" class="power-btn on">Power On</button>
+            <div class="status-indicator">
+                <div id="statusLight" class="status-light"></div>
+                <span id="statusText">OFFLINE</span>
+            </div>
+            <button id="powerOff" class="power-btn off">Power Off</button>
         </div>
-<<<<<<< HEAD
         
         <!-- Screen label -->
         <div class="screen-label">Republic Security Terminal v2.1</div>
@@ -197,29 +519,34 @@
                 </div>
                 <div class="input-line">
                     <span class="prompt">></span>
-                    <input type="text" id="userInput" autocomplete="off" disabled>
+                    <input type="password" id="userInput" autocomplete="off" disabled>
                     <span class="blink">█</span>
                 </div>
             </div>
-=======
-        <div class="terminal-output" id="output">
-            <div class="line">System initialized...</div>
-            <div class="line">Connecting to secure network...</div>
-            <div class="line success">Connection established.</div>
-            <div class="line">─────────────────────────────────</div>
-            <div class="line">Enter access code to proceed:</div>
->>>>>>> parent of 1e6d8cb (2.0)
         </div>
-        <div class="input-line">
-            <span class="prompt">></span>
-            <input type="password" id="userInput" autofocus autocomplete="off">
-            <span class="blink">█</span>
+        
+        <!-- Bottom label -->
+        <div class="screen-label" style="margin-top: 15px;">
+            Galactic Republic • Secure Channel 7 • Encryption Active
         </div>
     </div>
 
     <script>
+        // DOM Elements
+        const terminal = document.getElementById('terminal');
         const output = document.getElementById('output');
         const userInput = document.getElementById('userInput');
+        const powerOnBtn = document.getElementById('powerOn');
+        const powerOffBtn = document.getElementById('powerOff');
+        const statusLight = document.getElementById('statusLight');
+        const statusText = document.getElementById('statusText');
+        const screenContainer = document.querySelector('.screen-container');
+        const screenArea = document.querySelector('.screen-area');
+        const screenEffects = document.querySelector('.screen-effects');
+        const flickerEffect = document.querySelector('.flicker');
+        const scanLine = document.querySelector('.scan-line');
+        
+        // Terminal state
         const correctPassword = 'OPEN 2001';
         const secretPhrase = 'CONFEDERACY OF EQUALITY';
         const secretCode = 'CII';
@@ -227,11 +554,10 @@
         let attempts = 0;
         const maxAttempts = 5;
         let helpShown = false;
+        let isPoweredOn = false;
+        let isInitialized = false;
         
-<<<<<<< HEAD
-        // Terminal entries data with new additions
-=======
->>>>>>> parent of 1e6d8cb (2.0)
+        // Terminal entries data - UPDATED WITH NEW ENTRIES
         const entries = {
             1: {
                 title: "INCIDENT REPORT - UNIDENTIFIED COMBATANTS",
@@ -339,13 +665,10 @@
                     "Reported by: Commander Bly, 327th Star Corps",
                     "",
                     "During patrol on Felucia, squad encountered unknown droid.",
-                    "Designation appeared to be 'SF-1207' (non-standard).",
+                    "Designation appeared to be 'F-01' (non-standard).",
                     "",
                     "Droid did not engage. Did not flee.",
                     "Stood motionless. Appeared to be... observing us.",
-                    "",
-                    "When approached, droid spoke:",
-                    "'I do not wish to harm you. I am... learning.'",
                     "",
                     "Droid vanished before capture. Method unknown.",
                     "No hyperdrive signature. No cloaking device detected.",
@@ -356,225 +679,133 @@
                     "STATUS: UNKNOWN THREAT LEVEL"
                 ]
             },
-            // NEW ENTRY 7: Gallagher prison escape
+            // NEW ENTRY 7: Clone Trooper Gallagher Escape
             7: {
-                title: "PRISON BREAK - CITADEL STATION INCIDENT",
+                title: "PRISON BREAK INCIDENT - CT-2319 'GALLAGHER'",
                 content: [
-                    "CLASSIFIED - HIGH PRIORITY",
-                    "Location: Citadel Station, Lola Sayu",
-                    "Date: 20 BBY",
-                    "",
-                    "Subject: Clone Trooper CT-6969 'Gallagher'",
-                    "Classification: Missing/Presumed Deserter",
+                    "URGENT - MAXIMUM SECURITY BREACH",
+                    "Location: Republic Detention Center Alpha-7",
+                    "Date: 3.5.21 BBY",
+                    "Time: 0347 Galactic Standard",
                     "",
                     "INCIDENT SUMMARY:",
-                    "During a droid assault on Citadel Station,",
-                    "CT-6969 'Gallagher' escaped with two prisoners:",
-                    "Gunga Greg (Gungan smuggler) and John Diver",
-                    "(fallen Jedi Knight turned mercenary).",
+                    "During a full-scale droid assault on Alpha-7 facility,",
+                    "Clone Trooper CT-2319 (codename: Gallagher) escaped",
+                    "custody alongside two high-risk prisoners:",
                     "",
-                    "Security footage shows Gallagher using the",
-                    "droid invasion as cover for the escape.",
-                    "He demonstrated exceptional combat skills,",
-                    "disabling 12 security droids with minimal",
-                    "weaponry.",
+                    "1. GUNGA GREG - Gungan agitator",
+                    "   Charges: Repeated sabotage of Naboo shipping lanes",
                     "",
-                    "PERSONNEL FILE - CT-6969 'GALLAGHER':",
-                    "- Special Ops training (ARC trooper program)",
-                    "- Multiple commendations for bravery",
-                    "- Recently transferred to prison detail",
-                    "- Psychological evaluation: 'Unusual',
-                    'shows signs of independent thinking'",
+                    "2. JOHN DIVER - Human male",
+                    "   Charges: Republic secrets trafficking",
+                    "   Status: DECEASED (killed during escape)",
                     "",
-                    "ASSOCIATES:",
-                    "Gunga Greg: Known arms dealer to both",
-                    "Republic and Separatist forces.",
-                    "John Diver: Former Jedi, expelled from",
-                    "Order for 'reckless tactics'.",
+                    "ESCAPE DETAILS:",
+                    "- Assault coincided with CIS probe droid incursion",
+                    "- Gallagher utilized chaos to override cell security",
+                    "- Security footage shows Gallagher leading prisoners",
+                    "- Used maintenance tunnels to access hangar bay",
+                    "- Stole Republic shuttle 'Lightbringer'",
                     "",
-                    "STATUS: ACTIVE HUNT",
-                    "BOUNTY: 50,000 CREDITS (DEAD OR ALIVE)"
+                    "CURRENT STATUS:",
+                    "✓ Gunga Greg: AT LARGE",
+                    "✓ John Diver: CONFIRMED KIA (droid fire)",
+                    "✓ CT-2319 Gallagher: AT LARGE",
+                    "",
+                    "THREAT ASSESSMENT: HIGH",
+                    "Gallagher considered highly dangerous and resourceful.",
+                    "Last known heading: Outer Rim Territories.",
+                    "",
+                    "SPECIAL NOTES:",
+                    "Gallagher was awaiting court-martial for:",
+                    "- Insubordination",
+                    "- Fraternization with enemy combatants",
+                    "- Unauthorized tactical modifications to armor",
+                    "",
+                    "BOLO issued for Republic shuttle 'Lightbringer'",
+                    "All Republic outposts notified."
                 ]
             },
-            // NEW ENTRY 8: Prototype TIE fighter
+            // NEW ENTRY 8: Prototype TIE Fighter
             8: {
-                title: "PROJECT BLACKWING - PROTOTYPE FIGHTER",
+                title: "PROJECT: SENTINEL - PROTOTYPE INTERCEPTOR",
                 content: [
-                    "TOP SECRET - PROJECT BLACKWING",
-                    "Location: Kuat Drive Yards, Research Facility 7",
-                    "Date: 21 BBY (PROJECT INITIATED: 24 BBY)",
+                    "TOP SECRET - JEDI COUNCIL EYES ONLY",
+                    "Project Designation: 'SENTINEL'",
+                    "Classification: EXPERIMENTAL COMBAT PLATFORM",
+                    "Development Site: Rothana Heavy Engineering",
                     "",
                     "PROJECT OVERVIEW:",
-                    "Covert Republic/Kuat joint venture to develop",
-                    "next-generation starfighter technology.",
-                    "Design influenced by captured Separatist data.",
+                    "The SENTINEL project represents a radical departure",
+                    "from traditional starfighter design, incorporating",
+                    "advanced technologies from multiple sources:",
                     "",
-                    "CRAFT SPECIFICATIONS:",
-                    "Designation: TIE/ln (Twin Ion Engine/Light)",
-                    "Features:",
-                    "- Twin Ion Engines (experimental)",
-                    "- Solar panel wings (power collection)",
-                    "- No shield generators (weight reduction)",
-                    "- Hyperdrive: NONE (launcher deployment only)",
-                    "- Crew: 1 pilot",
+                    "DESIGN SPECIFICATIONS:",
+                    "- Twin Ion Engine system (experimental)",
+                    "- Solar collector panels for energy weapon focus",
+                    "- Minimalist cockpit with advanced droid brain assist",
+                    "- Plasma-based weapon systems (prototype)",
+                    "- Advanced sensor-scattering hull coating",
                     "",
-                    "PERFORMANCE DATA:",
-                    "Speed: 100 MGLT (faster than current V-wings)",
-                    "Maneuverability: Class 2 (highly agile)",
-                    "Armament: 2 laser cannons",
-                    "Defense: Minimal armor only",
+                    "PERFORMANCE CHARACTERISTICS:",
+                    "Speed: 125 MGLT (estimated)",
+                    "Maneuverability: Class 1.5",
+                    "Shielding: Experimental particle barrier",
+                    "Armament: 2x plasma cannons, 1x ion disruptor",
                     "",
-                    "TEST PILOT NOTES:",
-                    "'Craft is incredibly fast but fragile.",
-                    "The engine scream is... unnerving.",
-                    "Flies like a coffin with guns.'",
-                    "- Commander 'Hawk'",
+                    "STATUS: DEVELOPMENT PHASE",
+                    "Current prototype: SENTINEL-01",
+                    "Test pilots: Republic volunteers (3 casualties)",
                     "",
-                    "STATUS: PROTOTYPE PHASE",
-                    "FUTURE DEVELOPMENT:",
-                    "- TIE/IN (Interceptor variant)",
-                    "- TIE/SA (Bomber variant)",
-                    "- TIE/AD (Advanced prototype)",
+                    "NOTABLE FEATURES:",
+                    "1. Advanced AI combat prediction system",
+                    "2. Limited hyperspace capability (experimental)",
+                    "3. Modular weapon hardpoints",
+                    "4. Atmospheric/space dual configuration",
                     "",
-                    "NOTE: Project overseen by Republic",
-                    "Intelligence. Jedi Council not informed.",
-                    "Emperor's Shadow program monitors progress."
+                    "CONCERNS:",
+                    "- Excessive power requirements",
+                    "- Pilot blackout incidents during high-G maneuvers",
+                    "- Unstable plasma weapon containment",
+                    "- Limited operational endurance (45 minutes max)",
+                    "",
+                    "INTELLIGENCE NOTE:",
+                    "CIS has likely intercepted project data.",
+                    "Unconfirmed reports of similar prototype",
+                    "development in Separatist territories.",
+                    "",
+                    "RECOMMENDATION:",
+                    "Continue development but increase security.",
+                    "Project too valuable to abandon despite risks.",
+                    "Potential game-changer if successful.",
+                    "",
+                    "NEXT PHASE: Live-fire testing scheduled",
+                    "Location: Kuat shipyards testing range",
+                    "Date: [CLASSIFIED]"
                 ]
             }
         };
 
-        // NEW: Easter egg responses
-        const easterEggs = {
-            'GALLAGHER': () => {
-                addLine('─────────────────────────────────');
-                addLine('CT-6969 "GALLAGHER" FILE ACCESSED', 'warning');
-                addLine('Searching Republic databases...');
-                
+        // Initialize terminal
+        function initializeTerminal() {
+            if (isInitialized) return;
+            
+            addLine("System initializing...", "warning");
+            setTimeout(() => {
+                addLine("Booting Republic security protocols...", "warning");
                 setTimeout(() => {
-                    addLine('FILE FOUND: CITADEL STATION INCIDENT');
-                    addLine('');
-                    addLine('Gallagher\'s last known transmission:');
-                    addLine('"I didn\'t desert. I liberated myself."');
-                    addLine('');
-                    addLine('Rumor: He was last seen on Nar Shaddaa');
-                    addLine('with Gunga Greg, running a cantina.');
-                    addLine('');
-                    addLine('Current status: WANTED');
-                    addLine('Bounty increased to 75,000 credits');
-                    addLine('');
-                    addLine('NOTE: Several clones have reported');
-                    addLine('Gallagher helped them "retire early."');
-                    addLine('He leaves a yellow hexagon symbol');
-                    addLine('at the scene. Possible CII connection.');
-                    addLine('─────────────────────────────────');
-                }, 1500);
-            },
-            'GUNGA GREG': () => {
-                addLine('─────────────────────────────────');
-                addLine('GUNGAN SMUGGLER DATABASE', 'warning');
-                addLine('Known associate of Gallagher.');
-                addLine('');
-                addLine('Specialty: Weapons modification');
-                addLine('Favorite phrase: "Mesa got what yousa need!"');
-                addLine('');
-                addLine('Last known location: Nar Shaddaa');
-                addLine('Running "The Bubbling Grotto" cantina');
-                addLine('─────────────────────────────────');
-            },
-            'JOHN DIVER': () => {
-                addLine('─────────────────────────────────');
-                addLine('FORMER JEDI KNIGHT - JOHN DIVER', 'warning');
-                addLine('Expelled from Jedi Order: 22 BBY');
-                addLine('');
-                addLine('Reason for expulsion:');
-                addLine('"Excessive use of Force push."');
-                addLine('');
-                addLine('Known to work as mercenary for');
-                addLine('highest bidder. Force-sensitive.');
-                addLine('');
-                addLine('Rumor: Still carries his blue lightsaber.');
-                addLine('Prefers credits over ideals.');
-                addLine('─────────────────────────────────');
-            },
-            'TIE FIGHTER': () => {
-                addLine('─────────────────────────────────');
-                addLine('PROJECT BLACKWING QUERY', 'warning');
-                addLine('Accessing restricted files...');
-                
-                setTimeout(() => {
-                    addLine('WARNING: Unauthorized access detected!');
-                    addLine('This information is CLASSIFIED.');
-                    addLine('');
-                    addLine('The Twin Ion Engine project is');
-                    addLine('a Republic military secret.');
-                    addLine('');
-                    addLine('Did you learn about this from');
-                    addLine('Gallagher\'s cantina rumors?');
-                    addLine('─────────────────────────────────');
-                }, 1000);
-            },
-            'REX': () => {
-                addLine('─────────────────────────────────');
-                addLine('CAPTAIN REX FILE ACCESSED', 'success');
-                addLine('501st Legion - Torrent Company');
-                addLine('');
-                addLine('Status: ACTIVE DUTY');
-                addLine('Current assignment: General Skywalker');
-                addLine('');
-                addLine('Note: Rex once bested Gallagher in');
-                addLine('hand-to-hand combat during training.');
-                addLine('They maintain mutual respect.');
-                addLine('─────────────────────────────────');
-            },
-            'GENERAL KENOBI': () => {
-                addLine('─────────────────────────────────');
-                addLine('GENERAL OBI-WAN KENOBI', 'success');
-                addLine('212th Attack Battalion');
-                addLine('');
-                addLine('Last known statement about Gallagher:');
-                addLine('"A waste of good training."');
-                addLine('');
-                addLine('Note: Kenobi once interrogated');
-                addLine('Gunga Greg about Separatist weapon');
-                addLine('shipments. Greg gave up nothing.');
-                addLine('─────────────────────────────────');
-            },
-            'ECHO': () => {
-                addLine('─────────────────────────────────');
-                addLine('CT-1409 "ECHO" - DOMINO SQUAD', 'warning');
-                addLine('Status: MIA (Techno Union facility)');
-                addLine('');
-                addLine('Rumor: Gallagher served with Echo');
-                addLine('during early training phases.');
-                addLine('');
-                addLine('Last transmission before capture:');
-                addLine('"Tell Gallagher to watch his six."');
-                addLine('─────────────────────────────────');
-            },
-            'ORDER 66': () => {
-                addLine('─────────────────────────────────');
-                addLine('ERROR: FILE NOT FOUND', 'error');
-                addLine('─────────────────────────────────');
-                addLine('...wait, that\'s odd.', 'warning');
-                addLine('');
-                addLine('Terminal is accessing something...');
-                addLine('CONTINGENCY ORDERS DATABASE');
-                addLine('');
-                addLine('FILE: ORDER 66');
-                addLine('CLASSIFICATION: ULTRA TOP SECRET');
-                addLine('');
-                addLine('"In the event of Jedi betrayal,"');
-                addLine('"all clone troopers will execute..."');
-                addLine('');
-                addLine('<<CONNECTION TERMINATED>>');
-                addLine('<<UNAUTHORIZED ACCESS>>');
-                addLine('');
-                addLine('Did... did you just see that?', 'warning');
-                addLine('Maybe we should forget about this.');
-                addLine('─────────────────────────────────');
-            }
-        };
+                    addLine("Connecting to secure network...", "warning");
+                    setTimeout(() => {
+                        addLine("Connection established.", "success");
+                        addLine("─────────────────────────────────");
+                        addLine("Hello Trooper. type 'HELP' to see the available commands.");
+                        isInitialized = true;
+                    }, 800);
+                }, 800);
+            }, 800);
+        }
 
+        // Add line to terminal output
         function addLine(text, className = '') {
             const line = document.createElement('div');
             line.className = 'line ' + className;
@@ -583,6 +814,61 @@
             output.scrollTop = output.scrollHeight;
         }
 
+        // Power on the terminal
+        function powerOn() {
+            if (isPoweredOn) return;
+            
+            isPoweredOn = true;
+            screenContainer.classList.remove('screen-off');
+            statusLight.classList.add('on');
+            statusText.textContent = "ONLINE";
+            statusText.style.color = "#0f0";
+            
+            // Show terminal with animation
+            terminal.classList.add('powering-on');
+            
+            // Clear any previous output
+            output.innerHTML = '';
+            
+            // Enable input
+            setTimeout(() => {
+                userInput.disabled = false;
+                userInput.focus();
+                initializeTerminal();
+            }, 1500);
+        }
+
+        // Power off the terminal
+        function powerOff() {
+            if (!isPoweredOn) return;
+            
+            addLine("", "warning");
+            addLine("Shutting down terminal...", "warning");
+            
+            // Flicker effect during shutdown
+            let flickerCount = 0;
+            const flickerInterval = setInterval(() => {
+                flickerEffect.style.opacity = Math.random() * 0.5;
+                flickerCount++;
+                
+                if (flickerCount > 10) {
+                    clearInterval(flickerInterval);
+                    screenContainer.classList.add('screen-off');
+                    statusLight.classList.remove('on');
+                    statusText.textContent = "OFFLINE";
+                    statusText.style.color = "#666";
+                    userInput.disabled = true;
+                    userInput.value = "";
+                    isPoweredOn = false;
+                    isInitialized = false;
+                    
+                    // Remove powering-on class
+                    terminal.classList.remove('powering-on');
+                }
+            }, 150);
+        }
+
+        // Open door sequence
         function openDoor() {
             addLine('─────────────────────────────────');
             addLine('Password correct!', 'success');
@@ -618,8 +904,8 @@
             }, 1000);
         }
 
+        // Activate secret mode
         function activateSecretMode() {
-            const terminal = document.querySelector('.terminal');
             terminal.classList.add('yellow-mode');
             
             addLine('─────────────────────────────────');
@@ -649,8 +935,8 @@
             }, 1000);
         }
 
+        // Activate CIS mode
         function activateCISMode() {
-            const terminal = document.querySelector('.terminal');
             terminal.classList.add('blue-mode');
             
             addLine('─────────────────────────────────');
@@ -687,7 +973,56 @@
                 }, 3000);
             }, 1000);
         }
+
+        // Activate Grievous mode
+        function activateGrievousMode() {
+            terminal.classList.add('grievous-mode');
+            
+            addLine('─────────────────────────────────');
+            addLine('⚠ GENERAL GRIEVOUS SIGNATURE DETECTED ⚠', 'error');
+            addLine('Analyzing threat pattern...');
+            
+            setTimeout(() => {
+                addLine('');
+                addLine('░▒▓ GENERAL GRIEVOUS DATABASE ENTRY ▓▒░');
+                addLine('');
+                addLine('Designation: Supreme Commander of Separatist Droid Armies');
+                addLine('Status: ACTIVE THREAT');
+                addLine('Jedi Kill Count: [CLASSIFIED - TOO HIGH TO DISPLAY]');
+                addLine('');
+                addLine('KNOWN TACTICS:');
+                addLine('- Lightsaber collection (obsessive)');
+                addLine('- Unconventional four-arm combat style');
+                addLine('- Surprise attacks on medical facilities');
+                addLine('- Constant coughing (possible design flaw)');
+                addLine('');
+                addLine('WEAKNESSES:');
+                addLine('- Organic components vulnerable');
+                addLine(- Overconfident in melee combat');
+                addLine('- Bad cough (seriously, get that checked)');
+                addLine('');
+                addLine('LAST KNOWN SIGHTING:');
+                addLine('Hypori system - Jedi strike team encounter');
+                addLine('Casualties: [REDACTED]');
+                addLine('');
+                addLine('NOTES:');
+                addLine('General Kenobi has priority engagement protocol.');
+                addLine('"Hello there" is authorized opening taunt.');
+                addLine('');
+                addLine('CAUTION: Do not engage without Jedi support.');
+                addLine('─────────────────────────────────');
+                
+                setTimeout(() => {
+                    addLine('');
+                    addLine('Type HELP for commands, meatbag.');
+                    userInput.disabled = false;
+                    userInput.value = '';
+                    userInput.focus();
+                }, 1000);
+            }, 1000);
+        }
         
+        // Show help
         function showHelp() {
             addLine('─────────────────────────────────');
             addLine('AVAILABLE COMMANDS:');
@@ -695,18 +1030,20 @@
             addLine('ENTRY [number] - Access classified files');
             addLine('               Available: ENTRY 1-8');
             addLine('');
+            addLine('OPEN [code]  - Door control system');
+            addLine('               Requires authorization code');
+            addLine('');
+            addLine('STATUS       - Display terminal diagnostics');
+            addLine('');
             addLine('Examples:');
             addLine('> ENTRY 1');
-<<<<<<< HEAD
             addLine('> OPEN 2001');
             addLine('> STATUS');
-=======
-            addLine('> ENTRY 5');
->>>>>>> parent of 1e6d8cb (2.0)
             addLine('─────────────────────────────────');
             helpShown = true;
         }
         
+        // Show entry
         function showEntry(num) {
             const entry = entries[num];
             if (!entry) {
@@ -729,8 +1066,18 @@
             addLine('');
             addLine('─────────────────────────────────');
         }
-<<<<<<< HEAD
-        
+
+        // Show custom log
+        function showCustomLog(title, lines, type = '') {
+            addLine('─────────────────────────────────');
+            addLine(title, type);
+            addLine('─────────────────────────────────');
+            addLine('');
+            lines.forEach(line => addLine(line));
+            addLine('');
+            addLine('─────────────────────────────────');
+        }
+
         // Show status
         function showStatus() {
             addLine('─────────────────────────────────');
@@ -744,7 +1091,6 @@
             addLine('  ✓ Republic Intelligence Network');
             addLine('  ✓ Clone Army Command Structure');
             addLine('  ✓ Jedi Temple Archives (Limited)');
-            addLine('  ✓ Kuat Drive Yards (Restricted)');
             addLine('');
             addLine('Active Protocols:');
             addLine('  ✓ Intrusion Detection: ACTIVE');
@@ -759,29 +1105,30 @@
             addLine('May the Force be with you, Commander.');
             addLine('─────────────────────────────────');
         }
-=======
->>>>>>> parent of 1e6d8cb (2.0)
 
+        // Handle user input
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const input = userInput.value.trim().toUpperCase();
                 const displayInput = userInput.value.trim();
                 
-<<<<<<< HEAD
-                // Show input line
-                addLine('> ' + displayInput);
-=======
                 // Don't show asterisks for HELP and ENTRY commands
-                if (input.startsWith('HELP') || input.startsWith('ENTRY')) {
+                if (input.startsWith('HELP') || input.startsWith('ENTRY') || input === 'STATUS') {
                     addLine('> ' + displayInput);
                 } else {
                     addLine('> ' + '*'.repeat(displayInput.length));
                 }
->>>>>>> parent of 1e6d8cb (2.0)
                 
                 // Check for HELP command
                 if (input === 'HELP') {
                     showHelp();
+                    userInput.value = '';
+                    return;
+                }
+                
+                // Check for STATUS command
+                if (input === 'STATUS') {
+                    showStatus();
                     userInput.value = '';
                     return;
                 }
@@ -801,74 +1148,346 @@
                     userInput.value = '';
                     return;
                 }
-                
-                // Check for Easter Eggs
-                if (easterEggs[input]) {
-                    easterEggs[input]();
+
+                // === NEW EASTER EGGS ===
+
+                // GENERAL GRIEVOUS
+                if (input === 'GENERAL GRIEVOUS' || input === 'GRIEVOUS') {
+                    userInput.disabled = true;
+                    activateGrievousMode();
                     userInput.value = '';
                     return;
                 }
-                
+
+                // HELLO THERE (Kenobi reference)
+                if (input === 'HELLO THERE') {
+                    showCustomLog(
+                        'JEDI COMMUNICATION PROTOCOL ACTIVATED',
+                        [
+                            'Recognized: Jedi General Obi-Wan Kenobi',
+                            'Greeting pattern identified: "Hello there"',
+                            '',
+                            'Response protocols:',
+                            '- Return standard Jedi greeting',
+                            '- Offer tactical support',
+                            '- Recommend high ground positioning',
+                            '',
+                            'Current Kenobi status:',
+                            'Location: Unknown (probably getting into trouble)',
+                            'Last seen: Taunting General Grievous',
+                            'Anakin nearby: 87% probability',
+                            '',
+                            'Message to General Kenobi:',
+                            '"The Council requests you stop',
+                            'taunting the cyborg general.',
+                            'It only makes him angrier."',
+                            '',
+                            'END TRANSMISSION'
+                        ],
+                        'success'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // THIS IS WHERE THE FUN BEGINS (Anakin reference)
+                if (input === 'THIS IS WHERE THE FUN BEGINS' || input === 'FUN BEGINS') {
+                    showCustomLog(
+                        'PILOT INCIDENT REPORT',
+                        [
+                            'Subject: Jedi Knight Anakin Skywalker',
+                            'Incident: Unauthorized flight maneuvers',
+                            'Location: Coruscant upper atmosphere',
+                            '',
+                            'Report:',
+                            'Subject was observed performing',
+                            '"aggressive and unnecessary" aerobatics',
+                            'during routine patrol duty.',
+                            '',
+                            'Quoted as saying:',
+                            '"Now THIS is podracing!"',
+                            'and',
+                            '"This is where the fun begins!"',
+                            '',
+                            'Damage assessment:',
+                            '- 3 traffic droids confused',
+                            '- 1 senator late for meeting',
+                            '- Multiple civilian complaints',
+                            '',
+                            'Action taken:',
+                            'Assigned additional flight regulations training.',
+                            'Subject complained about "bureaucracy."',
+                            '',
+                            'Note: Padawan Ahsoka Tano was also present.',
+                            'She seemed to be enjoying it.'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // I HAVE THE HIGH GROUND (classic)
+                if (input === 'I HAVE THE HIGH GROUND' || input === 'HIGH GROUND') {
+                    showCustomLog(
+                        'TACTICAL ADVISORY',
+                        [
+                            'ALERT: TERRAIN ADVANTAGE DETECTED',
+                            '',
+                            'Analysis confirms:',
+                            'Speaker possesses elevated position.',
+                            'This confers significant combat advantage.',
+                            '',
+                            'Historical data:',
+                            'Outcome prediction for opponent:',
+                            '- 97% chance of failure',
+                            '- 89% chance of limb loss',
+                            '- 100% chance of regret',
+                            '',
+                            'Recommended actions:',
+                            '1. DO NOT attempt to jump over speaker',
+                            '2. DO NOT underestimate position advantage',
+                            '3. Seriously, just don\'t do it',
+                            '',
+                            'Database match:',
+                            'Mustafar incident - similar conditions',
+                            'Result: Catastrophic failure for attacker',
+                            '',
+                            'Conclusion:',
+                            'It\'s over. They have the high ground.'
+                        ],
+                        'error'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // EXECUTE ORDER 66
+                if (input === 'EXECUTE ORDER 66' || input === 'ORDER 66') {
+                    showCustomLog(
+                        'CONTINGENCY PROTOCOL',
+                        [
+                            'ACCESS DENIED',
+                            'INSUFFICIENT CLEARANCE',
+                            '',
+                            'ERROR: Command requires',
+                            'Chancellor-level authorization',
+                            '',
+                            'Note: This terminal does not have',
+                            'protocol override capabilities.',
+                            '',
+                            'Please report to:',
+                            'Office of the Supreme Chancellor',
+                            'or',
+                            'Jedi Council Chambers',
+                            '',
+                            'WARNING:',
+                            'Unauthorized use of this command',
+                            'is punishable by court-martial.',
+                            '',
+                            'This incident has been logged.',
+                            'Security alerted.'
+                        ],
+                        'error'
+                    );
+                    // Extra flicker for dramatic effect
+                    flickerEffect.style.opacity = 0.8;
+                    setTimeout(() => {
+                        flickerEffect.style.opacity = 0.3;
+                        setTimeout(() => {
+                            flickerEffect.style.opacity = 0.1;
+                        }, 300);
+                    }, 500);
+                    userInput.value = '';
+                    return;
+                }
+
+                // === EXISTING EASTER EGGS ===
+
+                // TONY D EWOK
+                if (input === 'TONY D EWOK') {
+                    showCustomLog(
+                        'EWOK COMMUNICATION INTERCEPT',
+                        [
+                            'Source: Forest Moon of Endor',
+                            'Translation confidence: LOW',
+                            '',
+                            '"Yub nub! Big metal trooper fall down go boom!"',
+                            '"Then Ewok take helmet. Helmet too big."',
+                            '',
+                            'Analysis:',
+                            '- Ewoks appear to believe helmets are hats',
+                            '- Subject Tony D. Ewok considered "local legend"',
+                            '',
+                            'Threat Level: ADORABLE BUT CONCERNING'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // JOHN DIVER
+                if (input === 'JOHN DIVER') {
+                    showCustomLog(
+                        'REPUBLIC PRISONER LOG — TERMINATED',
+                        [
+                            'Name: John Diver',
+                            'Classification: EXTREME RISK',
+                            'Detention Facility: Black Site R-9',
+                            '',
+                            'Crimes:',
+                            '- Sabotage of three Republic cruisers',
+                            '- Confirmed Jedi casualties',
+                            '- Unauthorized Force-adjacent experimentation',
+                            '',
+                            'Incident Report:',
+                            'During transfer, facility suffered a containment breach.',
+                            'Security footage shows an Assassin Spider Droid',
+                            'entering Cell Block D.',
+                            '',
+                            'Audio recovered:',
+                            '"Wait— that thing isn\'t scheduled—"',
+                            '',
+                            'Result:',
+                            'Prisoner terminated.',
+                            'Spider Droid unrecovered.',
+                            '',
+                            'Status: CASE CLOSED'
+                        ],
+                        'error'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // GUNGA GREG
+                if (input === 'GUNGA GREG') {
+                    showCustomLog(
+                        'ESCAPE INCIDENT REPORT',
+                        [
+                            'Subject: Gunga Greg',
+                            'Species: Gungan',
+                            'Former Status: Detained Agitator',
+                            '',
+                            'Details:',
+                            'Subject was last seen complaining loudly',
+                            'about food portions and "unfair cell vibes."',
+                            '',
+                            'Security failure occurred at 0300 hours.',
+                            'Cell found empty.',
+                            'Walls wet.',
+                            'Very wet.',
+                            '',
+                            'Note:',
+                            'Several guards report hearing:',
+                            '"Mesa free now!"',
+                            '',
+                            'Current Status: AT LARGE',
+                            'Recommendation: Do NOT pursue near water.'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // GALLAGHER (new character from entry 7)
+                if (input === 'GALLAGHER' || input === 'CT-2319') {
+                    showCustomLog(
+                        'CLONE TROOPER FILE - CT-2319 "GALLAGHER"',
+                        [
+                            'Designation: CT-2319',
+                            'Nickname: "Gallagher"',
+                            'Unit: 212th Attack Battalion',
+                            'Status: DESERTER (AT LARGE)',
+                            '',
+                            'Service Record:',
+                            '- 14 successful campaigns',
+                            '- 3 commendations for bravery',
+                            '- 7 disciplinary actions',
+                            '',
+                            'Last Known Actions:',
+                            'Escaped Republic custody during',
+                            'droid assault on Alpha-7 facility.',
+                            'Accompanied by prisoners Gunga Greg',
+                            'and John Diver (deceased).',
+                            '',
+                            'Stolen Assets:',
+                            '- Republic shuttle "Lightbringer"',
+                            '- 2 DC-15A blaster rifles',
+                            '- Full set of Phase II armor',
+                            '- Medical supplies',
+                            '',
+                            'Psychological Profile:',
+                            'Unorthodox tactical thinking.',
+                            'History of questioning orders.',
+                            'Known to modify standard equipment.',
+                            '',
+                            'Threat Assessment: HIGH',
+                            'Considered highly resourceful.',
+                            'Possible destination: Outer Rim.',
+                            '',
+                            'BOLO issued: Republic-wide.'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
+                // TIE FIGHTER (from entry 8)
+                if (input === 'TIE FIGHTER' || input === 'SENTINEL') {
+                    showCustomLog(
+                        'EXPERIMENTAL STARFIGHTER PROJECT',
+                        [
+                            'Project: SENTINEL',
+                            'Type: Twin Ion Engine Interceptor',
+                            'Status: PROTOTYPE DEVELOPMENT',
+                            '',
+                            'Key Features:',
+                            '- Advanced TIE system (experimental)',
+                            '- Solar collector weapon focusing',
+                            '- AI combat prediction system',
+                            '- Limited hyperspace capability',
+                            '',
+                            'Performance Issues:',
+                            '- Excessive power consumption',
+                            '- Pilot blackout during high-G',
+                            '- Unstable plasma weapons',
+                            '- 45-minute operational limit',
+                            '',
+                            'Development Site:',
+                            'Rothana Heavy Engineering',
+                            '(Heavily secured)',
+                            '',
+                            'Intelligence Note:',
+                            'CIS likely aware of project.',
+                            'Similar prototypes rumored in',
+                            'Separatist development.',
+                            '',
+                            'Security Clearance Required:',
+                            'Jedi Council or higher.'
+                        ],
+                        'warning'
+                    );
+                    userInput.value = '';
+                    return;
+                }
+
                 // Easter egg OPEN commands
-<<<<<<< HEAD
-                const openEasterEggs = {
+                const easterEggs = {
                     'OPEN SESAME': 'Nice try, but this isn\'t a cave on Tatooine.',
                     'OPEN PLEASE': 'Politeness detected. We appreciate that.\nBut you still need the correct code.',
                     'OPEN NOW': 'Impatience detected.\nThis is why Jedi teach patience, General.',
-                    'OPEN THE DOOR': 'Instructions unclear. Please specify WHICH door.\nWe have 2,847 doors on this cruiser.',
-                    'OPEN GALLAGHER': () => {
-                        addLine('─────────────────────────────────');
-                        addLine('Gallagher doesn\'t need doors.', 'warning');
-                        addLine('He makes his own exits.');
-                        addLine('');
-                        addLine('But if you\'re looking for him,');
-                        addLine('try "The Bubbling Grotto" on');
-                        addLine('Nar Shaddaa. Tell him I sent you.');
-                        addLine('─────────────────────────────────');
-                    }
+                    'OPEN THE DOOR': 'Instructions unclear. Please specify WHICH door.\nWe have 2,847 doors on this cruiser.'
                 };
                 
-                if (openEasterEggs[input]) {
+                if (easterEggs[input]) {
                     addLine('─────────────────────────────────');
-                    if (typeof openEasterEggs[input] === 'function') {
-                        openEasterEggs[input]();
-                    } else {
-                        openEasterEggs[input].split('\n').forEach(line => {
-                            addLine(line, 'warning');
-                        });
-                    }
-=======
-                if (input === 'OPEN SESAME') {
-                    addLine('─────────────────────────────────');
-                    addLine('Nice try, but this isn\'t a cave on Tatooine.', 'warning');
-                    addLine('─────────────────────────────────');
-                    userInput.value = '';
-                    return;
-                }
-                
-                if (input === 'OPEN PLEASE') {
-                    addLine('─────────────────────────────────');
-                    addLine('Politeness detected. We appreciate that.', 'success');
-                    addLine('But you still need the correct code.', 'warning');
-                    addLine('─────────────────────────────────');
-                    userInput.value = '';
-                    return;
-                }
-                
-                if (input === 'OPEN NOW') {
-                    addLine('─────────────────────────────────');
-                    addLine('Impatience detected.', 'error');
-                    addLine('This is why Jedi teach patience, General.', 'error');
-                    addLine('─────────────────────────────────');
-                    userInput.value = '';
-                    return;
-                }
-                
-                if (input === 'OPEN THE DOOR') {
-                    addLine('─────────────────────────────────');
-                    addLine('Instructions unclear. Please specify WHICH door.', 'warning');
-                    addLine('We have 2,847 doors on this cruiser.', 'warning');
->>>>>>> parent of 1e6d8cb (2.0)
+                    easterEggs[input].split('\n').forEach(line => {
+                        addLine(line, 'warning');
+                    });
                     addLine('─────────────────────────────────');
                     userInput.value = '';
                     return;
@@ -899,6 +1518,12 @@
                     addLine('─────────────────────────────────');
                     addLine('Access denied. Invalid code.', 'error');
                     
+                    // Trigger flicker on error
+                    flickerEffect.style.opacity = 0.3;
+                    setTimeout(() => {
+                        flickerEffect.style.opacity = 0.1;
+                    }, 200);
+                    
                     if (remaining > 0) {
                         addLine(`Attempts remaining: ${remaining}`, 'warning');
                         
@@ -921,7 +1546,34 @@
             }
         });
 
-        userInput.focus();
+        // Power button event listeners
+        powerOnBtn.addEventListener('click', powerOn);
+        powerOffBtn.addEventListener('click', powerOff);
+
+        // Random screen flicker effect
+        setInterval(() => {
+            if (isPoweredOn) {
+                // Random chance of flicker
+                if (Math.random() < 0.02) {
+                    flickerEffect.style.opacity = Math.random() * 0.4;
+                    setTimeout(() => {
+                        flickerEffect.style.opacity = 0.1;
+                    }, 100 + Math.random() * 200);
+                }
+                
+                // Random scan line speed variation
+                if (Math.random() < 0.05) {
+                    const randomSpeed = 5 + Math.random() * 10;
+                    scanLine.style.animationDuration = `${randomSpeed}s`;
+                }
+            }
+        }, 1000);
+
+        // Start with terminal off
+        window.addEventListener('load', () => {
+            screenContainer.classList.add('screen-off');
+            userInput.disabled = true;
+        });
     </script>
 </body>
 </html>
