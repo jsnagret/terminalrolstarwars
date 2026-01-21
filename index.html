@@ -998,7 +998,7 @@
                 addLine('');
                 addLine('WEAKNESSES:');
                 addLine('- Organic components vulnerable');
-                addLine(- Overconfident in melee combat');
+                addLine('- Overconfident in melee combat');
                 addLine('- Bad cough (seriously, get that checked)');
                 addLine('');
                 addLine('LAST KNOWN SIGHTING:');
@@ -1113,7 +1113,13 @@
                 const displayInput = userInput.value.trim();
                 
                 // Don't show asterisks for HELP and ENTRY commands
-                if (input.startsWith('HELP') || input.startsWith('ENTRY') || input === 'STATUS') {
+                if (
+                    input === 'HELP' ||
+                    input === 'STATUS' ||
+                    input.startsWith('ENTRY') ||
+                    input.startsWith('OPEN ')
+                )
+                {
                     addLine('> ' + displayInput);
                 } else {
                     addLine('> ' + '*'.repeat(displayInput.length));
