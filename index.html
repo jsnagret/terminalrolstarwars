@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resonance Lattice</title>
+<style>
+    body {
+        background: #000;
+        color: #0f0;
+        font-family: "Courier New", monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+    }
+
+    #strain {
+        margin-bottom: 15px;
+        color: #ff5555;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-template-rows: repeat(3, 100px);
+        gap: 10px;
+    }
+
+    .rune {
+        border: 2px solid #0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+        user-select: none;
+    }
+
+    .center {
+        background: #003300;
+        cursor: default;
+    }
+
+    .locked {
+        border-color: #ff0;
+        color: #ff0;
+    }
+
+    .active {
+        background: #004400;
+    }
+
+    #log {
+        margin-top: 15px;
+        height: 40px;
+        text-align: center;
+        width: 320px;
+    }
+
+    button {
+        margin-top: 10px;
+        background: #000;
+        color: #0f0;
+        border: 1px solid #0f0;
+        padding: 5px 15px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #003300;
+    }
+</style>
+</head>
+<body>
+
+<h1>RESONANCE LATTICE</h1>
+<div id="strain">Mental Strain: 0 / 5</div>
+
+<div class="grid" id="grid"></div>
+
+<button onclick="useForce()">Channel the Force</button>
+
+<div id="log">The runes lie dormant.</div>
+
+<script>
+const directions = ["↑","→","↓","←"];
+let strain = 0;
+const maxStrain = 5;
+
+// index positions that should point toward center (index 4)
+const required = {
+    0: "↓",
+    1: "↓",
+    2: "↓",
+    3: "→",
+    5: "←",
+    6: "↑",
+    7: "↑",
+    8: "↑"
+};
+
+let runes = [];
+const forceRuneIndex = Math.floor(Math.random() * 8);
+if (forceRuneIndex >= 4) forceRuneIndex++;
+
+const grid = document.getElementById("grid");
+const log = document.getElementById("log");
+const strainDiv = document.getElementById("strain");
+
+function createRunes() {
+    for (let i = 0; i < 9; i++) {
+        const div = document.createElement("div");
+        div.classList.add("rune");
+
+        if (i === 4) {
+            div.classList.add("center");
+            div.textContent = "◉";
+        } else {
+            const dirIndex = Math.floor(Math.random() * 4);
+            runes[i] = dirIndex;
+            div.textContent = directions[dirIndex];
+
+            if (i === forceRuneIndex) {
+                div.classList.add("locked");
+            }
+
+            div.onclick = () => rotateRune(i);
+        }
+
+        grid.appendChild(div);
+    }
+}
+
+function rotateRune(i) {
+    if (i === forceRuneIndex) {
+        log.textContent = "This rune resists logic.";
+        return;
+    }
+    runes[i] = (runes[i] + 1) % 4;
+    grid.children[i].textContent = directions[runes[i]];
+    checkWin();
+}
+
+function useForce() {
+    strain++;
+    strainDiv.textContent = `Mental Strain: ${strain} / ${maxStrain}`;
+
+    if (strain >= maxStrain) {
+        log.textContent = "Your vision fractures. The lattice rejects you.";
+        grid.style.opacity = "0.3";
+        return;
+    }
+
+    runes[forceRuneIndex] = (runes[forceRuneIndex] + 1) % 4;
+    grid.children[forceRuneIndex].textContent =
+        directions[runes[forceRuneIndex]];
+
+    log.textContent = "The rune trembles and turns.";
+    checkWin();
+}
+
+function checkWin() {
+    for (let i in required) {
+        if (directions[runes[i]] !== required[i]) return;
+    }
+
+    log.textContent = "Resonance achieved. The ruins awaken.";
+    grid.querySelectorAll(".rune").forEach(r => r.classList.add("active"));
+}
+
+createRunes();
+</script>
+
+</body>
+</html>
