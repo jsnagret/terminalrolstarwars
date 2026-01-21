@@ -490,7 +490,7 @@
                 </div>
                 <div class="input-line">
                     <span class="prompt">></span>
-                    <input type="password" id="userInput" autocomplete="off" disabled>
+                    <input type="text" id="userInput" autocomplete="off" disabled>
                     <span class="blink">█</span>
                 </div>
             </div>
@@ -528,7 +528,7 @@
         let isPoweredOn = false;
         let isInitialized = false;
         
-        // Terminal entries data
+        // Terminal entries data with new additions
         const entries = {
             1: {
                 title: "INCIDENT REPORT - UNIDENTIFIED COMBATANTS",
@@ -636,10 +636,13 @@
                     "Reported by: Commander Bly, 327th Star Corps",
                     "",
                     "During patrol on Felucia, squad encountered unknown droid.",
-                    "Designation appeared to be 'F-01' (non-standard).",
+                    "Designation appeared to be 'SF-1207' (non-standard).",
                     "",
                     "Droid did not engage. Did not flee.",
                     "Stood motionless. Appeared to be... observing us.",
+                    "",
+                    "When approached, droid spoke:",
+                    "'I do not wish to harm you. I am... learning.'",
                     "",
                     "Droid vanished before capture. Method unknown.",
                     "No hyperdrive signature. No cloaking device detected.",
@@ -649,6 +652,223 @@
                     "",
                     "STATUS: UNKNOWN THREAT LEVEL"
                 ]
+            },
+            // NEW ENTRY 7: Gallagher prison escape
+            7: {
+                title: "PRISON BREAK - CITADEL STATION INCIDENT",
+                content: [
+                    "CLASSIFIED - HIGH PRIORITY",
+                    "Location: Citadel Station, Lola Sayu",
+                    "Date: 20 BBY",
+                    "",
+                    "Subject: Clone Trooper CT-6969 'Gallagher'",
+                    "Classification: Missing/Presumed Deserter",
+                    "",
+                    "INCIDENT SUMMARY:",
+                    "During a droid assault on Citadel Station,",
+                    "CT-6969 'Gallagher' escaped with two prisoners:",
+                    "Gunga Greg (Gungan smuggler) and John Diver",
+                    "(fallen Jedi Knight turned mercenary).",
+                    "",
+                    "Security footage shows Gallagher using the",
+                    "droid invasion as cover for the escape.",
+                    "He demonstrated exceptional combat skills,",
+                    "disabling 12 security droids with minimal",
+                    "weaponry.",
+                    "",
+                    "PERSONNEL FILE - CT-6969 'GALLAGHER':",
+                    "- Special Ops training (ARC trooper program)",
+                    "- Multiple commendations for bravery",
+                    "- Recently transferred to prison detail",
+                    "- Psychological evaluation: 'Unusual',
+                    'shows signs of independent thinking'",
+                    "",
+                    "ASSOCIATES:",
+                    "Gunga Greg: Known arms dealer to both",
+                    "Republic and Separatist forces.",
+                    "John Diver: Former Jedi, expelled from",
+                    "Order for 'reckless tactics'.",
+                    "",
+                    "STATUS: ACTIVE HUNT",
+                    "BOUNTY: 50,000 CREDITS (DEAD OR ALIVE)"
+                ]
+            },
+            // NEW ENTRY 8: Prototype TIE fighter
+            8: {
+                title: "PROJECT BLACKWING - PROTOTYPE FIGHTER",
+                content: [
+                    "TOP SECRET - PROJECT BLACKWING",
+                    "Location: Kuat Drive Yards, Research Facility 7",
+                    "Date: 21 BBY (PROJECT INITIATED: 24 BBY)",
+                    "",
+                    "PROJECT OVERVIEW:",
+                    "Covert Republic/Kuat joint venture to develop",
+                    "next-generation starfighter technology.",
+                    "Design influenced by captured Separatist data.",
+                    "",
+                    "CRAFT SPECIFICATIONS:",
+                    "Designation: TIE/ln (Twin Ion Engine/Light)",
+                    "Features:",
+                    "- Twin Ion Engines (experimental)",
+                    "- Solar panel wings (power collection)",
+                    "- No shield generators (weight reduction)",
+                    "- Hyperdrive: NONE (launcher deployment only)",
+                    "- Crew: 1 pilot",
+                    "",
+                    "PERFORMANCE DATA:",
+                    "Speed: 100 MGLT (faster than current V-wings)",
+                    "Maneuverability: Class 2 (highly agile)",
+                    "Armament: 2 laser cannons",
+                    "Defense: Minimal armor only",
+                    "",
+                    "TEST PILOT NOTES:",
+                    "'Craft is incredibly fast but fragile.",
+                    "The engine scream is... unnerving.",
+                    "Flies like a coffin with guns.'",
+                    "- Commander 'Hawk'",
+                    "",
+                    "STATUS: PROTOTYPE PHASE",
+                    "FUTURE DEVELOPMENT:",
+                    "- TIE/IN (Interceptor variant)",
+                    "- TIE/SA (Bomber variant)",
+                    "- TIE/AD (Advanced prototype)",
+                    "",
+                    "NOTE: Project overseen by Republic",
+                    "Intelligence. Jedi Council not informed.",
+                    "Emperor's Shadow program monitors progress."
+                ]
+            }
+        };
+
+        // NEW: Easter egg responses
+        const easterEggs = {
+            'GALLAGHER': () => {
+                addLine('─────────────────────────────────');
+                addLine('CT-6969 "GALLAGHER" FILE ACCESSED', 'warning');
+                addLine('Searching Republic databases...');
+                
+                setTimeout(() => {
+                    addLine('FILE FOUND: CITADEL STATION INCIDENT');
+                    addLine('');
+                    addLine('Gallagher\'s last known transmission:');
+                    addLine('"I didn\'t desert. I liberated myself."');
+                    addLine('');
+                    addLine('Rumor: He was last seen on Nar Shaddaa');
+                    addLine('with Gunga Greg, running a cantina.');
+                    addLine('');
+                    addLine('Current status: WANTED');
+                    addLine('Bounty increased to 75,000 credits');
+                    addLine('');
+                    addLine('NOTE: Several clones have reported');
+                    addLine('Gallagher helped them "retire early."');
+                    addLine('He leaves a yellow hexagon symbol');
+                    addLine('at the scene. Possible CII connection.');
+                    addLine('─────────────────────────────────');
+                }, 1500);
+            },
+            'GUNGA GREG': () => {
+                addLine('─────────────────────────────────');
+                addLine('GUNGAN SMUGGLER DATABASE', 'warning');
+                addLine('Known associate of Gallagher.');
+                addLine('');
+                addLine('Specialty: Weapons modification');
+                addLine('Favorite phrase: "Mesa got what yousa need!"');
+                addLine('');
+                addLine('Last known location: Nar Shaddaa');
+                addLine('Running "The Bubbling Grotto" cantina');
+                addLine('─────────────────────────────────');
+            },
+            'JOHN DIVER': () => {
+                addLine('─────────────────────────────────');
+                addLine('FORMER JEDI KNIGHT - JOHN DIVER', 'warning');
+                addLine('Expelled from Jedi Order: 22 BBY');
+                addLine('');
+                addLine('Reason for expulsion:');
+                addLine('"Excessive use of Force push."');
+                addLine('');
+                addLine('Known to work as mercenary for');
+                addLine('highest bidder. Force-sensitive.');
+                addLine('');
+                addLine('Rumor: Still carries his blue lightsaber.');
+                addLine('Prefers credits over ideals.');
+                addLine('─────────────────────────────────');
+            },
+            'TIE FIGHTER': () => {
+                addLine('─────────────────────────────────');
+                addLine('PROJECT BLACKWING QUERY', 'warning');
+                addLine('Accessing restricted files...');
+                
+                setTimeout(() => {
+                    addLine('WARNING: Unauthorized access detected!');
+                    addLine('This information is CLASSIFIED.');
+                    addLine('');
+                    addLine('The Twin Ion Engine project is');
+                    addLine('a Republic military secret.');
+                    addLine('');
+                    addLine('Did you learn about this from');
+                    addLine('Gallagher\'s cantina rumors?');
+                    addLine('─────────────────────────────────');
+                }, 1000);
+            },
+            'REX': () => {
+                addLine('─────────────────────────────────');
+                addLine('CAPTAIN REX FILE ACCESSED', 'success');
+                addLine('501st Legion - Torrent Company');
+                addLine('');
+                addLine('Status: ACTIVE DUTY');
+                addLine('Current assignment: General Skywalker');
+                addLine('');
+                addLine('Note: Rex once bested Gallagher in');
+                addLine('hand-to-hand combat during training.');
+                addLine('They maintain mutual respect.');
+                addLine('─────────────────────────────────');
+            },
+            'GENERAL KENOBI': () => {
+                addLine('─────────────────────────────────');
+                addLine('GENERAL OBI-WAN KENOBI', 'success');
+                addLine('212th Attack Battalion');
+                addLine('');
+                addLine('Last known statement about Gallagher:');
+                addLine('"A waste of good training."');
+                addLine('');
+                addLine('Note: Kenobi once interrogated');
+                addLine('Gunga Greg about Separatist weapon');
+                addLine('shipments. Greg gave up nothing.');
+                addLine('─────────────────────────────────');
+            },
+            'ECHO': () => {
+                addLine('─────────────────────────────────');
+                addLine('CT-1409 "ECHO" - DOMINO SQUAD', 'warning');
+                addLine('Status: MIA (Techno Union facility)');
+                addLine('');
+                addLine('Rumor: Gallagher served with Echo');
+                addLine('during early training phases.');
+                addLine('');
+                addLine('Last transmission before capture:');
+                addLine('"Tell Gallagher to watch his six."');
+                addLine('─────────────────────────────────');
+            },
+            'ORDER 66': () => {
+                addLine('─────────────────────────────────');
+                addLine('ERROR: FILE NOT FOUND', 'error');
+                addLine('─────────────────────────────────');
+                addLine('...wait, that\'s odd.', 'warning');
+                addLine('');
+                addLine('Terminal is accessing something...');
+                addLine('CONTINGENCY ORDERS DATABASE');
+                addLine('');
+                addLine('FILE: ORDER 66');
+                addLine('CLASSIFICATION: ULTRA TOP SECRET');
+                addLine('');
+                addLine('"In the event of Jedi betrayal,"');
+                addLine('"all clone troopers will execute..."');
+                addLine('');
+                addLine('<<CONNECTION TERMINATED>>');
+                addLine('<<UNAUTHORIZED ACCESS>>');
+                addLine('');
+                addLine('Did... did you just see that?', 'warning');
+                addLine('Maybe we should forget about this.');
+                addLine('─────────────────────────────────');
             }
         };
 
@@ -846,7 +1066,7 @@
             addLine('AVAILABLE COMMANDS:');
             addLine('');
             addLine('ENTRY [number] - Access classified files');
-            addLine('               Available: ENTRY 1-6');
+            addLine('               Available: ENTRY 1-8');
             addLine('');
             addLine('OPEN [code]  - Door control system');
             addLine('               Requires authorization code');
@@ -855,7 +1075,7 @@
             addLine('');
             addLine('Examples:');
             addLine('> ENTRY 1');
-            addLine('> OPEN THE DOOR');
+            addLine('> OPEN 2001');
             addLine('> STATUS');
             addLine('─────────────────────────────────');
             helpShown = true;
@@ -867,7 +1087,7 @@
             if (!entry) {
                 addLine('─────────────────────────────────');
                 addLine('ERROR: Entry not found.', 'error');
-                addLine('Available entries: 1-6');
+                addLine('Available entries: 1-8');
                 addLine('─────────────────────────────────');
                 return;
             }
@@ -898,6 +1118,7 @@
             addLine('  ✓ Republic Intelligence Network');
             addLine('  ✓ Clone Army Command Structure');
             addLine('  ✓ Jedi Temple Archives (Limited)');
+            addLine('  ✓ Kuat Drive Yards (Restricted)');
             addLine('');
             addLine('Active Protocols:');
             addLine('  ✓ Intrusion Detection: ACTIVE');
@@ -919,12 +1140,8 @@
                 const input = userInput.value.trim().toUpperCase();
                 const displayInput = userInput.value.trim();
                 
-                // Don't show asterisks for HELP and ENTRY commands
-                if (input.startsWith('HELP') || input.startsWith('ENTRY') || input === 'STATUS') {
-                    addLine('> ' + displayInput);
-                } else {
-                    addLine('> ' + '*'.repeat(displayInput.length));
-                }
+                // Show input line
+                addLine('> ' + displayInput);
                 
                 // Check for HELP command
                 if (input === 'HELP') {
@@ -956,19 +1173,40 @@
                     return;
                 }
                 
+                // Check for Easter Eggs
+                if (easterEggs[input]) {
+                    easterEggs[input]();
+                    userInput.value = '';
+                    return;
+                }
+                
                 // Easter egg OPEN commands
-                const easterEggs = {
+                const openEasterEggs = {
                     'OPEN SESAME': 'Nice try, but this isn\'t a cave on Tatooine.',
                     'OPEN PLEASE': 'Politeness detected. We appreciate that.\nBut you still need the correct code.',
                     'OPEN NOW': 'Impatience detected.\nThis is why Jedi teach patience, General.',
-                    'OPEN THE DOOR': 'Instructions unclear. Please specify WHICH door.\nWe have 2,847 doors on this cruiser.'
+                    'OPEN THE DOOR': 'Instructions unclear. Please specify WHICH door.\nWe have 2,847 doors on this cruiser.',
+                    'OPEN GALLAGHER': () => {
+                        addLine('─────────────────────────────────');
+                        addLine('Gallagher doesn\'t need doors.', 'warning');
+                        addLine('He makes his own exits.');
+                        addLine('');
+                        addLine('But if you\'re looking for him,');
+                        addLine('try "The Bubbling Grotto" on');
+                        addLine('Nar Shaddaa. Tell him I sent you.');
+                        addLine('─────────────────────────────────');
+                    }
                 };
                 
-                if (easterEggs[input]) {
+                if (openEasterEggs[input]) {
                     addLine('─────────────────────────────────');
-                    easterEggs[input].split('\n').forEach(line => {
-                        addLine(line, 'warning');
-                    });
+                    if (typeof openEasterEggs[input] === 'function') {
+                        openEasterEggs[input]();
+                    } else {
+                        openEasterEggs[input].split('\n').forEach(line => {
+                            addLine(line, 'warning');
+                        });
+                    }
                     addLine('─────────────────────────────────');
                     userInput.value = '';
                     return;
