@@ -6,8 +6,7 @@
 
 <style>
 body {
-    background:
-        radial-gradient(circle at center, #3a2a12 0%, #140c04 70%);
+    background: radial-gradient(circle at center, #3a2a12 0%, #120a03 70%);
     color: #ffd36a;
     font-family: "Courier New", monospace;
     display: flex;
@@ -15,17 +14,32 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    overflow: hidden;
 }
 
 h1 {
     letter-spacing: 3px;
-    color: #ffcc55;
-    text-shadow: 0 0 8px #664400;
+    color: #ffcc66;
+    text-shadow: 0 0 8px #6a4a18;
 }
 
-#strain {
-    margin-bottom: 12px;
-    color: #ff9966;
+#strain, #pressureLabel {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+#pressureBar {
+    width: 320px;
+    height: 10px;
+    border: 1px solid #cfa44a;
+    background: #2b1a08;
+    margin-bottom: 10px;
+}
+
+#pressureFill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #ffcc66, #ff6644);
 }
 
 .grid {
@@ -37,32 +51,31 @@ h1 {
 
 .rune {
     position: relative;
-    background:
-        radial-gradient(circle at top left, #5a3c1a, #2b1a08);
+    background: radial-gradient(circle at top left, #5a3c1a, #241406);
     border: 2px solid #cfa44a;
     border-radius: 10px;
-    box-shadow:
-        inset 0 0 15px rgba(0,0,0,0.8),
-        0 0 10px rgba(255,200,80,0.15);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
 }
 
-.rune:hover {
-    box-shadow: 0 0 15px rgba(255,210,120,0.4);
-}
-
 .center {
     cursor: default;
-    background:
-        radial-gradient(circle, #7a5522, #2d1b07);
+    background: radial-gradient(circle, #7a5522, #2d1b07);
 }
 
 .locked {
     border-color: #ffdd66;
-    box-shadow: 0 0 12px rgba(255,220,120,0.6);
+    box-shadow: 0 0 14px rgba(255,220,120,0.6);
+}
+
+.arrow {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    transition: transform 0.25s;
 }
 
 .symbol {
@@ -73,22 +86,8 @@ h1 {
     opacity: 0.6;
 }
 
-.arrow {
-    width: 25px;
-    height: 25px;
-    transition: transform 0.25s;
-}
-
 .active {
     box-shadow: 0 0 25px rgba(255,220,120,0.8);
-}
-
-#log {
-    margin-top: 15px;
-    width: 340px;
-    text-align: center;
-    min-height: 40px;
-    color: #ffcc88;
 }
 
 button {
@@ -103,64 +102,90 @@ button {
 button:hover {
     background: #3b260c;
 }
+
+#log {
+    margin-top: 12px;
+    width: 340px;
+    min-height: 40px;
+    text-align: center;
+}
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
 </style>
 </head>
 
 <body>
 
+<canvas id="dust"></canvas>
+
 <h1>RESONANCE LATTICE</h1>
 <div id="strain">Mental Strain: 0 / 5</div>
+
+<div id="pressureLabel">Overseer Pressure</div>
+<div id="pressureBar"><div id="pressureFill"></div></div>
 
 <div class="grid" id="grid"></div>
 
 <button onclick="useForce()">Channel the Force</button>
 
-<div id="log">Dust coats the ancient mechanism.</div>
+<div id="log">Sand drifts through the silent chamber.</div>
 
 <script>
-const rotations = [0, 90, 180, 270];
+/* ---------- GAME STATE ---------- */
+const rotations = [0, 90, 180, 270]; // LEFT, DOWN, RIGHT, UP
+let level = 1;
 let strain = 0;
+let pressure = 0;
 const maxStrain = 5;
+const maxPressure = 100;
 
-// Required rotations pointing inward
-const required = {
-    0: 180,
-    1: 180,
-    2: 180,
-    3: 90,
-    5: 270,
-    6: 0,
-    7: 0,
-    8: 0
-};
-
-// Ancient-looking symbols
 const symbols = ["⟁","⌖","⟡","⌁","⍜","⎔","⟢","⟁"];
-
 let runes = [];
-const forceRuneIndex = Math.floor(Math.random() * 8);
-if (forceRuneIndex >= 4) forceRuneIndex++;
+let forceRuneIndex;
+let activeRunes = [];
 
 const grid = document.getElementById("grid");
 const log = document.getElementById("log");
 const strainDiv = document.getElementById("strain");
+const pressureFill = document.getElementById("pressureFill");
 
-function createRunes() {
+/* ---------- LEVEL SETUP ---------- */
+function setupLevel() {
+    grid.innerHTML = "";
+    runes = [];
+    activeRunes = [];
+
+    // Increase difficulty
+    const activeCount = Math.min(3 + level, 8);
+
+    while (activeRunes.length < activeCount) {
+        const idx = Math.floor(Math.random() * 9);
+        if (idx !== 4 && !activeRunes.includes(idx)) {
+            activeRunes.push(idx);
+        }
+    }
+
+    forceRuneIndex = activeRunes[Math.floor(Math.random() * activeRunes.length)];
+
     for (let i = 0; i < 9; i++) {
         const div = document.createElement("div");
         div.classList.add("rune");
 
         if (i === 4) {
             div.classList.add("center");
-            div.innerHTML = `<span class="symbol">◉</span>`;
-        } else {
-            const rotIndex = Math.floor(Math.random() * 4);
-            runes[i] = rotIndex;
+            div.innerHTML = `<div class="symbol">◉</div>`;
+        } else if (activeRunes.includes(i)) {
+            const rot = Math.floor(Math.random() * 4);
+            runes[i] = rot;
 
             const img = document.createElement("img");
             img.src = "arrow.png";
             img.classList.add("arrow");
-            img.style.transform = `rotate(${rotations[rotIndex]}deg)`;
+            img.style.transform = `rotate(${rotations[rot]}deg)`;
 
             const sym = document.createElement("div");
             sym.classList.add("symbol");
@@ -169,58 +194,108 @@ function createRunes() {
             div.appendChild(img);
             div.appendChild(sym);
 
-            if (i === forceRuneIndex) {
-                div.classList.add("locked");
-            }
+            if (i === forceRuneIndex) div.classList.add("locked");
 
             div.onclick = () => rotateRune(i);
         }
 
         grid.appendChild(div);
     }
+
+    log.textContent = `Lattice depth increases. Level ${level}`;
 }
 
+/* ---------- INTERACTION ---------- */
 function rotateRune(i) {
     if (i === forceRuneIndex) {
-        log.textContent = "The rune refuses logic. It hums softly.";
+        log.textContent = "The rune resists physical touch.";
         return;
     }
     runes[i] = (runes[i] + 1) % 4;
-    grid.children[i].querySelector(".arrow")
-        .style.transform = `rotate(${rotations[runes[i]]}deg)`;
+    updateArrow(i);
     checkWin();
 }
 
 function useForce() {
     strain++;
-    strainDiv.textContent = `Mental Strain: ${strain} / ${maxStrain}`;
+    pressure += 8;
+    updateBars();
 
-    if (strain >= maxStrain) {
-        log.textContent =
-            "Pain fractures your thoughts. Sand fills the chamber.";
+    if (strain >= maxStrain || pressure >= maxPressure) {
+        log.textContent = "Your mind fractures. Footsteps echo above.";
         grid.style.opacity = "0.3";
         return;
     }
 
     runes[forceRuneIndex] = (runes[forceRuneIndex] + 1) % 4;
-    grid.children[forceRuneIndex].querySelector(".arrow")
-        .style.transform = `rotate(${rotations[runes[forceRuneIndex]]}deg)`;
+    updateArrow(forceRuneIndex);
 
-    log.textContent = "The locked rune yields… reluctantly.";
+    log.textContent = "Stone vibrates as the rune yields.";
     checkWin();
 }
 
-function checkWin() {
-    for (let i in required) {
-        if (rotations[runes[i]] !== required[i]) return;
-    }
-
-    log.textContent =
-        "The lattice aligns. Stone grinds open beneath the sand.";
-    grid.querySelectorAll(".rune").forEach(r => r.classList.add("active"));
+function updateArrow(i) {
+    const arrow = grid.children[i].querySelector(".arrow");
+    arrow.style.transform = `rotate(${rotations[runes[i]]}deg)`;
 }
 
-createRunes();
+/* ---------- WIN CONDITION ---------- */
+function checkWin() {
+    for (let i of activeRunes) {
+        if (runes[i] !== 2) return; // all must point RIGHT (toward center)
+    }
+
+    log.textContent = "Resonance achieved. The lattice descends.";
+    grid.querySelectorAll(".rune").forEach(r => r.classList.add("active"));
+
+    setTimeout(() => {
+        level++;
+        setupLevel();
+    }, 1500);
+}
+
+/* ---------- PRESSURE TICK ---------- */
+setInterval(() => {
+    pressure += 1;
+    updateBars();
+    if (pressure >= maxPressure) {
+        log.textContent = "The overseers arrive. The chamber seals.";
+    }
+}, 1000);
+
+function updateBars() {
+    strainDiv.textContent = `Mental Strain: ${strain} / ${maxStrain}`;
+    pressureFill.style.width = `${pressure}%`;
+}
+
+/* ---------- DUST PARTICLES ---------- */
+const canvas = document.getElementById("dust");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const dust = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2 + 0.5,
+    s: Math.random() * 0.3 + 0.1
+}));
+
+function drawDust() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "rgba(255,220,150,0.15)";
+    dust.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        p.y += p.s;
+        if (p.y > canvas.height) p.y = 0;
+    });
+    requestAnimationFrame(drawDust);
+}
+
+drawDust();
+setupLevel();
 </script>
 
 </body>
