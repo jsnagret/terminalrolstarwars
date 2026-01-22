@@ -2,312 +2,198 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Resonance Lattice</title>
+<title>Ancient Flow Mechanism</title>
 
 <style>
-body {
+html, body {
     margin: 0;
-    background: radial-gradient(circle at center, #3a2a12 0%, #120a03 70%);
-    color: #ffd36a;
-    font-family: "Courier New", monospace;
+    height: 100%;
+    background: radial-gradient(circle at center, #2b1a0a 0%, #120a05 70%);
     overflow: hidden;
+    font-family: monospace;
 }
 
+#cave {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 30% 40%, rgba(255,140,40,0.08), transparent 40%),
+        radial-gradient(circle at 70% 60%, rgba(255,110,20,0.06), transparent 45%);
+}
+
+/* Stone runes */
+.rune {
+    width: 80px;
+    height: 80px;
+    background:
+        radial-gradient(circle at 30% 30%, #7a3f16, #3a1d0b);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 0 10px rgba(0,0,0,0.8),
+        0 0 12px rgba(255,120,40,0.15);
+    position: absolute;
+    cursor: pointer;
+}
+
+/* Center receptor */
+#core {
+    width: 120px;
+    height: 120px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, #2a1405 40%, #120800 70%);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+}
+
+#core.active {
+    background:
+        radial-gradient(circle, #ffcc66 20%, #b36a12 60%, #3a1d0b 75%);
+    box-shadow:
+        0 0 30px rgba(255,180,60,0.8),
+        inset 0 0 20px rgba(0,0,0,0.6);
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* UI */
 #ui {
     position: absolute;
-    top: 20px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    z-index: 10;
-}
-
-h1 {
-    letter-spacing: 3px;
-    margin-bottom: 8px;
-    text-shadow: 0 0 10px #6a4a18;
-}
-
-#strain, #pressureLabel {
-    font-size: 14px;
-}
-
-#pressureBar {
-    width: 320px;
-    height: 10px;
-    border: 1px solid #cfa44a;
-    background: #2b1a08;
-    margin: 6px auto;
-}
-
-#pressureFill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(to right, #ffcc66, #ff6644);
-}
-
-.grid {
-    position: absolute;
-    top: 55%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: grid;
-    grid-template-columns: repeat(3, 110px);
-    grid-template-rows: repeat(3, 110px);
-    gap: 12px;
-    z-index: 5;
-}
-
-.rune {
-    background: radial-gradient(circle at top left, #5a3c1a, #241406);
-    border: 2px solid #cfa44a;
-    border-radius: 10px;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
-    position: relative;
-    cursor: pointer;
-}
-
-.rune.locked {
-    border-color: #ffdd66;
-    box-shadow: 0 0 14px rgba(255,220,120,0.7);
-}
-
-.center {
-    cursor: default;
-    background: radial-gradient(circle, #7a5522, #2d1b07);
-}
-
-canvas.flow {
-    width: 100%;
-    height: 100%;
-}
-
-#log {
-    position: absolute;
-    bottom: 30px;
-    width: 100%;
-    text-align: center;
-    color: #ffcc88;
 }
 
 button {
-    margin-top: 8px;
-    background: #2b1a08;
-    color: #ffd36a;
-    border: 1px solid #cfa44a;
-    padding: 6px 18px;
+    background: linear-gradient(#7a3f16, #3a1d0b);
+    color: #ffd28a;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 8px;
     cursor: pointer;
-}
-
-canvas#dust {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
+    box-shadow: 0 0 12px rgba(255,150,60,0.4);
 }
 </style>
 </head>
 
 <body>
-
-<canvas id="dust"></canvas>
-
-<div id="ui">
-    <h1>RESONANCE LATTICE</h1>
-    <div id="strain">Mental Strain: 0 / 5</div>
-    <div id="pressureLabel">Overseer Pressure</div>
-    <div id="pressureBar"><div id="pressureFill"></div></div>
-    <button onclick="useForce()">Channel the Force</button>
+<div id="cave">
+    <div id="core"></div>
+    <div id="ui">
+        <button onclick="channelForce()">Channel the Force</button>
+    </div>
 </div>
 
-<div class="grid" id="grid"></div>
-
-<div id="log">Golden residue sleeps within the stone.</div>
-
 <script>
-/* ===================== GAME STATE ===================== */
-const rotations = [0, 90, 180, 270]; // LEFT, DOWN, RIGHT, UP
-let runes = [];
-let flowCanvases = [];
-let lockedRunes = [];
+const cave = document.getElementById("cave");
+const core = document.getElementById("core");
+
 let level = 1;
-let strain = 0;
-let pressure = 0;
+let flowing = false;
+let runes = [];
 
-const maxStrain = 5;
-const maxPressure = 100;
+function createRune(x, y) {
+    const rune = document.createElement("div");
+    rune.className = "rune";
+    rune.style.left = x + "px";
+    rune.style.top = y + "px";
 
-const grid = document.getElementById("grid");
-const log = document.getElementById("log");
-const strainDiv = document.getElementById("strain");
-const pressureFill = document.getElementById("pressureFill");
+    const canvas = document.createElement("canvas");
+    canvas.width = 80;
+    canvas.height = 80;
+    rune.appendChild(canvas);
 
-/* ===================== SETUP ===================== */
-function setupLevel() {
-    grid.innerHTML = "";
-    runes = [];
-    flowCanvases = [];
-    lockedRunes = [];
-
-    const lockedCount = Math.min(level, 3);
-
-    while (lockedRunes.length < lockedCount) {
-        const i = Math.floor(Math.random() * 9);
-        if (i !== 4 && !lockedRunes.includes(i)) lockedRunes.push(i);
-    }
-
-    for (let i = 0; i < 9; i++) {
-        const div = document.createElement("div");
-        div.classList.add("rune");
-
-        if (i === 4) {
-            div.classList.add("center");
-        } else {
-            runes[i] = Math.floor(Math.random() * 4);
-
-            const canvas = document.createElement("canvas");
-            canvas.width = 100;
-            canvas.height = 100;
-            canvas.classList.add("flow");
-            canvas.style.transform = `rotate(${rotations[runes[i]]}deg)`;
-
-            div.appendChild(canvas);
-            flowCanvases[i] = canvas;
-
-            if (lockedRunes.includes(i)) {
-                div.classList.add("locked");
-            }
-
-            div.onclick = () => rotateRune(i);
-            startFlow(canvas, i);
-        }
-
-        grid.appendChild(div);
-    }
-
-    log.textContent = `The lattice hums deeper. Layer ${level}.`;
-}
-
-/* ===================== FLOW ANIMATION ===================== */
-function startFlow(canvas, index) {
     const ctx = canvas.getContext("2d");
+    let rotation = Math.floor(Math.random() * 4) * 90;
     let offset = 0;
 
-    function draw() {
-        ctx.clearRect(0,0,100,100);
+    rune.style.transform = `rotate(${rotation}deg)`;
 
-        // liquid
-        ctx.strokeStyle = lockedRunes.includes(index)
-            ? "rgba(255,180,80,0.4)"
-            : "rgba(255,215,120,0.9)";
-        ctx.lineWidth = 8;
+    rune.onclick = () => {
+        if (!flowing) {
+            rotation += 90;
+            rune.style.transform = `rotate(${rotation}deg)`;
+        }
+    };
+
+    function draw() {
+        ctx.clearRect(0, 0, 80, 80);
+
+        if (!flowing) return;
+
+        ctx.strokeStyle = "rgba(255,200,90,0.9)";
+        ctx.lineWidth = 6;
         ctx.lineCap = "round";
 
         ctx.beginPath();
-        for (let y = -20; y < 120; y += 8) {
-            const wave = Math.sin((y + offset) * 0.12) * 6;
-            ctx.lineTo(50 + wave, y);
+        for (let y = -20; y < 100; y += 10) {
+            const wave = Math.sin((y + offset) * 0.15) * 4;
+            ctx.lineTo(40 + wave, y);
         }
         ctx.stroke();
 
-        offset += lockedRunes.includes(index) ? 0.3 : 1.2;
+        offset += 1;
         requestAnimationFrame(draw);
     }
+
     draw();
+
+    runes.push({ rune, rotation, canvas });
+    cave.appendChild(rune);
 }
 
-/* ===================== INTERACTION ===================== */
-function rotateRune(i) {
-    if (lockedRunes.includes(i)) {
-        log.textContent = "The liquid refuses to flow.";
-        return;
+function setupLevel() {
+    runes.forEach(r => r.rune.remove());
+    runes = [];
+    flowing = false;
+    core.classList.remove("active");
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    for (let i = 0; i < level + 2; i++) {
+        const angle = (Math.PI * 2 / (level + 2)) * i;
+        const radius = 180 + level * 40;
+        const x = centerX + Math.cos(angle) * radius - 40;
+        const y = centerY + Math.sin(angle) * radius - 40;
+        createRune(x, y);
     }
-    runes[i] = (runes[i] + 1) % 4;
-    flowCanvases[i].style.transform =
-        `rotate(${rotations[runes[i]]}deg)`;
-    checkWin();
 }
 
-function useForce() {
-    strain++;
-    pressure += 8;
-    updateBars();
+function channelForce() {
+    flowing = true;
 
-    if (strain >= maxStrain || pressure >= maxPressure) {
-        log.textContent = "Your mind fractures. Footsteps above.";
-        grid.style.opacity = "0.3";
-        return;
-    }
-
-    const target = lockedRunes[Math.floor(Math.random() * lockedRunes.length)];
-    runes[target] = (runes[target] + 1) % 4;
-    flowCanvases[target].style.transform =
-        `rotate(${rotations[runes[target]]}deg)`;
-
-    log.textContent = "The liquid surges under your will.";
-    checkWin();
+    setTimeout(checkWin, 2500);
 }
 
-/* ===================== WIN CONDITION ===================== */
 function checkWin() {
-    for (let i = 0; i < 9; i++) {
-        if (i === 4) continue;
-        if (runes[i] !== 2) return; // all flow toward center
+    // Simple logic: all runes must be vertical (0 or 180)
+    const aligned = runes.every(r =>
+        Math.abs(r.rune.style.transform.replace(/[^0-9]/g, "") % 180) === 0
+    );
+
+    if (aligned) {
+        core.classList.add("active");
+        setTimeout(() => {
+            level++;
+            setupLevel();
+        }, 1500);
+    } else {
+        flowing = false;
     }
-
-    log.textContent =
-        "Resonance achieved. Stone descends beneath the sand.";
-    level++;
-    pressure = 0;
-    strain = Math.max(0, strain - 1);
-
-    setTimeout(setupLevel, 1500);
 }
 
-/* ===================== PRESSURE ===================== */
-setInterval(() => {
-    pressure++;
-    updateBars();
-    if (pressure >= maxPressure) {
-        log.textContent = "Overseers breach the chamber.";
-    }
-}, 1000);
-
-function updateBars() {
-    strainDiv.textContent = `Mental Strain: ${strain} / ${maxStrain}`;
-    pressureFill.style.width = `${pressure}%`;
-}
-
-/* ===================== DUST ===================== */
-const dustCanvas = document.getElementById("dust");
-const dctx = dustCanvas.getContext("2d");
-dustCanvas.width = window.innerWidth;
-dustCanvas.height = window.innerHeight;
-
-const dust = Array.from({ length: 140 }, () => ({
-    x: Math.random() * dustCanvas.width,
-    y: Math.random() * dustCanvas.height,
-    r: Math.random() * 2 + 0.5,
-    s: Math.random() * 0.3 + 0.1
-}));
-
-function drawDust() {
-    dctx.clearRect(0,0,dustCanvas.width,dustCanvas.height);
-    dctx.fillStyle = "rgba(255,220,150,0.15)";
-    dust.forEach(p => {
-        dctx.beginPath();
-        dctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        dctx.fill();
-        p.y += p.s;
-        if (p.y > dustCanvas.height) p.y = 0;
-    });
-    requestAnimationFrame(drawDust);
-}
-
-/* ===================== START ===================== */
-drawDust();
 setupLevel();
 </script>
-
 </body>
 </html>
