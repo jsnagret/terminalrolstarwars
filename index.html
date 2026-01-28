@@ -2,45 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Proto-TIE Launch</title>
+<title>Proto-TIE Launch - Escape from Tatooine</title>
 <style>
 html, body {
     margin: 0;
     height: 100%;
     background: #000;
     overflow: hidden;
-    font-family: monospace;
+    font-family: 'Courier New', monospace;
+}
+
+/* Starfield */
+#stars {
+    position: absolute;
+    inset: 0;
+    background: #000;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+/* Suns */
+.sun {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.6;
+}
+
+#sun1 {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, #ffff99, #ffaa00);
+    top: 15%;
+    right: 20%;
+}
+
+#sun2 {
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #ffffbb, #ffcc44);
+    top: 20%;
+    right: 35%;
 }
 
 /* Cockpit frame */
 #cockpit {
     position: absolute;
     inset: 0;
-    background:
-        radial-gradient(circle at center, #111 0%, #000 65%);
+    background: radial-gradient(circle at center, rgba(17,17,17,0.3) 0%, rgba(0,0,0,0.8) 65%);
     clip-path: polygon(
         20% 5%, 80% 5%,
         95% 30%, 95% 70%,
         80% 95%, 20% 95%,
         5% 70%, 5% 30%
     );
-    border: 12px solid #050505;
+    border: 12px solid #1a1a1a;
     box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+    pointer-events: none;
 }
 
 /* Struts */
 .strut {
     position: absolute;
-    background: #000;
+    background: linear-gradient(90deg, #000, #222, #000);
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
 }
 .strut.v {
-    width: 14px;
+    width: 16px;
     height: 100%;
     left: 50%;
     transform: translateX(-50%);
 }
 .strut.h {
-    height: 14px;
+    height: 16px;
     width: 100%;
     top: 50%;
     transform: translateY(-50%);
@@ -56,165 +95,758 @@ html, body {
 #ground {
     position: absolute;
     bottom: 0;
+    left: -50%;
     width: 200%;
-    height: 40%;
-    background:
-        linear-gradient(#5a3a1a, #2b1608);
-    transform-origin: center;
+    height: 50%;
+    background: linear-gradient(180deg, #5a3a1a 0%, #3d2613 40%, #2b1608 100%);
+    transform-origin: center bottom;
 }
 
 #sand {
     position: absolute;
     inset: 0;
-    background-image:
-        radial-gradient(circle, rgba(255,200,120,0.08) 1px, transparent 1px);
-    background-size: 4px 4px;
-    animation: sand 12s linear infinite;
+    background-image: radial-gradient(circle, rgba(255,200,120,0.12) 1px, transparent 1px);
+    background-size: 5px 5px;
+    animation: sand 15s linear infinite;
     pointer-events: none;
 }
 
 @keyframes sand {
     from { background-position: 0 0; }
-    to { background-position: -400px 200px; }
+    to { background-position: -500px 250px; }
+}
+
+/* Jabba's Palace silhouette */
+#palace {
+    position: absolute;
+    bottom: 50%;
+    left: 30%;
+    width: 120px;
+    height: 60px;
+    background: #1a0a05;
+    border-radius: 50% 50% 0 0;
+    opacity: 0;
+    transition: opacity 1s;
 }
 
 /* HUD */
 .hud {
     position: absolute;
-    color: #ff4444;
-    font-size: 12px;
+    color: #00ff88;
+    font-size: 13px;
+    text-shadow: 0 0 8px #00ff88;
+    z-index: 100;
+    pointer-events: none;
 }
 
 #alt {
     left: 20px;
-    bottom: 20px;
+    bottom: 80px;
+}
+
+#velocity {
+    left: 20px;
+    bottom: 60px;
+}
+
+#forceStrain {
+    left: 20px;
+    bottom: 40px;
+}
+
+#timer {
+    right: 20px;
+    top: 20px;
+    font-size: 18px;
+    color: #ff4444;
 }
 
 #warning {
-    top: 10%;
+    top: 12%;
     width: 100%;
     text-align: center;
-    font-size: 20px;
+    font-size: 22px;
     opacity: 0;
+    transition: opacity 0.3s;
+    color: #ff3333;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+#objective {
+    top: 50px;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    color: #00ff88;
+}
+
+#radio {
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: #ffaa00;
+    opacity: 0;
+}
+
+/* Meters */
+.meter {
+    position: absolute;
+    right: 20px;
+    width: 150px;
+    height: 20px;
+    border: 2px solid #00ff88;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+}
+
+#throttleMeter {
+    bottom: 80px;
+}
+
+#stabilityMeter {
+    bottom: 50px;
+}
+
+.meterLabel {
+    position: absolute;
+    right: 180px;
+    font-size: 11px;
+    color: #00ff88;
+}
+
+.meterFill {
+    height: 100%;
+    transition: width 0.1s, background 0.3s;
+}
+
+#throttleFill {
+    background: linear-gradient(90deg, #00ff88, #00ffaa);
+}
+
+#stabilityFill {
+    background: linear-gradient(90deg, #ffaa00, #00ff88, #ffaa00);
 }
 
 /* Enemies */
 .enemy {
     position: absolute;
-    width: 40px;
-    height: 12px;
-    background: #aa0000;
-    top: 30%;
+    width: 50px;
+    height: 20px;
+    background: linear-gradient(45deg, #aa0000, #cc2222);
+    border: 2px solid #ff0000;
+    border-radius: 4px;
+    box-shadow: 0 0 15px #ff0000;
+}
+
+.ciiShip {
+    background: linear-gradient(45deg, #ffaa00, #ffcc44);
+    border-color: #ffdd00;
+    box-shadow: 0 0 15px #ffaa00;
 }
 
 /* Shots */
 .shot {
     position: absolute;
-    width: 4px;
-    height: 16px;
-    background: #00ff66;
+    width: 5px;
+    height: 20px;
+    background: linear-gradient(180deg, #00ff66, #00ff00);
+    box-shadow: 0 0 10px #00ff66;
+    border-radius: 2px;
 }
 
 .enemyShot {
-    background: red;
+    background: linear-gradient(180deg, #ff0000, #ff6600);
+    box-shadow: 0 0 10px #ff0000;
+    height: 15px;
+}
+
+/* Explosions */
+.explosion {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffff00, #ff6600, transparent);
+    animation: explode 0.5s ease-out forwards;
+}
+
+@keyframes explode {
+    from {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    to {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Force effects */
+#forceGlow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at center, rgba(100,100,255,0.1), transparent 60%);
+    transition: opacity 0.3s;
+}
+
+/* Thruster glow */
+#thruster {
+    position: absolute;
+    bottom: 35%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 0;
+    background: radial-gradient(ellipse, #00ffff, #0088ff, transparent);
+    filter: blur(10px);
+    opacity: 0;
+    transition: height 0.2s, opacity 0.2s;
+}
+
+/* Screen shake */
+@keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-2px, 2px); }
+    20% { transform: translate(2px, -2px); }
+    30% { transform: translate(-2px, -2px); }
+    40% { transform: translate(2px, 2px); }
+    50% { transform: translate(-2px, 2px); }
+    60% { transform: translate(2px, -2px); }
+    70% { transform: translate(-2px, -2px); }
+    80% { transform: translate(2px, 2px); }
+    90% { transform: translate(-2px, 2px); }
+}
+
+.shake {
+    animation: shake 0.3s;
+}
+
+/* Intro text */
+#intro {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    color: #ffaa00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 200;
+    font-size: 16px;
+    text-align: center;
+    padding: 40px;
+    line-height: 1.8;
+}
+
+#intro.hidden {
+    display: none;
+}
+
+.crawl {
+    max-width: 600px;
+    margin-bottom: 30px;
+}
+
+/* Game Over */
+#gameOver {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    color: #ff4444;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 300;
+    font-size: 24px;
+}
+
+#gameOver.show {
+    display: flex;
+}
+
+/* Victory */
+#victory {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    color: #00ff88;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 300;
+    font-size: 24px;
+}
+
+#victory.show {
+    display: flex;
 }
 
 </style>
 </head>
 <body>
 
-<div id="world">
-    <div id="ground"></div>
-    <div id="sand"></div>
+<div id="intro">
+    <div class="crawl">
+        <strong>DAY 3 - TATOOINE RUINS</strong><br><br>
+        After days of forced labor under Jabba the Hutt,<br>
+        you've discovered a Republic testing facility<br>
+        hidden beneath the desert sands.<br><br>
+        Within: a Proto-TIE fighter.<br><br>
+        The Confederación de la Igualdad has detected<br>
+        unusual activity. They're coming for you.<br><br>
+        This is your only chance to escape.<br><br>
+        <strong style="color: #00ff88;">CONTROLS:</strong><br>
+        W/S - Throttle | A/D - Stability<br>
+        SPACE - Fire (Force-Enhanced)<br><br>
+    </div>
+    <button onclick="startGame()" style="padding: 15px 30px; font-size: 18px; background: #ffaa00; border: none; cursor: pointer; font-family: monospace;">
+        INITIATE LAUNCH SEQUENCE
+    </button>
 </div>
+
+<div id="stars"></div>
+<div class="sun" id="sun1"></div>
+<div class="sun" id="sun2"></div>
+
+<div id="world">
+    <div id="ground">
+        <div id="sand"></div>
+        <div id="palace"></div>
+    </div>
+</div>
+
+<div id="forceGlow"></div>
+<div id="thruster"></div>
 
 <div id="cockpit">
     <div class="strut v"></div>
     <div class="strut h"></div>
 </div>
 
-<div class="hud" id="alt">ALT 0.0</div>
+<div class="hud" id="alt">ALTITUDE: 0m</div>
+<div class="hud" id="velocity">VELOCITY: 0 m/s</div>
+<div class="hud" id="forceStrain">FORCE STRAIN: 0%</div>
+<div class="hud" id="timer">TIME: 60s</div>
 <div class="hud" id="warning">INSTABILITY</div>
+<div class="hud" id="objective">OBJECTIVE: Reach orbit (500m) before CII arrival</div>
+<div class="hud" id="radio"></div>
+
+<div class="meter" id="throttleMeter">
+    <div class="meterFill" id="throttleFill"></div>
+</div>
+<div class="hud meterLabel" style="bottom: 80px;">THROTTLE</div>
+
+<div class="meter" id="stabilityMeter">
+    <div class="meterFill" id="stabilityFill"></div>
+</div>
+<div class="hud meterLabel" style="bottom: 50px;">STABILITY</div>
+
+<div id="gameOver">
+    <div id="gameOverText">CAPTURED BY CII</div>
+    <div style="font-size: 16px; margin-top: 20px; color: #ffaa00;">
+        "You'll face the Confederation's tribunal now."
+    </div>
+    <button onclick="location.reload()" style="margin-top: 30px; padding: 10px 25px; font-size: 16px; background: #ff4444; color: white; border: none; cursor: pointer; font-family: monospace;">
+        RETRY
+    </button>
+</div>
+
+<div id="victory">
+    <div>ESCAPE SUCCESSFUL</div>
+    <div style="font-size: 16px; margin-top: 20px; color: #ffaa00;">
+        Hyperspace coordinates locked.<br>
+        The journey continues...
+    </div>
+</div>
 
 <script>
+// Game state
 let throttle = 0;
 let stability = 50;
 let altitude = 0;
-let phase = "lift";
+let velocity = 0;
+let phase = "launch";
 let enemies = [];
 let shots = [];
+let forceStrain = 0;
+let timeLeft = 60;
+let health = 100;
+let score = 0;
+let lastFireTime = 0;
+let lastEnemyFireTime = 0;
+let gameStarted = false;
+let ciiArrived = false;
 
+// Constants
+const FIRE_COOLDOWN = 300;
+const ENEMY_FIRE_COOLDOWN = 2000;
+const MAX_ALTITUDE = 500;
+const THROTTLE_DECAY = 0.985;
+const STABILITY_RETURN = 0.02;
+const FORCE_STRAIN_DECAY = 0.5;
+const FORCE_STRAIN_PER_SHOT = 15;
+
+// DOM elements
 const ground = document.getElementById("ground");
+const palace = document.getElementById("palace");
 const altHUD = document.getElementById("alt");
+const velocityHUD = document.getElementById("velocity");
+const forceStrainHUD = document.getElementById("forceStrain");
+const timerHUD = document.getElementById("timer");
 const warning = document.getElementById("warning");
+const radio = document.getElementById("radio");
 const world = document.getElementById("world");
+const forceGlow = document.getElementById("forceGlow");
+const thruster = document.getElementById("thruster");
+const throttleFill = document.getElementById("throttleFill");
+const stabilityFill = document.getElementById("stabilityFill");
+const gameOver = document.getElementById("gameOver");
+const gameOverText = document.getElementById("gameOverText");
+const victory = document.getElementById("victory");
+const starsContainer = document.getElementById("stars");
 
-document.addEventListener("keydown", e => {
-    if (e.key === "w") throttle += 2;
-    if (e.key === "s") throttle -= 2;
-    if (e.key === "a") stability -= 4;
-    if (e.key === "d") stability += 4;
-    if (phase === "combat" && e.code === "Space") fire();
-});
-
-function fire() {
-    const s = document.createElement("div");
-    s.className = "shot";
-    s.style.left = "50%";
-    s.style.bottom = "40%";
-    world.appendChild(s);
-    shots.push({ el: s, y: 40 });
+// Generate starfield
+function createStars() {
+    for (let i = 0; i < 150; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        const size = Math.random() * 2 + 1;
+        star.style.width = size + "px";
+        star.style.height = size + "px";
+        star.style.left = Math.random() * 100 + "%";
+        star.style.top = Math.random() * 100 + "%";
+        star.style.opacity = Math.random() * 0.8 + 0.2;
+        starsContainer.appendChild(star);
+    }
 }
 
-function spawnEnemies() {
+createStars();
+
+function startGame() {
+    document.getElementById("intro").classList.add("hidden");
+    gameStarted = true;
+    palace.style.opacity = "1";
+    
+    // Initial radio message
+    setTimeout(() => showRadio("Systems online. Initiating launch sequence..."), 500);
+    setTimeout(() => showRadio("Warning: Unauthorized vessel detected."), 8000);
+    setTimeout(() => showRadio("CII Command: This is Confederation patrol. Power down immediately."), 15000);
+    setTimeout(() => {
+        showRadio("CII interceptors inbound. You have been marked as hostile.");
+        spawnCIIWave();
+        ciiArrived = true;
+    }, 25000);
+}
+
+// Input handling
+const keys = {};
+document.addEventListener("keydown", e => {
+    keys[e.key] = true;
+    
+    if (e.code === "Space" && gameStarted) {
+        e.preventDefault();
+        fire();
+    }
+});
+
+document.addEventListener("keyup", e => {
+    keys[e.key] = false;
+});
+
+function handleInput() {
+    if (keys["w"]) throttle += 1.5;
+    if (keys["s"]) throttle -= 1.5;
+    if (keys["a"]) stability -= 3;
+    if (keys["d"]) stability += 3;
+}
+
+function fire() {
+    const now = Date.now();
+    if (now - lastFireTime < FIRE_COOLDOWN) return;
+    if (forceStrain >= 100) {
+        showRadio("Force exhaustion! Can't concentrate...");
+        return;
+    }
+    
+    lastFireTime = now;
+    forceStrain += FORCE_STRAIN_PER_SHOT;
+    
+    const s = document.createElement("div");
+    s.className = "shot";
+    s.style.left = "calc(50% - 2px)";
+    s.style.bottom = "45%";
+    world.appendChild(s);
+    shots.push({ el: s, y: 45, friendly: true });
+    
+    // Force glow effect
+    forceGlow.style.opacity = "1";
+    setTimeout(() => forceGlow.style.opacity = "0", 200);
+    
+    // Screen shake
+    world.classList.add("shake");
+    setTimeout(() => world.classList.remove("shake"), 300);
+}
+
+function enemyFire(enemy) {
+    const now = Date.now();
+    if (now - lastEnemyFireTime < ENEMY_FIRE_COOLDOWN) return;
+    
+    lastEnemyFireTime = now;
+    
+    const s = document.createElement("div");
+    s.className = "shot enemyShot";
+    s.style.left = enemy.el.offsetLeft + 23 + "px";
+    s.style.top = enemy.el.offsetTop + 30 + "px";
+    world.appendChild(s);
+    shots.push({ 
+        el: s, 
+        y: (window.innerHeight - enemy.el.offsetTop - 30) / window.innerHeight * 100, 
+        friendly: false,
+        isTopPositioned: true
+    });
+}
+
+function spawnCIIWave() {
     for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            const e = document.createElement("div");
+            e.className = "enemy ciiShip";
+            e.style.left = (10 + i * 30) + "%";
+            e.style.top = "20%";
+            world.appendChild(e);
+            enemies.push({ 
+                el: e, 
+                dir: Math.random() > 0.5 ? 1 : -1,
+                health: 2,
+                type: "cii"
+            });
+        }, i * 500);
+    }
+}
+
+function spawnJabbaPatrol() {
+    for (let i = 0; i < 2; i++) {
         const e = document.createElement("div");
         e.className = "enemy";
-        e.style.left = (20 + i * 25) + "%";
+        e.style.left = (25 + i * 35) + "%";
+        e.style.top = "35%";
         world.appendChild(e);
-        enemies.push({ el: e, dir: Math.random() > 0.5 ? 1 : -1 });
+        enemies.push({ 
+            el: e, 
+            dir: Math.random() > 0.5 ? 1 : -1,
+            health: 1,
+            type: "jabba"
+        });
+    }
+}
+
+function showRadio(text) {
+    radio.textContent = text;
+    radio.style.opacity = "1";
+    setTimeout(() => radio.style.opacity = "0", 4000);
+}
+
+function createExplosion(x, y) {
+    const exp = document.createElement("div");
+    exp.className = "explosion";
+    exp.style.left = x + "px";
+    exp.style.top = y + "px";
+    world.appendChild(exp);
+    setTimeout(() => exp.remove(), 500);
+    
+    // Screen shake on explosion
+    world.classList.add("shake");
+    setTimeout(() => world.classList.remove("shake"), 300);
+}
+
+function checkCollisions() {
+    // Check shot-enemy collisions
+    for (let i = shots.length - 1; i >= 0; i--) {
+        const shot = shots[i];
+        if (!shot.friendly) continue;
+        
+        const shotRect = shot.el.getBoundingClientRect();
+        
+        for (let j = enemies.length - 1; j >= 0; j--) {
+            const enemy = enemies[j];
+            const enemyRect = enemy.el.getBoundingClientRect();
+            
+            if (!(shotRect.right < enemyRect.left || 
+                  shotRect.left > enemyRect.right || 
+                  shotRect.bottom < enemyRect.top || 
+                  shotRect.top > enemyRect.bottom)) {
+                
+                // Hit!
+                enemy.health--;
+                shot.el.remove();
+                shots.splice(i, 1);
+                
+                if (enemy.health <= 0) {
+                    createExplosion(enemy.el.offsetLeft, enemy.el.offsetTop);
+                    enemy.el.remove();
+                    enemies.splice(j, 1);
+                    score += enemy.type === "cii" ? 200 : 100;
+                    showRadio(enemy.type === "cii" ? "CII interceptor destroyed!" : "Patrol speeder down!");
+                }
+                break;
+            }
+        }
+    }
+    
+    // Check enemy shot-player collisions (simplified - shots reaching bottom)
+    for (let i = shots.length - 1; i >= 0; i--) {
+        const shot = shots[i];
+        if (shot.friendly) continue;
+        
+        if ((shot.isTopPositioned && shot.y > 80) || (!shot.isTopPositioned && shot.y < 20)) {
+            health -= 10;
+            shot.el.remove();
+            shots.splice(i, 1);
+            showRadio("HULL BREACH! Structural integrity compromised!");
+            world.classList.add("shake");
+            setTimeout(() => world.classList.remove("shake"), 300);
+            
+            if (health <= 0) {
+                endGame(false, "Hull integrity failure");
+            }
+        }
+    }
+}
+
+function endGame(success, reason = "") {
+    gameStarted = false;
+    if (success) {
+        victory.classList.add("show");
+    } else {
+        gameOverText.textContent = reason || "CAPTURED BY CII";
+        gameOver.classList.add("show");
     }
 }
 
 function update() {
-    throttle = Math.max(0, Math.min(100, throttle));
+    if (!gameStarted) return;
+    
+    handleInput();
+    
+    // Physics
+    throttle = Math.max(0, Math.min(100, throttle * THROTTLE_DECAY));
+    
+    // Stability naturally returns to center
+    const stabilityDiff = 50 - stability;
+    stability += stabilityDiff * STABILITY_RETURN;
     stability = Math.max(0, Math.min(100, stability));
-
-    if (phase === "lift") {
-        const wobble = Math.abs(stability - 50);
-        altitude += throttle * 0.03 - wobble * 0.04;
-
-        ground.style.transform =
-            `translateY(${altitude}px) rotate(${(stability-50)*0.05}deg)`;
-
-        warning.style.opacity = wobble > 18 ? 1 : 0;
-
-        if (altitude > 120) {
-            phase = "combat";
-            spawnEnemies();
-            warning.textContent = "CONTACT";
-            warning.style.opacity = 1;
-        }
+    
+    // Force strain recovery
+    forceStrain = Math.max(0, forceStrain - FORCE_STRAIN_DECAY);
+    
+    // Calculate velocity and altitude
+    const wobble = Math.abs(stability - 50);
+    const forceMultiplier = forceStrain > 80 ? 0.5 : 1; // Reduced control when strained
+    
+    velocity = throttle * 0.5 - wobble * 0.2;
+    velocity *= forceMultiplier;
+    altitude += velocity * 0.15;
+    altitude = Math.max(0, altitude);
+    
+    // Visual updates
+    const groundOffset = Math.min(altitude * 3, 2000);
+    const tilt = (stability - 50) * 0.08;
+    ground.style.transform = `translateY(${groundOffset}px) rotate(${tilt}deg) scale(${1 + altitude * 0.002})`;
+    
+    // Thruster effect
+    if (throttle > 20) {
+        thruster.style.height = (throttle * 1.5) + "px";
+        thruster.style.opacity = throttle / 100;
+    } else {
+        thruster.style.opacity = "0";
     }
-
-    if (phase === "combat") {
-        enemies.forEach(e => {
-            const x = e.el.offsetLeft + e.dir * 2;
-            e.el.style.left = x + "px";
-            if (x < 0 || x > window.innerWidth - 40) e.dir *= -1;
-        });
+    
+    // Warning for instability
+    warning.style.opacity = wobble > 25 ? 1 : 0;
+    
+    // Suns fade as we leave atmosphere
+    const sunsOpacity = Math.max(0, 0.6 - altitude / 800);
+    document.getElementById("sun1").style.opacity = sunsOpacity;
+    document.getElementById("sun2").style.opacity = sunsOpacity;
+    
+    // Phase transitions
+    if (phase === "launch" && altitude > 80) {
+        phase = "climb";
+        spawnJabbaPatrol();
+        showRadio("Jabba's patrol speeders engaging!");
     }
-
-    shots.forEach((s, i) => {
-        s.y += 8;
-        s.el.style.bottom = s.y + "%";
-        if (s.y > 100) {
-            s.el.remove();
-            shots.splice(i, 1);
+    
+    if (phase === "climb" && altitude > 250 && !ciiArrived) {
+        phase = "escape";
+    }
+    
+    // Enemy AI
+    enemies.forEach((e, idx) => {
+        const x = e.el.offsetLeft + e.dir * (e.type === "cii" ? 3 : 2);
+        e.el.style.left = x + "px";
+        if (x < 0 || x > window.innerWidth - 50) e.dir *= -1;
+        
+        // Random firing
+        if (Math.random() < 0.01) {
+            enemyFire(e);
         }
     });
-
-    altHUD.textContent = "ALT " + altitude.toFixed(1);
+    
+    // Update shots
+    for (let i = shots.length - 1; i >= 0; i--) {
+        const shot = shots[i];
+        
+        if (shot.isTopPositioned) {
+            shot.y += shot.friendly ? 5 : -5;
+            shot.el.style.top = (window.innerHeight - (shot.y / 100 * window.innerHeight)) + "px";
+        } else {
+            shot.y += shot.friendly ? 8 : -8;
+            shot.el.style.bottom = shot.y + "%";
+        }
+        
+        if (shot.y > 110 || shot.y < -10) {
+            shot.el.remove();
+            shots.splice(i, 1);
+        }
+    }
+    
+    checkCollisions();
+    
+    // Timer
+    timeLeft -= 1/60;
+    if (timeLeft <= 0 && !ciiArrived) {
+        endGame(false, "CII forces have captured you");
+        return;
+    }
+    
+    // Win condition
+    if (altitude >= MAX_ALTITUDE) {
+        endGame(true);
+        return;
+    }
+    
+    // HUD updates
+    altHUD.textContent = `ALTITUDE: ${Math.floor(altitude)}m`;
+    velocityHUD.textContent = `VELOCITY: ${velocity.toFixed(1)} m/s`;
+    forceStrainHUD.textContent = `FORCE STRAIN: ${Math.floor(forceStrain)}%`;
+    forceStrainHUD.style.color = forceStrain > 80 ? "#ff4444" : "#00ff88";
+    timerHUD.textContent = `TIME: ${Math.ceil(timeLeft)}s`;
+    
+    // Meters
+    throttleFill.style.width = throttle + "%";
+    stabilityFill.style.width = ((stability) / 100 * 100) + "%";
+    
+    if (wobble > 25) {
+        stabilityFill.style.background = "linear-gradient(90deg, #ff0000, #ff4444)";
+    } else {
+        stabilityFill.style.background = "linear-gradient(90deg, #ffaa00, #00ff88, #ffaa00)";
+    }
+    
     requestAnimationFrame(update);
 }
 
