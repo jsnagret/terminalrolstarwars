@@ -2,158 +2,215 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ancient Flow Rune</title>
-
+<title>Proto-TIE Unauthorized Launch</title>
 <style>
-body {
+html, body {
     margin: 0;
-    background: radial-gradient(circle, #2c1a0b, #120900);
-    height: 100vh;
+    background: #000;
+    height: 100%;
     overflow: hidden;
+    font-family: monospace;
+    color: #dcdcdc;
 }
 
-#board {
+#screen {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    background: radial-gradient(circle at center, #111 0%, #000 70%);
+}
+
+/* HUD */
+.hud {
+    position: absolute;
+    inset: 20px;
+    border: 2px solid #555;
+    box-shadow: inset 0 0 40px rgba(255,255,255,0.05);
+}
+
+.label {
+    color: #ff4444;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* Meters */
+.meter {
+    width: 20px;
+    height: 200px;
+    border: 1px solid #777;
+    position: absolute;
+    bottom: 40px;
+}
+
+.fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(#ffcc66, #aa5500);
+}
+
+/* Sand overlay */
+#sand {
     position: absolute;
     inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle, rgba(255,200,100,0.04) 1px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0.4;
+    animation: drift 20s linear infinite;
 }
 
-.rune {
+@keyframes drift {
+    from { background-position: 0 0; }
+    to { background-position: 400px 200px; }
+}
+
+/* Warnings */
+#warning {
     position: absolute;
-    width: 80px;
-    height: 80px;
-    background: radial-gradient(circle at 30% 30%, #8a4a1c, #3a1d0b);
-    border-radius: 10px;
-    box-shadow: inset 0 0 12px rgba(0,0,0,.8);
-    cursor: pointer;
-}
-
-canvas {
-    width: 100%;
-    height: 100%;
-}
-
-#core {
-    position: absolute;
-    left: 50%;
     top: 50%;
-    width: 120px;
-    height: 120px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: radial-gradient(circle, #1a0c05, #000);
-    box-shadow: inset 0 0 25px rgba(0,0,0,.9);
-}
-
-#core.active {
-    background: radial-gradient(circle, #ffd27a, #a85c12);
-    box-shadow: 0 0 30px rgba(255,180,80,.9);
-}
-
-button {
-    position: absolute;
-    bottom: 20px;
     left: 50%;
-    transform: translateX(-50%);
-    background: #5a2d10;
-    color: #ffdca0;
-    border: none;
-    padding: 12px 22px;
-    font-size: 16px;
-    border-radius: 8px;
+    transform: translate(-50%, -50%);
+    color: #ff3333;
+    font-size: 18px;
+    text-align: center;
+    opacity: 0;
 }
+
+/* Enemies */
+.enemy {
+    position: absolute;
+    width: 30px;
+    height: 10px;
+    background: red;
+    top: 30%;
+}
+
 </style>
 </head>
-
 <body>
-<div id="board"></div>
-<div id="core"></div>
-<button onclick="channelForce()">Channel the Force</button>
+
+<div id="screen">
+    <div class="hud">
+        <div class="label" style="top:10px;left:10px;position:absolute">
+            PILOT AUTH: FAILED<br>
+            MANUAL OVERRIDE ACTIVE
+        </div>
+
+        <div class="meter" style="left:40px">
+            <div id="throttleFill" class="fill"></div>
+        </div>
+        <div class="label" style="left:38px;bottom:10px;position:absolute">
+            ION
+        </div>
+
+        <div class="meter" style="right:40px">
+            <div id="stabilityFill" class="fill"></div>
+        </div>
+        <div class="label" style="right:28px;bottom:10px;position:absolute">
+            STAB
+        </div>
+
+        <div id="warning">INSTABILITY</div>
+    </div>
+
+    <div id="sand"></div>
+</div>
 
 <script>
-const board = document.getElementById("board");
-const core = document.getElementById("core");
+let throttle = 0;
+let stability = 50;
+let altitude = 0;
+let phase = "boot";
+let enemies = [];
 
-let flowing = false;
-let runes = [];
+const throttleFill = document.getElementById("throttleFill");
+const stabilityFill = document.getElementById("stabilityFill");
+const warning = document.getElementById("warning");
+const screen = document.getElementById("screen");
 
-function createRune(x, y) {
-    const rune = document.createElement("div");
-    rune.className = "rune";
-    rune.style.left = x + "px";
-    rune.style.top = y + "px";
+/* BOOT */
+setTimeout(() => phase = "lift", 3000);
 
-    const canvas = document.createElement("canvas");
-    canvas.width = 80;
-    canvas.height = 80;
-    rune.appendChild(canvas);
-
-    const ctx = canvas.getContext("2d");
-    let rotation = 0;
-    let flow = 0;
-
-    rune.onclick = () => {
-        if (!flowing) {
-            rotation = (rotation + 90) % 360;
-            rune.style.transform = `rotate(${rotation}deg)`;
-        }
-    };
-
-    function draw() {
-        ctx.clearRect(0,0,80,80);
-
-        // channel
-        ctx.strokeStyle = "#4a250c";
-        ctx.lineWidth = 12;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(40, 0);
-        ctx.lineTo(40, 80);
-        ctx.stroke();
-
-        if (flowing) {
-            ctx.strokeStyle = "rgba(255,200,90,.9)";
-            ctx.lineWidth = 6;
-            ctx.beginPath();
-            ctx.moveTo(40, flow - 20);
-            ctx.lineTo(40, flow + 20);
-            ctx.stroke();
-
-            flow += 2;
-            if (flow > 100) flow = -20;
-        }
-
-        requestAnimationFrame(draw);
+document.addEventListener("keydown", e => {
+    if (phase === "lift") {
+        if (e.key === "w") throttle += 2;
+        if (e.key === "s") throttle -= 2;
+        if (e.key === "a") stability -= 3;
+        if (e.key === "d") stability += 3;
     }
 
-    draw();
+    if (phase === "combat" && e.code === "Space") {
+        fire();
+    }
+});
 
-    runes.push({ rune, rotation });
-    board.appendChild(rune);
-}
+function update() {
+    throttle = Math.max(0, Math.min(100, throttle));
+    stability = Math.max(0, Math.min(100, stability));
 
-function channelForce() {
-    flowing = true;
+    throttleFill.style.height = throttle * 2 + "px";
+    stabilityFill.style.height = stability * 2 + "px";
 
-    setTimeout(() => {
-        const aligned = runes.every(r =>
-            r.rune.style.transform.includes("0deg") ||
-            r.rune.style.transform.includes("180deg")
-        );
+    if (phase === "lift") {
+        const wobble = Math.abs(stability - 50);
 
-        if (aligned) {
-            core.classList.add("active");
+        altitude += throttle * 0.02 - wobble * 0.05;
+
+        if (wobble > 20) {
+            warning.style.opacity = 1;
         } else {
-            flowing = false;
+            warning.style.opacity = 0;
         }
-    }, 2000);
+
+        if (altitude > 100) {
+            startCombat();
+        }
+
+        if (altitude < -20) {
+            reset();
+        }
+    }
+
+    requestAnimationFrame(update);
 }
 
-// layout
-const cx = innerWidth / 2;
-const cy = innerHeight / 2;
+function startCombat() {
+    phase = "combat";
+    warning.innerText = "CONTACT";
+    warning.style.opacity = 1;
 
-createRune(cx - 200, cy - 40);
-createRune(cx + 120, cy - 40);
+    for (let i = 0; i < 3; i++) {
+        const e = document.createElement("div");
+        e.className = "enemy";
+        e.style.left = Math.random() * window.innerWidth + "px";
+        e.style.top = (30 + i * 10) + "%";
+        screen.appendChild(e);
+        enemies.push(e);
+    }
+}
+
+function fire() {
+    if (enemies.length > 0) {
+        const e = enemies.pop();
+        e.remove();
+        if (enemies.length === 0) {
+            warning.innerText = "AIRSPACE CLEAR";
+        }
+    }
+}
+
+function reset() {
+    throttle = 0;
+    altitude = 0;
+    warning.innerText = "CRASH";
+    warning.style.opacity = 1;
+}
+
+update();
 </script>
+
 </body>
 </html>
