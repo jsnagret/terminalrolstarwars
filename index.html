@@ -2,211 +2,220 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Proto-TIE Unauthorized Launch</title>
+<title>Proto-TIE Launch</title>
 <style>
 html, body {
     margin: 0;
-    background: #000;
     height: 100%;
+    background: #000;
     overflow: hidden;
     font-family: monospace;
-    color: #dcdcdc;
 }
 
-#screen {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    background: radial-gradient(circle at center, #111 0%, #000 70%);
+/* Cockpit frame */
+#cockpit {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at center, #111 0%, #000 65%);
+    clip-path: polygon(
+        20% 5%, 80% 5%,
+        95% 30%, 95% 70%,
+        80% 95%, 20% 95%,
+        5% 70%, 5% 30%
+    );
+    border: 12px solid #050505;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+}
+
+/* Struts */
+.strut {
+    position: absolute;
+    background: #000;
+}
+.strut.v {
+    width: 14px;
+    height: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.strut.h {
+    height: 14px;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* World */
+#world {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+#ground {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 40%;
+    background:
+        linear-gradient(#5a3a1a, #2b1608);
+    transform-origin: center;
+}
+
+#sand {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle, rgba(255,200,120,0.08) 1px, transparent 1px);
+    background-size: 4px 4px;
+    animation: sand 12s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes sand {
+    from { background-position: 0 0; }
+    to { background-position: -400px 200px; }
 }
 
 /* HUD */
 .hud {
     position: absolute;
-    inset: 20px;
-    border: 2px solid #555;
-    box-shadow: inset 0 0 40px rgba(255,255,255,0.05);
-}
-
-.label {
     color: #ff4444;
     font-size: 12px;
-    letter-spacing: 2px;
 }
 
-/* Meters */
-.meter {
-    width: 20px;
-    height: 200px;
-    border: 1px solid #777;
-    position: absolute;
-    bottom: 40px;
+#alt {
+    left: 20px;
+    bottom: 20px;
 }
 
-.fill {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: linear-gradient(#ffcc66, #aa5500);
-}
-
-/* Sand overlay */
-#sand {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-        radial-gradient(circle, rgba(255,200,100,0.04) 1px, transparent 1px);
-    background-size: 4px 4px;
-    opacity: 0.4;
-    animation: drift 20s linear infinite;
-}
-
-@keyframes drift {
-    from { background-position: 0 0; }
-    to { background-position: 400px 200px; }
-}
-
-/* Warnings */
 #warning {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #ff3333;
-    font-size: 18px;
+    top: 10%;
+    width: 100%;
     text-align: center;
+    font-size: 20px;
     opacity: 0;
 }
 
 /* Enemies */
 .enemy {
     position: absolute;
-    width: 30px;
-    height: 10px;
-    background: red;
+    width: 40px;
+    height: 12px;
+    background: #aa0000;
     top: 30%;
+}
+
+/* Shots */
+.shot {
+    position: absolute;
+    width: 4px;
+    height: 16px;
+    background: #00ff66;
+}
+
+.enemyShot {
+    background: red;
 }
 
 </style>
 </head>
 <body>
 
-<div id="screen">
-    <div class="hud">
-        <div class="label" style="top:10px;left:10px;position:absolute">
-            PILOT AUTH: FAILED<br>
-            MANUAL OVERRIDE ACTIVE
-        </div>
-
-        <div class="meter" style="left:40px">
-            <div id="throttleFill" class="fill"></div>
-        </div>
-        <div class="label" style="left:38px;bottom:10px;position:absolute">
-            ION
-        </div>
-
-        <div class="meter" style="right:40px">
-            <div id="stabilityFill" class="fill"></div>
-        </div>
-        <div class="label" style="right:28px;bottom:10px;position:absolute">
-            STAB
-        </div>
-
-        <div id="warning">INSTABILITY</div>
-    </div>
-
+<div id="world">
+    <div id="ground"></div>
     <div id="sand"></div>
 </div>
+
+<div id="cockpit">
+    <div class="strut v"></div>
+    <div class="strut h"></div>
+</div>
+
+<div class="hud" id="alt">ALT 0.0</div>
+<div class="hud" id="warning">INSTABILITY</div>
 
 <script>
 let throttle = 0;
 let stability = 50;
 let altitude = 0;
-let phase = "boot";
+let phase = "lift";
 let enemies = [];
+let shots = [];
 
-const throttleFill = document.getElementById("throttleFill");
-const stabilityFill = document.getElementById("stabilityFill");
+const ground = document.getElementById("ground");
+const altHUD = document.getElementById("alt");
 const warning = document.getElementById("warning");
-const screen = document.getElementById("screen");
-
-/* BOOT */
-setTimeout(() => phase = "lift", 3000);
+const world = document.getElementById("world");
 
 document.addEventListener("keydown", e => {
-    if (phase === "lift") {
-        if (e.key === "w") throttle += 2;
-        if (e.key === "s") throttle -= 2;
-        if (e.key === "a") stability -= 3;
-        if (e.key === "d") stability += 3;
-    }
-
-    if (phase === "combat" && e.code === "Space") {
-        fire();
-    }
+    if (e.key === "w") throttle += 2;
+    if (e.key === "s") throttle -= 2;
+    if (e.key === "a") stability -= 4;
+    if (e.key === "d") stability += 4;
+    if (phase === "combat" && e.code === "Space") fire();
 });
+
+function fire() {
+    const s = document.createElement("div");
+    s.className = "shot";
+    s.style.left = "50%";
+    s.style.bottom = "40%";
+    world.appendChild(s);
+    shots.push({ el: s, y: 40 });
+}
+
+function spawnEnemies() {
+    for (let i = 0; i < 3; i++) {
+        const e = document.createElement("div");
+        e.className = "enemy";
+        e.style.left = (20 + i * 25) + "%";
+        world.appendChild(e);
+        enemies.push({ el: e, dir: Math.random() > 0.5 ? 1 : -1 });
+    }
+}
 
 function update() {
     throttle = Math.max(0, Math.min(100, throttle));
     stability = Math.max(0, Math.min(100, stability));
 
-    throttleFill.style.height = throttle * 2 + "px";
-    stabilityFill.style.height = stability * 2 + "px";
-
     if (phase === "lift") {
         const wobble = Math.abs(stability - 50);
+        altitude += throttle * 0.03 - wobble * 0.04;
 
-        altitude += throttle * 0.02 - wobble * 0.05;
+        ground.style.transform =
+            `translateY(${altitude}px) rotate(${(stability-50)*0.05}deg)`;
 
-        if (wobble > 20) {
+        warning.style.opacity = wobble > 18 ? 1 : 0;
+
+        if (altitude > 120) {
+            phase = "combat";
+            spawnEnemies();
+            warning.textContent = "CONTACT";
             warning.style.opacity = 1;
-        } else {
-            warning.style.opacity = 0;
-        }
-
-        if (altitude > 100) {
-            startCombat();
-        }
-
-        if (altitude < -20) {
-            reset();
         }
     }
 
+    if (phase === "combat") {
+        enemies.forEach(e => {
+            const x = e.el.offsetLeft + e.dir * 2;
+            e.el.style.left = x + "px";
+            if (x < 0 || x > window.innerWidth - 40) e.dir *= -1;
+        });
+    }
+
+    shots.forEach((s, i) => {
+        s.y += 8;
+        s.el.style.bottom = s.y + "%";
+        if (s.y > 100) {
+            s.el.remove();
+            shots.splice(i, 1);
+        }
+    });
+
+    altHUD.textContent = "ALT " + altitude.toFixed(1);
     requestAnimationFrame(update);
-}
-
-function startCombat() {
-    phase = "combat";
-    warning.innerText = "CONTACT";
-    warning.style.opacity = 1;
-
-    for (let i = 0; i < 3; i++) {
-        const e = document.createElement("div");
-        e.className = "enemy";
-        e.style.left = Math.random() * window.innerWidth + "px";
-        e.style.top = (30 + i * 10) + "%";
-        screen.appendChild(e);
-        enemies.push(e);
-    }
-}
-
-function fire() {
-    if (enemies.length > 0) {
-        const e = enemies.pop();
-        e.remove();
-        if (enemies.length === 0) {
-            warning.innerText = "AIRSPACE CLEAR";
-        }
-    }
-}
-
-function reset() {
-    throttle = 0;
-    altitude = 0;
-    warning.innerText = "CRASH";
-    warning.style.opacity = 1;
 }
 
 update();
