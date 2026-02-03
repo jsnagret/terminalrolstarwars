@@ -1,937 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Proto-TIE Launch - Escape from Tatooine</title>
-<style>
-html, body {
-    margin: 0;
-    height: 100%;
-    background: #000;
-    overflow: hidden;
-    font-family: 'Courier New', monospace;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Access - Tatooine Mining Facility</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* Starfield */
-#stars {
-    position: absolute;
-    inset: 0;
-    background: #000;
-}
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            line-height: 1.6;
+        }
 
-.star {
-    position: absolute;
-    background: white;
-    border-radius: 50%;
-    opacity: 0.8;
-}
+        .terminal {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 2px solid #0f0;
+            padding: 20px;
+            background: rgba(0, 20, 0, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
 
-/* Suns */
-.sun {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(40px);
-    opacity: 0.6;
-}
+        .header {
+            border-bottom: 2px solid #0f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
 
-#sun1 {
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, #ffff99, #ffaa00);
-    top: 15%;
-    right: 20%;
-}
+        .header h1 {
+            font-size: 1.2em;
+            text-align: center;
+            animation: flicker 3s infinite;
+        }
 
-#sun2 {
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, #ffffbb, #ffcc44);
-    top: 20%;
-    right: 35%;
-}
+        .access-info {
+            color: #ffff00;
+            margin-bottom: 20px;
+        }
 
-/* Cockpit frame */
-#cockpit {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(200,200,200,0.05) 40%, transparent 70%);
-    clip-path: circle(35% at center);
-    border: 20px solid #0a0a0a;
-    box-shadow: inset 0 0 80px rgba(255,255,255,0.1), 0 0 20px rgba(0,0,0,0.9);
-    pointer-events: none;
-}
+        .content {
+            margin: 20px 0;
+        }
 
-/* Square window frame */
-#windowFrame {
-    position: absolute;
-    inset: 0;
-    border: 25px solid #0a0a0a;
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
-    pointer-events: none;
-}
+        .section {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 3px solid #0f0;
+            padding-left: 15px;
+        }
 
-/* Struts */
-.strut {
-    position: absolute;
-    background: linear-gradient(90deg, #000, #1a1a1a, #000);
-    box-shadow: 0 0 20px rgba(0,0,0,0.9);
-}
-.strut.v {
-    width: 8px;
-    height: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-}
-.strut.h {
-    height: 8px;
-    width: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-}
+        .section-title {
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
 
-/* World */
-#world {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-}
+        .classification {
+            color: #ff0000;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
 
-#ground {
-    position: absolute;
-    bottom: 0;
-    left: -50%;
-    width: 200%;
-    height: 50%;
-    background: linear-gradient(180deg, #5a3a1a 0%, #3d2613 40%, #2b1608 100%);
-    transform-origin: center bottom;
-}
+        .warning {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            color: #ff0000;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
 
-#sand {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(circle, rgba(255,200,120,0.12) 1px, transparent 1px);
-    background-size: 5px 5px;
-    animation: sand 15s linear infinite;
-    pointer-events: none;
-}
+        .timestamp {
+            color: #00ffff;
+            font-size: 0.9em;
+        }
 
-@keyframes sand {
-    from { background-position: 0 0; }
-    to { background-position: -500px 250px; }
-}
+        .cii-marker {
+            color: #ffff00;
+            font-weight: bold;
+        }
 
-/* Jabba's Palace silhouette */
-#palace {
-    position: absolute;
-    bottom: 50%;
-    left: 30%;
-    width: 120px;
-    height: 60px;
-    background: #1a0a05;
-    border-radius: 50% 50% 0 0;
-    opacity: 0;
-    transition: opacity 1s;
-}
+        .transmission {
+            background: rgba(0, 100, 255, 0.1);
+            border-left: 3px solid #00f;
+            padding: 10px;
+            margin: 10px 0;
+            font-style: italic;
+            color: #00ffff;
+        }
 
-/* HUD */
-.hud {
-    position: absolute;
-    color: #00ff88;
-    font-size: 13px;
-    text-shadow: 0 0 8px #00ff88;
-    z-index: 100;
-    pointer-events: none;
-}
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
 
-#alt {
-    left: 20px;
-    bottom: 80px;
-}
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0; }
+        }
 
-#velocity {
-    left: 20px;
-    bottom: 60px;
-}
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
 
-#forceStrain {
-    left: 20px;
-    bottom: 40px;
-}
+        .cursor {
+            animation: blink 1s infinite;
+        }
 
-#timer {
-    right: 20px;
-    top: 20px;
-    font-size: 18px;
-    color: #ff4444;
-}
+        .glitch {
+            position: relative;
+        }
 
-#warning {
-    top: 12%;
-    width: 100%;
-    text-align: center;
-    font-size: 22px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    color: #ff3333;
-    text-shadow: 0 0 10px #ff0000;
-}
+        .glitch::before {
+            content: attr(data-text);
+            position: absolute;
+            left: 2px;
+            text-shadow: -2px 0 #ff00ff;
+            animation: glitch-1 0.3s infinite;
+        }
 
-#objective {
-    top: 50px;
-    width: 100%;
-    text-align: center;
-    font-size: 14px;
-    color: #00ff88;
-}
-
-#radio {
-    bottom: 20px;
-    width: 100%;
-    text-align: center;
-    font-size: 12px;
-    color: #ffaa00;
-    opacity: 0;
-}
-
-/* Meters */
-.meter {
-    position: absolute;
-    right: 20px;
-    width: 150px;
-    height: 20px;
-    border: 2px solid #00ff88;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-}
-
-#throttleMeter {
-    bottom: 80px;
-}
-
-#stabilityMeter {
-    bottom: 50px;
-}
-
-.meterLabel {
-    position: absolute;
-    right: 180px;
-    font-size: 11px;
-    color: #00ff88;
-}
-
-.meterFill {
-    height: 100%;
-    transition: width 0.1s, background 0.3s;
-}
-
-#throttleFill {
-    background: linear-gradient(90deg, #00ff88, #00ffaa);
-}
-
-#stabilityFill {
-    background: linear-gradient(90deg, #ffaa00, #00ff88, #ffaa00);
-}
-
-/* Enemies */
-.enemy {
-    position: absolute;
-    width: 50px;
-    height: 20px;
-    background: linear-gradient(45deg, #aa0000, #cc2222);
-    border: 2px solid #ff0000;
-    border-radius: 4px;
-    box-shadow: 0 0 15px #ff0000;
-}
-
-.ciiShip {
-    width: 60px;
-    height: 25px;
-    background: linear-gradient(135deg, #ffaa00 0%, #ffcc44 50%, #ffaa00 100%);
-    border-color: #ffdd00;
-    box-shadow: 0 0 20px #ffaa00;
-    clip-path: polygon(50% 0%, 100% 40%, 90% 100%, 10% 100%, 0% 40%);
-    border: none;
-}
-
-.ciiShip::before {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #ffdd00;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 10px #ffaa00;
-}
-
-/* Shots */
-.shot {
-    position: absolute;
-    width: 5px;
-    height: 20px;
-    background: linear-gradient(180deg, #00ff66, #00ff00);
-    box-shadow: 0 0 10px #00ff66;
-    border-radius: 2px;
-}
-
-.enemyShot {
-    background: linear-gradient(180deg, #ff0000, #ff6600);
-    box-shadow: 0 0 10px #ff0000;
-    height: 15px;
-}
-
-/* Explosions */
-.explosion {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #ffff00, #ff6600, transparent);
-    animation: explode 0.5s ease-out forwards;
-}
-
-@keyframes explode {
-    from {
-        transform: scale(0.5);
-        opacity: 1;
-    }
-    to {
-        transform: scale(2);
-        opacity: 0;
-    }
-}
-
-/* Force effects */
-#forceGlow {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    background: radial-gradient(circle at center, rgba(100,100,255,0.1), transparent 60%);
-    transition: opacity 0.3s;
-}
-
-/* Thruster glow */
-#thruster {
-    position: absolute;
-    bottom: 35%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 0;
-    background: radial-gradient(ellipse, #00ffff, #0088ff, transparent);
-    filter: blur(10px);
-    opacity: 0;
-    transition: height 0.2s, opacity 0.2s;
-}
-
-/* Twin Ion Cannons */
-.ionCannon {
-    position: absolute;
-    bottom: 42%;
-    width: 30px;
-    height: 8px;
-    background: linear-gradient(90deg, #1a1a1a, #333, #1a1a1a);
-    border: 1px solid #444;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 50;
-}
-
-#leftCannon {
-    left: 20%;
-}
-
-#rightCannon {
-    right: 20%;
-}
-
-.ionCannon::after {
-    content: '';
-    position: absolute;
-    right: -3px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 6px;
-    height: 6px;
-    background: #00ffff;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #00ffff;
-}
-
-/* Screen shake */
-@keyframes shake {
-    0%, 100% { transform: translate(0, 0); }
-    10% { transform: translate(-2px, 2px); }
-    20% { transform: translate(2px, -2px); }
-    30% { transform: translate(-2px, -2px); }
-    40% { transform: translate(2px, 2px); }
-    50% { transform: translate(-2px, 2px); }
-    60% { transform: translate(2px, -2px); }
-    70% { transform: translate(-2px, -2px); }
-    80% { transform: translate(2px, 2px); }
-    90% { transform: translate(-2px, 2px); }
-}
-
-.shake {
-    animation: shake 0.3s;
-}
-
-/* Intro text */
-#intro {
-    position: absolute;
-    inset: 0;
-    background: #000;
-    color: #ffaa00;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    z-index: 200;
-    font-size: 16px;
-    text-align: center;
-    padding: 40px;
-    line-height: 1.8;
-}
-
-#intro.hidden {
-    display: none;
-}
-
-.crawl {
-    max-width: 600px;
-    margin-bottom: 30px;
-}
-
-/* Game Over */
-#gameOver {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.95);
-    color: #ff4444;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    z-index: 300;
-    font-size: 24px;
-}
-
-#gameOver.show {
-    display: flex;
-}
-
-/* Victory */
-#victory {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.95);
-    color: #00ff88;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    z-index: 300;
-    font-size: 24px;
-}
-
-#victory.show {
-    display: flex;
-}
-
-</style>
+        @keyframes glitch-1 {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.3; }
+        }
+    </style>
 </head>
 <body>
+    <div class="terminal">
+        <div class="header">
+            <h1>◄═══ HUTT CARTEL INTELLIGENCE NETWORK ═══►</h1>
+            <div style="text-align: center; margin-top: 10px;">
+                <span class="timestamp">ACCESS GRANTED :: TERMINAL TS-0847</span>
+            </div>
+        </div>
 
-<div id="intro">
-    <div class="crawl">
-        <strong>DAY 3 - TATOOINE RUINS</strong><br><br>
-        After days of forced labor under Jabba the Hutt,<br>
-        you've discovered a Republic testing facility<br>
-        hidden beneath the desert sands.<br><br>
-        Within: a Proto-TIE fighter.<br><br>
-        The Confederacy of Equality (CII) has detected<br>
-        unusual activity. They're coming for you.<br><br>
-        This is your only chance to escape.<br><br>
-        <strong style="color: #00ff88;">CONTROLS:</strong><br>
-        W/S - Throttle | A/D - Stability<br>
-        SPACE - Fire (Force-Enhanced)<br><br>
+        <div class="access-info">
+            <p>LOCATION: Tatooine Sector 7-B (Abandoned Republic Testing Facility)</p>
+            <p>DATE: <span class="glitch" data-text="[CORRUPTED]">[CORRUPTED]</span></p>
+            <p class="classification">CLASSIFICATION: RESTRICTED - HUTT CARTEL INTELLIGENCE</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">═══ INCIDENT REPORT: BASE BREACH ═══</div>
+                <p>Three standard rotations ago, our scavenger teams reported unusual activity near the old Republic durasteel mines. Initial reconnaissance confirmed the presence of armed hostiles bearing yellow hexagonal insignia—<span class="cii-marker">CONFEDERACY OF EQUALITY</span> operatives.</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">═══ CII RAID SUMMARY ═══</div>
+                <p>The <span class="cii-marker">CII</span> strike force bypassed external defenses with precision, suggesting prior intelligence on facility layout. Their objective appeared focused on the sub-level hangar containing the <strong>Proto TIE experimental craft</strong>.</p>
+                <br>
+                <p>Security footage (partially recovered) shows approximately 12-15 hostiles, all equipped with non-lethal incapacitation weaponry initially, switching to lethal force only when encountering automated defense systems.</p>
+                <br>
+                <p><strong>OPERATIONAL PROFILE:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Yellow hexagonal armor insignia confirmed</li>
+                    <li>Mixed species composition (defected CIS leaders, Republic deserters)</li>
+                    <li>Methodology: Incapacitation preferred, lethal force authorized for extreme threats</li>
+                    <li>Known leader: <span class="cii-marker">Halgane Litole</span> (Human, alias: "Litole")</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">═══ RECOVERED TRANSMISSION FRAGMENT ═══</div>
+                <div class="transmission">
+                    "Litole wants confirmation on Republic weapons testing. The Architect's intel was accurate—this site predates the Clone Wars. Secure all data cores before Republic remnants or Separatist scavengers arrive. Our people deserve to know what they built here."
+                    <br><br>
+                    "No unnecessary casualties. We're liberators, not conquerors. Any CIS or Republic forces are to be captured and brought before the Confederacy tribunal. The galaxy needs to see the truth."
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">═══ AFTERMATH ═══</div>
+                <ul style="margin-left: 20px;">
+                    <li>Proto TIE remains present but extensively documented/scanned</li>
+                    <li>Multiple data terminals accessed, contents unknown</li>
+                    <li>No casualties among CII forces (3 security droids destroyed)</li>
+                    <li>CII withdrew before our reinforcements arrived</li>
+                    <li>Evidence of advanced slicing equipment used on Republic-era encryption</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">═══ INTELLIGENCE ASSESSMENT ═══</div>
+                <p>The <span class="cii-marker">Confederacy of Equality</span> continues gathering evidence against both Republic and CIS leadership. Their stated ideology mirrors modern galactic liberal thought—exposing government corruption and revealing the CIS's secret plans.</p>
+                <br>
+                <p><strong>THREAT LEVEL:</strong> HIGH</p>
+                <p>Their alliance with the entity known as <span style="color: #ff00ff;">"the Architect"</span> grants them dangerous foresight and access to classified historical data. This organization will NOT trust external parties and operates under strict tribunal justice system for captured enemies.</p>
+                <br>
+                <p><strong>RECOMMENDATION:</strong> Increased security on all pre-Clone War sites. Monitor for yellow hexagonal insignia.</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">═══ ADDENDUM ═══</div>
+                <p>Lord Jabba has deemed this facility "unprofitable for further investment." Site designated for slave labor mineral extraction only. Proto TIE craft to remain in situ as potential future asset.</p>
+            </div>
+        </div>
+
+        <div class="warning">
+            ⚠ WARNING: UNAUTHORIZED ACCESS DETECTED ⚠
+            <br>
+            THIS TERMINAL WILL PURGE IN 60 SECONDS
+            <br>
+            SECURITY PROTOCOLS ENGAGED
+        </div>
+
+        <div style="margin-top: 20px; text-align: center; color: #0f0;">
+            <p>█ TERMINAL READY <span class="cursor">_</span></p>
+        </div>
     </div>
-    <button onclick="startGame()" style="padding: 15px 30px; font-size: 18px; background: #ffaa00; border: none; cursor: pointer; font-family: monospace;">
-        INITIATE LAUNCH SEQUENCE
-    </button>
-</div>
 
-<div id="stars"></div>
-<div class="sun" id="sun1"></div>
-<div class="sun" id="sun2"></div>
-
-<div id="world">
-    <div id="ground">
-        <div id="sand"></div>
-        <div id="palace"></div>
-    </div>
-</div>
-
-<div id="forceGlow"></div>
-<div id="thruster"></div>
-<div class="ionCannon" id="leftCannon"></div>
-<div class="ionCannon" id="rightCannon"></div>
-
-<div id="windowFrame"></div>
-<div id="cockpit">
-    <div class="strut v"></div>
-    <div class="strut h"></div>
-</div>
-
-<div class="hud" id="alt">ALTITUDE: 0m</div>
-<div class="hud" id="velocity">VELOCITY: 0 m/s</div>
-<div class="hud" id="forceStrain">FORCE STRAIN: 0%</div>
-<div class="hud" id="timer">TIME: 60s</div>
-<div class="hud" id="warning">INSTABILITY</div>
-<div class="hud" id="objective">OBJECTIVE: Reach orbit (500m) before CII arrival</div>
-<div class="hud" id="radio"></div>
-
-<div class="meter" id="throttleMeter">
-    <div class="meterFill" id="throttleFill"></div>
-</div>
-<div class="hud meterLabel" style="bottom: 80px;">THROTTLE</div>
-
-<div class="meter" id="stabilityMeter">
-    <div class="meterFill" id="stabilityFill"></div>
-</div>
-<div class="hud meterLabel" style="bottom: 50px;">STABILITY</div>
-
-<div id="gameOver">
-    <div id="gameOverText">CAPTURED BY CII</div>
-    <div style="font-size: 16px; margin-top: 20px; color: #ffaa00;">
-        "You'll face the Confederation's tribunal now."
-    </div>
-    <button onclick="location.reload()" style="margin-top: 30px; padding: 10px 25px; font-size: 16px; background: #ff4444; color: white; border: none; cursor: pointer; font-family: monospace;">
-        RETRY
-    </button>
-</div>
-
-<div id="victory">
-    <div>ESCAPE SUCCESSFUL</div>
-    <div style="font-size: 16px; margin-top: 20px; color: #ffaa00;">
-        Hyperspace coordinates locked.<br>
-        The journey continues...
-    </div>
-</div>
-
-<script>
-// Game state
-let throttle = 0;
-let stability = 50;
-let altitude = 0;
-let velocity = 0;
-let phase = "launch";
-let enemies = [];
-let shots = [];
-let forceStrain = 0;
-let timeLeft = 60;
-let health = 100;
-let score = 0;
-let lastFireTime = 0;
-let lastEnemyFireTime = 0;
-let gameStarted = false;
-let ciiArrived = false;
-
-// Constants
-const FIRE_COOLDOWN = 300;
-const ENEMY_FIRE_COOLDOWN = 2000;
-const MAX_ALTITUDE = 500;
-const THROTTLE_DECAY = 0.985;
-const STABILITY_RETURN = 0.02;
-const FORCE_STRAIN_DECAY = 0.5;
-const FORCE_STRAIN_PER_SHOT = 15;
-
-// DOM elements
-const ground = document.getElementById("ground");
-const palace = document.getElementById("palace");
-const altHUD = document.getElementById("alt");
-const velocityHUD = document.getElementById("velocity");
-const forceStrainHUD = document.getElementById("forceStrain");
-const timerHUD = document.getElementById("timer");
-const warning = document.getElementById("warning");
-const radio = document.getElementById("radio");
-const world = document.getElementById("world");
-const forceGlow = document.getElementById("forceGlow");
-const thruster = document.getElementById("thruster");
-const throttleFill = document.getElementById("throttleFill");
-const stabilityFill = document.getElementById("stabilityFill");
-const gameOver = document.getElementById("gameOver");
-const gameOverText = document.getElementById("gameOverText");
-const victory = document.getElementById("victory");
-const starsContainer = document.getElementById("stars");
-
-// Generate starfield
-function createStars() {
-    for (let i = 0; i < 150; i++) {
-        const star = document.createElement("div");
-        star.className = "star";
-        const size = Math.random() * 2 + 1;
-        star.style.width = size + "px";
-        star.style.height = size + "px";
-        star.style.left = Math.random() * 100 + "%";
-        star.style.top = Math.random() * 100 + "%";
-        star.style.opacity = Math.random() * 0.8 + 0.2;
-        starsContainer.appendChild(star);
-    }
-}
-
-createStars();
-
-function startGame() {
-    document.getElementById("intro").classList.add("hidden");
-    gameStarted = true;
-    palace.style.opacity = "1";
-    
-    // Initial radio message
-    setTimeout(() => showRadio("Systems online. Initiating launch sequence..."), 500);
-    setTimeout(() => showRadio("Warning: Unauthorized vessel detected."), 8000);
-    setTimeout(() => showRadio("CII Command: This is Confederation patrol. Power down immediately."), 15000);
-    setTimeout(() => {
-        showRadio("CII interceptors inbound. You have been marked as hostile.");
-        spawnCIIWave();
-        ciiArrived = true;
-    }, 25000);
-}
-
-// Input handling
-const keys = {};
-document.addEventListener("keydown", e => {
-    keys[e.key] = true;
-    
-    if (e.code === "Space" && gameStarted) {
-        e.preventDefault();
-        fire();
-    }
-});
-
-document.addEventListener("keyup", e => {
-    keys[e.key] = false;
-});
-
-function handleInput() {
-    if (!gameStarted) return;
-    
-    if (keys["w"]) throttle += 1.5;
-    if (keys["s"]) throttle -= 1.5;
-    if (keys["a"]) stability -= 3;
-    if (keys["d"]) stability += 3;
-}
-
-function fire() {
-    const now = Date.now();
-    if (now - lastFireTime < FIRE_COOLDOWN) return;
-    if (forceStrain >= 100) {
-        showRadio("Force exhaustion! Can't concentrate...");
-        return;
-    }
-    
-    lastFireTime = now;
-    forceStrain += FORCE_STRAIN_PER_SHOT;
-    
-    // Left cannon shot
-    const sLeft = document.createElement("div");
-    sLeft.className = "shot";
-    sLeft.style.left = "20%";
-    sLeft.style.bottom = "42%";
-    world.appendChild(sLeft);
-    shots.push({ el: sLeft, y: 42, friendly: true });
-    
-    // Right cannon shot
-    const sRight = document.createElement("div");
-    sRight.className = "shot";
-    sRight.style.left = "80%";
-    sRight.style.bottom = "42%";
-    world.appendChild(sRight);
-    shots.push({ el: sRight, y: 42, friendly: true });
-    
-    // Force glow effect
-    forceGlow.style.opacity = "1";
-    setTimeout(() => forceGlow.style.opacity = "0", 200);
-    
-    // Ion cannon flash
-    document.getElementById("leftCannon").style.boxShadow = "0 0 20px #00ffff";
-    document.getElementById("rightCannon").style.boxShadow = "0 0 20px #00ffff";
-    setTimeout(() => {
-        document.getElementById("leftCannon").style.boxShadow = "";
-        document.getElementById("rightCannon").style.boxShadow = "";
-    }, 100);
-    
-    // Screen shake
-    world.classList.add("shake");
-    setTimeout(() => world.classList.remove("shake"), 300);
-}
-
-function enemyFire(enemy) {
-    const now = Date.now();
-    if (now - lastEnemyFireTime < ENEMY_FIRE_COOLDOWN) return;
-    
-    lastEnemyFireTime = now;
-    
-    const s = document.createElement("div");
-    s.className = "shot enemyShot";
-    s.style.left = enemy.el.offsetLeft + 23 + "px";
-    s.style.top = enemy.el.offsetTop + 30 + "px";
-    world.appendChild(s);
-    shots.push({ 
-        el: s, 
-        y: (window.innerHeight - enemy.el.offsetTop - 30) / window.innerHeight * 100, 
-        friendly: false,
-        isTopPositioned: true
-    });
-}
-
-function spawnCIIWave() {
-    for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-            const e = document.createElement("div");
-            e.className = "enemy ciiShip";
-            e.style.left = (10 + i * 30) + "%";
-            e.style.top = "20%";
-            world.appendChild(e);
-            enemies.push({ 
-                el: e, 
-                dir: Math.random() > 0.5 ? 1 : -1,
-                health: 2,
-                type: "cii"
-            });
-        }, i * 500);
-    }
-}
-
-function spawnJabbaPatrol() {
-    for (let i = 0; i < 2; i++) {
-        const e = document.createElement("div");
-        e.className = "enemy";
-        e.style.left = (25 + i * 35) + "%";
-        e.style.top = "35%";
-        world.appendChild(e);
-        enemies.push({ 
-            el: e, 
-            dir: Math.random() > 0.5 ? 1 : -1,
-            health: 1,
-            type: "jabba"
-        });
-    }
-}
-
-function showRadio(text) {
-    radio.textContent = text;
-    radio.style.opacity = "1";
-    setTimeout(() => radio.style.opacity = "0", 4000);
-}
-
-function createExplosion(x, y) {
-    const exp = document.createElement("div");
-    exp.className = "explosion";
-    exp.style.left = x + "px";
-    exp.style.top = y + "px";
-    world.appendChild(exp);
-    setTimeout(() => exp.remove(), 500);
-    
-    // Screen shake on explosion
-    world.classList.add("shake");
-    setTimeout(() => world.classList.remove("shake"), 300);
-}
-
-function checkCollisions() {
-    // Check shot-enemy collisions
-    for (let i = shots.length - 1; i >= 0; i--) {
-        const shot = shots[i];
-        if (!shot.friendly) continue;
+    <script>
+        // Optional: Add a countdown timer
+        let countdown = 60;
+        const warningDiv = document.querySelector('.warning');
         
-        const shotRect = shot.el.getBoundingClientRect();
-        
-        for (let j = enemies.length - 1; j >= 0; j--) {
-            const enemy = enemies[j];
-            const enemyRect = enemy.el.getBoundingClientRect();
-            
-            if (!(shotRect.right < enemyRect.left || 
-                  shotRect.left > enemyRect.right || 
-                  shotRect.bottom < enemyRect.top || 
-                  shotRect.top > enemyRect.bottom)) {
-                
-                // Hit!
-                enemy.health--;
-                shot.el.remove();
-                shots.splice(i, 1);
-                
-                if (enemy.health <= 0) {
-                    createExplosion(enemy.el.offsetLeft, enemy.el.offsetTop);
-                    enemy.el.remove();
-                    enemies.splice(j, 1);
-                    score += enemy.type === "cii" ? 200 : 100;
-                    showRadio(enemy.type === "cii" ? "CII interceptor destroyed!" : "Patrol speeder down!");
-                }
-                break;
+        setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                warningDiv.innerHTML = `
+                    ⚠ WARNING: UNAUTHORIZED ACCESS DETECTED ⚠
+                    <br>
+                    THIS TERMINAL WILL PURGE IN ${countdown} SECONDS
+                    <br>
+                    SECURITY PROTOCOLS ENGAGED
+                `;
+            } else {
+                warningDiv.innerHTML = `
+                    ⚠ TERMINAL PURGED ⚠
+                    <br>
+                    CONNECTION TERMINATED
+                `;
+                warningDiv.style.background = 'rgba(255, 0, 0, 0.5)';
             }
-        }
-    }
-    
-    // Check enemy shot-player collisions (simplified - shots reaching bottom)
-    for (let i = shots.length - 1; i >= 0; i--) {
-        const shot = shots[i];
-        if (shot.friendly) continue;
-        
-        if ((shot.isTopPositioned && shot.y > 80) || (!shot.isTopPositioned && shot.y < 20)) {
-            health -= 10;
-            shot.el.remove();
-            shots.splice(i, 1);
-            showRadio("HULL BREACH! Structural integrity compromised!");
-            world.classList.add("shake");
-            setTimeout(() => world.classList.remove("shake"), 300);
-            
-            if (health <= 0) {
-                endGame(false, "Hull integrity failure");
-            }
-        }
-    }
-}
-
-function endGame(success, reason = "") {
-    gameStarted = false;
-    if (success) {
-        victory.classList.add("show");
-    } else {
-        gameOverText.textContent = reason || "CAPTURED BY CII";
-        gameOver.classList.add("show");
-    }
-}
-
-function update() {
-    handleInput();
-    
-    if (!gameStarted) {
-        requestAnimationFrame(update);
-        return;
-    }
-    
-    // Physics
-    throttle = Math.max(0, Math.min(100, throttle * THROTTLE_DECAY));
-    
-    // Stability naturally returns to center
-    const stabilityDiff = 50 - stability;
-    stability += stabilityDiff * STABILITY_RETURN;
-    stability = Math.max(0, Math.min(100, stability));
-    
-    // Force strain recovery
-    forceStrain = Math.max(0, forceStrain - FORCE_STRAIN_DECAY);
-    
-    // Calculate velocity and altitude
-    const wobble = Math.abs(stability - 50);
-    const forceMultiplier = forceStrain > 80 ? 0.5 : 1; // Reduced control when strained
-    
-    velocity = throttle * 0.5 - wobble * 0.2;
-    velocity *= forceMultiplier;
-    altitude += velocity * 0.15;
-    altitude = Math.max(0, altitude);
-    
-    // Visual updates
-    const groundOffset = Math.min(altitude * 3, 2000);
-    const tilt = (stability - 50) * 0.08;
-    ground.style.transform = `translateY(${groundOffset}px) rotate(${tilt}deg) scale(${1 + altitude * 0.002})`;
-    
-    // Thruster effect
-    if (throttle > 20) {
-        thruster.style.height = (throttle * 1.5) + "px";
-        thruster.style.opacity = throttle / 100;
-    } else {
-        thruster.style.opacity = "0";
-    }
-    
-    // Warning for instability
-    warning.style.opacity = wobble > 25 ? 1 : 0;
-    
-    // Suns fade as we leave atmosphere
-    const sunsOpacity = Math.max(0, 0.6 - altitude / 800);
-    document.getElementById("sun1").style.opacity = sunsOpacity;
-    document.getElementById("sun2").style.opacity = sunsOpacity;
-    
-    // Phase transitions
-    if (phase === "launch" && altitude > 80) {
-        phase = "climb";
-        spawnJabbaPatrol();
-        showRadio("Jabba's patrol speeders engaging!");
-    }
-    
-    if (phase === "climb" && altitude > 250 && !ciiArrived) {
-        phase = "escape";
-    }
-    
-    // Enemy AI
-    enemies.forEach((e, idx) => {
-        const x = e.el.offsetLeft + e.dir * (e.type === "cii" ? 3 : 2);
-        e.el.style.left = x + "px";
-        if (x < 0 || x > window.innerWidth - 50) e.dir *= -1;
-        
-        // Random firing
-        if (Math.random() < 0.01) {
-            enemyFire(e);
-        }
-    });
-    
-    // Update shots
-    for (let i = shots.length - 1; i >= 0; i--) {
-        const shot = shots[i];
-        
-        if (shot.isTopPositioned) {
-            shot.y += shot.friendly ? 5 : -5;
-            shot.el.style.top = (window.innerHeight - (shot.y / 100 * window.innerHeight)) + "px";
-        } else {
-            shot.y += shot.friendly ? 8 : -8;
-            shot.el.style.bottom = shot.y + "%";
-        }
-        
-        if (shot.y > 110 || shot.y < -10) {
-            shot.el.remove();
-            shots.splice(i, 1);
-        }
-    }
-    
-    checkCollisions();
-    
-    // Timer
-    timeLeft -= 1/60;
-    if (timeLeft <= 0 && !ciiArrived) {
-        endGame(false, "CII forces have captured you");
-        return;
-    }
-    
-    // Win condition
-    if (altitude >= MAX_ALTITUDE) {
-        endGame(true);
-        return;
-    }
-    
-    // HUD updates
-    altHUD.textContent = `ALTITUDE: ${Math.floor(altitude)}m`;
-    velocityHUD.textContent = `VELOCITY: ${velocity.toFixed(1)} m/s`;
-    forceStrainHUD.textContent = `FORCE STRAIN: ${Math.floor(forceStrain)}%`;
-    forceStrainHUD.style.color = forceStrain > 80 ? "#ff4444" : "#00ff88";
-    timerHUD.textContent = `TIME: ${Math.ceil(timeLeft)}s`;
-    
-    // Meters
-    throttleFill.style.width = throttle + "%";
-    stabilityFill.style.width = ((stability) / 100 * 100) + "%";
-    
-    if (wobble > 25) {
-        stabilityFill.style.background = "linear-gradient(90deg, #ff0000, #ff4444)";
-    } else {
-        stabilityFill.style.background = "linear-gradient(90deg, #ffaa00, #00ff88, #ffaa00)";
-    }
-    
-    requestAnimationFrame(update);
-}
-
-update();
-</script>
-
+        }, 1000);
+    </script>
 </body>
 </html>
