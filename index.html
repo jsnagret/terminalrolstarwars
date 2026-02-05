@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Access - Tatooine Mining Facility</title>
+    <title>Republic Intelligence Dossier - Confederacy of Equality (CII)</title>
     <style>
         * {
             margin: 0;
@@ -35,9 +35,8 @@
         }
 
         .header h1 {
-            font-size: 1.2em;
+            font-size: 1.4em;
             text-align: center;
-            animation: flicker 3s infinite;
         }
 
         .access-info {
@@ -62,21 +61,9 @@
             margin-bottom: 10px;
         }
 
-        .classification {
-            color: #ff0000;
+        .cii-marker {
+            color: #ffff00;
             font-weight: bold;
-            animation: blink 1s infinite;
-        }
-
-        .warning {
-            background: rgba(255, 0, 0, 0.2);
-            border: 2px solid #ff0000;
-            color: #ff0000;
-            padding: 15px;
-            margin-top: 20px;
-            text-align: center;
-            font-weight: bold;
-            animation: pulse 2s infinite;
         }
 
         .timestamp {
@@ -84,166 +71,95 @@
             font-size: 0.9em;
         }
 
-        .cii-marker {
-            color: #ffff00;
-            font-weight: bold;
+        ul {
+            margin-left: 20px;
         }
 
-        .transmission {
-            background: rgba(0, 100, 255, 0.1);
-            border-left: 3px solid #00f;
-            padding: 10px;
-            margin: 10px 0;
-            font-style: italic;
-            color: #00ffff;
-        }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        @keyframes blink {
-            0%, 50%, 100% { opacity: 1; }
-            25%, 75% { opacity: 0; }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .cursor {
-            animation: blink 1s infinite;
-        }
-
-        .glitch {
-            position: relative;
-        }
-
-        .glitch::before {
-            content: attr(data-text);
-            position: absolute;
-            left: 2px;
-            text-shadow: -2px 0 #ff00ff;
-            animation: glitch-1 0.3s infinite;
-        }
-
-        @keyframes glitch-1 {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 0.3; }
-        }
     </style>
 </head>
 <body>
     <div class="terminal">
         <div class="header">
-            <h1>◄═══ HUTT CARTEL INTELLIGENCE NETWORK ═══►</h1>
+            <h1>◄═══ REPUBLIC INTELLIGENCE DOSSIER ═══►</h1>
             <div style="text-align: center; margin-top: 10px;">
-                <span class="timestamp">ACCESS GRANTED :: TERMINAL TS-0847</span>
+                <span class="timestamp">REPORT ID: TS-2026-0847 | CLASSIFICATION: CONFIDENTIAL</span>
             </div>
         </div>
 
         <div class="access-info">
-            <p>LOCATION: Tatooine Sector 7-B (Abandoned Republic Testing Facility)</p>
-            <p>DATE: <span class="glitch" data-text="[CORRUPTED]">[CORRUPTED]</span></p>
-            <p class="classification">CLASSIFICATION: RESTRICTED - HUTT CARTEL INTELLIGENCE</p>
+            <p>SUBJECT: <span class="cii-marker">CONFEDERACY OF EQUALITY (CII)</span></p>
+            <p>DATE OF REPORT: 5th Cycle, 2026</p>
+            <p>SECTOR: Outer Rim / Mid Rim / Unknown Regions</p>
         </div>
 
         <div class="content">
+
             <div class="section">
-                <div class="section-title">═══ INCIDENT REPORT: BASE BREACH ═══</div>
-                <p>Three standard rotations ago, our scavenger teams reported unusual activity near the old Republic durasteel mines. Initial reconnaissance confirmed the presence of armed hostiles bearing yellow hexagonal insignia—<span class="cii-marker">CONFEDERACY OF EQUALITY</span> operatives.</p>
+                <div class="section-title">═══ SUBJECT PROFILE ═══</div>
+                <p>
+                    The <span class="cii-marker">CII</span> is an independent organization operating outside Republic and CIS control. 
+                    They focus on intelligence gathering, tribunals, and exposing corruption rather than territorial conquest.
+                </p>
             </div>
 
             <div class="section">
-                <div class="section-title">═══ CII RAID SUMMARY ═══</div>
-                <p>The <span class="cii-marker">CII</span> strike force bypassed external defenses with precision, suggesting prior intelligence on facility layout. Their objective appeared focused on the sub-level hangar containing the <strong>Proto TIE experimental craft</strong>.</p>
-                <br>
-                <p>Security footage (partially recovered) shows approximately 12-15 hostiles, all equipped with non-lethal incapacitation weaponry initially, switching to lethal force only when encountering automated defense systems.</p>
-                <br>
-                <p><strong>OPERATIONAL PROFILE:</strong></p>
-                <ul style="margin-left: 20px;">
-                    <li>Yellow hexagonal armor insignia confirmed</li>
-                    <li>Mixed species composition (defected CIS leaders, Republic deserters)</li>
-                    <li>Methodology: Incapacitation preferred, lethal force authorized for extreme threats</li>
-                    <li>Known leader: <span class="cii-marker">Halgane Litole</span> (Human, alias: "Litole")</li>
+                <div class="section-title">═══ IDEOLOGY & DOCTRINE ═══</div>
+                <ul>
+                    <li>Expose corruption and mismanagement within Republic and Separatist forces</li>
+                    <li>Capture high-value targets for tribunal rather than conquest</li>
+                    <li>Minimize civilian casualties and collateral damage</li>
+                    <li>Prefer incapacitation over lethal force whenever possible</li>
                 </ul>
             </div>
 
             <div class="section">
-                <div class="section-title">═══ RECOVERED TRANSMISSION FRAGMENT ═══</div>
-                <div class="transmission">
-                    "Litole wants confirmation on Republic weapons testing. The Architect's intel was accurate—this site predates the Clone Wars. Secure all data cores before Republic remnants or Separatist scavengers arrive. Our people deserve to know what they built here."
-                    <br><br>
-                    "No unnecessary casualties. We're liberators, not conquerors. Any CIS or Republic forces are to be captured and brought before the Confederacy tribunal. The galaxy needs to see the truth."
-                </div>
+                <div class="section-title">═══ LEADERSHIP ═══</div>
+                <p>
+                    COMMANDER: <span class="cii-marker">Halgane Litole</span> (Human)<br>
+                    ROLE: Strategic Director / Tribunal Overseer
+                </p>
+                <p>
+                    Secondary operative known as <span style="color:#ff00ff;">“The Architect”</span>—identity unknown. Provides historical intelligence and operational planning support.
+                </p>
             </div>
 
             <div class="section">
-                <div class="section-title">═══ AFTERMATH ═══</div>
-                <ul style="margin-left: 20px;">
-                    <li>Proto TIE remains present but extensively documented/scanned</li>
-                    <li>Multiple data terminals accessed, contents unknown</li>
-                    <li>No casualties among CII forces (3 security droids destroyed)</li>
-                    <li>CII withdrew before our reinforcements arrived</li>
-                    <li>Evidence of advanced slicing equipment used on Republic-era encryption</li>
+                <div class="section-title">═══ MILITARY & TECHNOLOGY ═══</div>
+                <ul>
+                    <li>Remote-controlled starfighters and small strike craft</li>
+                    <li>Support frigates and transport vessels</li>
+                    <li>Autonomous drones for reconnaissance or security</li>
+                    <li>Encryption and data-slicing tools for intelligence gathering</li>
+                </ul>
+                <p>
+                    Forces are disciplined and prioritize completing objectives with minimal casualties. Engagements are surgical and efficient.
+                </p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">═══ KNOWN OPERATIONS ═══</div>
+                <ul>
+                    <li>Data extraction from abandoned Republic facilities</li>
+                    <li>Infiltration of industrial or corporate sites controlled by Republic or Hutt interests</li>
+                    <li>Capture of high-value targets for interrogation or tribunal</li>
                 </ul>
             </div>
 
             <div class="section">
-                <div class="section-title">═══ INTELLIGENCE ASSESSMENT ═══</div>
-                <p>The <span class="cii-marker">Confederacy of Equality</span> continues gathering evidence against both Republic and CIS leadership. Their stated ideology mirrors modern galactic liberal thought—exposing government corruption and revealing the CIS's secret plans.</p>
-                <br>
-                <p><strong>THREAT LEVEL:</strong> HIGH</p>
-                <p>Their alliance with the entity known as <span style="color: #ff00ff;">"the Architect"</span> grants them dangerous foresight and access to classified historical data. This organization will NOT trust external parties and operates under strict tribunal justice system for captured enemies.</p>
-                <br>
-                <p><strong>RECOMMENDATION:</strong> Increased security on all pre-Clone War sites. Monitor for yellow hexagonal insignia.</p>
+                <div class="section-title">═══ INTELLIGENCE NOTES ═══</div>
+                <p>
+                    The CII does not behave like a conventional insurgency. Their operations focus on evidence collection and accountability. They are not a military-first organization but can execute precise strikes when needed.
+                </p>
+                <p>
+                    Recommendation: Monitor activity closely, prioritize intelligence gathering, avoid direct confrontation unless unavoidable.
+                </p>
             </div>
 
-            <div class="section">
-                <div class="section-title">═══ ADDENDUM ═══</div>
-                <p>Lord Jabba has deemed this facility "unprofitable for further investment." Site designated for slave labor mineral extraction only. Proto TIE craft to remain in situ as potential future asset.</p>
-            </div>
-        </div>
-
-        <div class="warning">
-            ⚠ WARNING: UNAUTHORIZED ACCESS DETECTED ⚠
-            <br>
-            THIS TERMINAL WILL PURGE IN 60 SECONDS
-            <br>
-            SECURITY PROTOCOLS ENGAGED
         </div>
 
         <div style="margin-top: 20px; text-align: center; color: #0f0;">
-            <p>█ TERMINAL READY <span class="cursor">_</span></p>
+            <p>█ TERMINAL ACTIVE █</p>
         </div>
     </div>
-
-    <script>
-        // Optional: Add a countdown timer
-        let countdown = 60;
-        const warningDiv = document.querySelector('.warning');
-        
-        setInterval(() => {
-            countdown--;
-            if (countdown > 0) {
-                warningDiv.innerHTML = `
-                    ⚠ WARNING: UNAUTHORIZED ACCESS DETECTED ⚠
-                    <br>
-                    THIS TERMINAL WILL PURGE IN ${countdown} SECONDS
-                    <br>
-                    SECURITY PROTOCOLS ENGAGED
-                `;
-            } else {
-                warningDiv.innerHTML = `
-                    ⚠ TERMINAL PURGED ⚠
-                    <br>
-                    CONNECTION TERMINATED
-                `;
-                warningDiv.style.background = 'rgba(255, 0, 0, 0.5)';
-            }
-        }, 1000);
-    </script>
 </body>
 </html>
