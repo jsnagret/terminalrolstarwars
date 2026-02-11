@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Republic Intelligence Dossier - Confederacy of Equality (CII)</title>
+    <title>Terminal Chat</title>
     <style>
         * {
             margin: 0;
@@ -12,154 +12,556 @@
         }
 
         body {
-            background: #000;
-            color: #0f0;
+            background-color: #000000;
+            color: #4a9eff;
             font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
-            line-height: 1.6;
+            background: radial-gradient(ellipse at center, #0a1628 0%, #000000 100%);
+        }
+
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeOut 0.5s ease-in-out 4s forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        .cis-logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: logoAppear 1s ease-in-out 0.5s forwards;
+            filter: drop-shadow(0 0 20px #4a9eff);
+        }
+
+        @keyframes logoAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .boot-text {
+            color: #4a9eff;
+            font-size: 14px;
+            text-align: center;
+            opacity: 0;
+            animation: textAppear 0.5s ease-in-out 1.5s forwards;
+        }
+
+        @keyframes textAppear {
+            to { opacity: 1; }
+        }
+
+        .boot-progress {
+            margin-top: 20px;
+            color: #4a9eff;
+            font-size: 12px;
+            opacity: 0;
+            animation: textAppear 0.5s ease-in-out 2s forwards;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background-color: #0a1628;
+            border: 1px solid #4a9eff;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: textAppear 0.5s ease-in-out 2s forwards;
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #4a9eff, transparent);
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
         .terminal {
+            width: 100%;
             max-width: 900px;
-            margin: 0 auto;
-            border: 2px solid #0f0;
-            padding: 20px;
-            background: rgba(0, 20, 0, 0.8);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            height: 600px;
+            background-color: #0a1628;
+            border: 2px solid #4a9eff;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(74, 158, 255, 0.4), inset 0 0 50px rgba(74, 158, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
         }
 
-        .header {
-            border-bottom: 2px solid #0f0;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #4a9eff, #1e5a9e, #4a9eff);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: borderGlow 3s ease-in-out infinite;
         }
 
-        .header h1 {
-            font-size: 1.4em;
-            text-align: center;
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
         }
 
-        .access-info {
-            color: #ffff00;
-            margin-bottom: 20px;
+        .terminal-header {
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            padding: 15px 20px;
+            border-bottom: 2px solid #4a9eff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(74, 158, 255, 0.3);
         }
 
-        .content {
-            margin: 20px 0;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .section {
-            margin: 15px 0;
-            padding: 10px;
-            border-left: 3px solid #0f0;
-            padding-left: 15px;
+        .cis-icon {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 0 5px #4a9eff);
         }
 
-        .section-title {
-            color: #ffff00;
+        .terminal-title {
             font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 16px;
+            color: #4a9eff;
+            text-shadow: 0 0 10px rgba(74, 158, 255, 0.8);
+            letter-spacing: 2px;
         }
 
-        .cii-marker {
-            color: #ffff00;
+        .status {
+            font-size: 12px;
+            color: #ff6b6b;
+            text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+        }
+
+        .status.connected {
+            color: #4a9eff;
+            text-shadow: 0 0 5px rgba(74, 158, 255, 0.8);
+        }
+
+        .output {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            line-height: 1.6;
+            font-size: 14px;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.5) 0%, rgba(10, 22, 40, 0.8) 100%);
+        }
+
+        .output::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .output::-webkit-scrollbar-track {
+            background: #0a1628;
+            border-left: 1px solid #4a9eff;
+        }
+
+        .output::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(74, 158, 255, 0.5);
+        }
+
+        .prompt-line {
+            margin-bottom: 8px;
+        }
+
+        .system-msg {
+            color: #4a9eff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 3px rgba(74, 158, 255, 0.5);
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            margin-bottom: 8px;
+            text-shadow: 0 0 3px rgba(255, 107, 107, 0.5);
+        }
+
+        .user-msg {
+            color: #64d9ff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 3px rgba(100, 217, 255, 0.5);
+        }
+
+        .peer-msg {
+            color: #9d7bff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 3px rgba(157, 123, 255, 0.5);
+        }
+
+        .input-area {
+            border-top: 2px solid #4a9eff;
+            padding: 15px;
+            background: linear-gradient(180deg, #0a1628 0%, #1e3a5f 100%);
+            box-shadow: 0 -2px 10px rgba(74, 158, 255, 0.2);
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prompt {
+            color: #4a9eff;
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(74, 158, 255, 0.8);
         }
 
-        .timestamp {
-            color: #00ffff;
-            font-size: 0.9em;
+        input {
+            flex: 1;
+            background-color: transparent;
+            border: none;
+            color: #64d9ff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
         }
 
-        ul {
-            margin-left: 20px;
+        input::placeholder {
+            color: #1e5a9e;
         }
 
+        .connection-panel {
+            padding: 12px 20px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            border-bottom: 2px solid #4a9eff;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(74, 158, 255, 0.2);
+        }
+
+        .connection-panel input {
+            background: linear-gradient(180deg, #0a1628 0%, #1e3a5f 100%);
+            border: 1px solid #4a9eff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: inset 0 0 10px rgba(74, 158, 255, 0.1);
+        }
+
+        .connection-panel button {
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            color: #000000;
+            border: 1px solid #64d9ff;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
+        }
+
+        .connection-panel button:hover {
+            background: linear-gradient(180deg, #64d9ff 0%, #4a9eff 100%);
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .connection-panel button:disabled {
+            background: linear-gradient(180deg, #2a3f5f 0%, #1a2f4f 100%);
+            color: #4a5a6f;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <div class="boot-screen">
+        <svg class="cis-logo" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="cisGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#64d9ff;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#4a9eff;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path fill="url(#cisGradient)" d="M64 8 L116 33 L116 83 L64 108 L12 83 L12 33 Z M64 20 L104 40 L104 76 L64 96 L24 76 L24 40 Z"/>
+            <circle fill="url(#cisGradient)" cx="64" cy="58" r="18"/>
+        </svg>
+        <div class="boot-text">
+            ═══════════════════════════════════<br>
+            CONFEDERACY OF INDEPENDENT SYSTEMS<br>
+            SECURE COMMUNICATIONS TERMINAL<br>
+            ═══════════════════════════════════
+        </div>
+        <div class="boot-progress">
+            INITIALIZING DATAPAD INTERFACE...<br>
+            ESTABLISHING ENCRYPTED CHANNEL...
+        </div>
+        <div class="loading-bar"></div>
+    </div>
+
     <div class="terminal">
-        <div class="header">
-            <h1>◄═══ REPUBLIC INTELLIGENCE DOSSIER ═══►</h1>
-            <div style="text-align: center; margin-top: 10px;">
-                <span class="timestamp">REPORT ID: TS-2026-0847 | CLASSIFICATION: CONFIDENTIAL</span>
+        <div class="terminal-header">
+            <div class="header-left">
+                <svg class="cis-icon" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="cisGradientSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#64d9ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4a9eff;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#cisGradientSmall)" d="M64 8 L116 33 L116 83 L64 108 L12 83 L12 33 Z M64 20 L104 40 L104 76 L64 96 L24 76 L24 40 Z"/>
+                    <circle fill="url(#cisGradientSmall)" cx="64" cy="58" r="18"/>
+                </svg>
+                <div class="terminal-title">CIS SECURE COMMS v2.1</div>
             </div>
+            <div class="status" id="status">◉ STANDBY</div>
+        </div>
+        
+        <div class="connection-panel" id="connectionPanel">
+            <input type="text" id="roomInput" placeholder="Enter transmission code or leave blank to create secure channel" />
+            <button id="connectBtn">ESTABLISH LINK</button>
+            <button id="copyBtn" class="hidden">COPY CODE</button>
         </div>
 
-        <div class="access-info">
-            <p>SUBJECT: <span class="cii-marker">CONFEDERACY OF EQUALITY (CII)</span></p>
-            <p>DATE OF REPORT: 5th Cycle, 2026</p>
-            <p>SECTOR: Outer Rim / Mid Rim / Unknown Regions</p>
+        <div class="output" id="output">
+            <div class="system-msg">╔════════════════════════════════════════════════════════════╗</div>
+            <div class="system-msg">║   CONFEDERACY OF INDEPENDENT SYSTEMS - SECURE NETWORK     ║</div>
+            <div class="system-msg">║          ENCRYPTED PEER-TO-PEER TRANSMISSION               ║</div>
+            <div class="system-msg">╚════════════════════════════════════════════════════════════╝</div>
+            <div class="prompt-line">&nbsp;</div>
+            <div class="system-msg">[SYSTEM] Datapad interface initialized</div>
+            <div class="system-msg">[SYSTEM] Holocomm encryption: ACTIVE</div>
+            <div class="system-msg">[SYSTEM] Enter transmission code to connect, or initiate new secure channel</div>
+            <div class="prompt-line">&nbsp;</div>
         </div>
 
-        <div class="content">
-
-            <div class="section">
-                <div class="section-title">═══ SUBJECT PROFILE ═══</div>
-                <p>
-                    The <span class="cii-marker">CII</span> is an independent organization operating outside Republic and CIS control. 
-                    They focus on intelligence gathering, tribunals, and exposing corruption rather than territorial conquest.
-                </p>
+        <div class="input-area">
+            <div class="input-line">
+                <span class="prompt">></span>
+                <input type="text" id="messageInput" placeholder="Enter transmission and press Return..." disabled />
             </div>
-
-            <div class="section">
-                <div class="section-title">═══ IDEOLOGY & DOCTRINE ═══</div>
-                <ul>
-                    <li>Expose corruption and mismanagement within Republic and Separatist forces</li>
-                    <li>Capture high-value targets for tribunal rather than conquest</li>
-                    <li>Minimize civilian casualties and collateral damage</li>
-                    <li>Prefer incapacitation over lethal force whenever possible</li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ LEADERSHIP ═══</div>
-                <p>
-                    COMMANDER: <span class="cii-marker">Halgane Litole</span> (Human)<br>
-                    ROLE: Strategic Director / Tribunal Overseer
-                </p>
-                <p>
-                    Secondary operative known as <span style="color:#ff00ff;">“The Architect”</span>—identity unknown. Provides historical intelligence and operational planning support.
-                </p>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ MILITARY & TECHNOLOGY ═══</div>
-                <ul>
-                    <li>Remote-controlled starfighters and small strike craft</li>
-                    <li>Support frigates and transport vessels</li>
-                    <li>Autonomous drones for reconnaissance or security</li>
-                    <li>Encryption and data-slicing tools for intelligence gathering</li>
-                </ul>
-                <p>
-                    Forces are disciplined and prioritize completing objectives with minimal casualties. Engagements are surgical and efficient.
-                </p>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ KNOWN OPERATIONS ═══</div>
-                <ul>
-                    <li>Data extraction from abandoned Republic facilities</li>
-                    <li>Infiltration of industrial or corporate sites controlled by Republic or Hutt interests</li>
-                    <li>Capture of high-value targets for interrogation or tribunal</li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ INTELLIGENCE NOTES ═══</div>
-                <p>
-                    The CII does not behave like a conventional insurgency. Their operations focus on evidence collection and accountability. They are not a military-first organization but can execute precise strikes when needed.
-                </p>
-                <p>
-                    Recommendation: Monitor activity closely, prioritize intelligence gathering, avoid direct confrontation unless unavoidable.
-                </p>
-            </div>
-
-        </div>
-
-        <div style="margin-top: 20px; text-align: center; color: #0f0;">
-            <p>█ TERMINAL ACTIVE █</p>
         </div>
     </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script>
+        const output = document.getElementById('output');
+        const messageInput = document.getElementById('messageInput');
+        const roomInput = document.getElementById('roomInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const statusEl = document.getElementById('status');
+        const connectionPanel = document.getElementById('connectionPanel');
+
+        let peer = null;
+        let conn = null;
+        let myId = null;
+        let username = 'User_' + Math.floor(Math.random() * 1000);
+
+        function addMessage(message, type = 'system') {
+            const div = document.createElement('div');
+            div.className = type + '-msg';
+            div.textContent = message;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateStatus(text, connected = false) {
+            statusEl.textContent = '◉ ' + text;
+            statusEl.className = 'status' + (connected ? ' connected' : '');
+        }
+
+        function generateRoomId() {
+            return 'CIS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        connectBtn.addEventListener('click', () => {
+            const roomCode = roomInput.value.trim();
+            
+            if (roomCode) {
+                // Join existing room
+                joinRoom(roomCode);
+            } else {
+                // Create new room
+                createRoom();
+            }
+            
+            connectBtn.disabled = true;
+            roomInput.disabled = true;
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(myId);
+            addMessage('[SYSTEM] Transmission code copied to datapad memory!', 'system');
+        });
+
+        function createRoom() {
+            myId = generateRoomId();
+            addMessage('[SYSTEM] Initiating secure channel...', 'system');
+            addMessage('[SYSTEM] Transmission code: ' + myId, 'system');
+            addMessage('[SYSTEM] Transmit this code to establish encrypted link', 'system');
+            
+            peer = new Peer(myId);
+            
+            peer.on('open', (id) => {
+                addMessage('[SYSTEM] Secure channel established', 'system');
+                addMessage('[SYSTEM] Awaiting incoming transmission...', 'system');
+                updateStatus('AWAITING LINK');
+                copyBtn.classList.remove('hidden');
+            });
+
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+            });
+
+            peer.on('error', (err) => {
+                addMessage('[ERROR] ' + err.message, 'error');
+                resetConnection();
+            });
+        }
+
+        function joinRoom(roomCode) {
+            addMessage('[SYSTEM] Connecting to transmission code: ' + roomCode, 'system');
+            
+            peer = new Peer();
+            
+            peer.on('open', (id) => {
+                myId = id;
+                conn = peer.connect(roomCode);
+                setupConnection();
+            });
+
+            peer.on('error', (err) => {
+                addMessage('[ERROR] ' + err.message, 'error');
+                addMessage('[ERROR] Unable to establish link. Verify transmission code.', 'error');
+                resetConnection();
+            });
+        }
+
+        function setupConnection() {
+            conn.on('open', () => {
+                addMessage('[SYSTEM] ═══════════════════════════════════════', 'system');
+                addMessage('[SYSTEM] HOLOCOMM LINK ESTABLISHED', 'system');
+                addMessage('[SYSTEM] ENCRYPTION: ACTIVE | STATUS: SECURE', 'system');
+                addMessage('[SYSTEM] ═══════════════════════════════════════', 'system');
+                updateStatus('LINK ACTIVE', true);
+                messageInput.disabled = false;
+                messageInput.focus();
+                
+                // Send initial greeting
+                conn.send({
+                    type: 'system',
+                    text: username + ' has entered the secure channel'
+                });
+            });
+
+            conn.on('data', (data) => {
+                if (data.type === 'message') {
+                    addMessage('[INCOMING] ' + data.text, 'peer');
+                } else if (data.type === 'system') {
+                    addMessage('[SYSTEM] ' + data.text, 'system');
+                }
+            });
+
+            conn.on('close', () => {
+                addMessage('[SYSTEM] Holocomm link terminated', 'system');
+                updateStatus('STANDBY');
+                messageInput.disabled = true;
+            });
+
+            conn.on('error', (err) => {
+                addMessage('[ERROR] Transmission error: ' + err.message, 'error');
+            });
+        }
+
+        function resetConnection() {
+            connectBtn.disabled = false;
+            roomInput.disabled = false;
+            roomInput.value = '';
+            copyBtn.classList.add('hidden');
+            updateStatus('STANDBY');
+        }
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && messageInput.value.trim()) {
+                const message = messageInput.value.trim();
+                
+                if (conn && conn.open) {
+                    conn.send({
+                        type: 'message',
+                        text: message
+                    });
+                    addMessage('[OUTGOING] ' + message, 'user');
+                    messageInput.value = '';
+                } else {
+                    addMessage('[ERROR] No active holocomm link', 'error');
+                }
+            }
+        });
+
+        // Auto-focus on room input
+        roomInput.focus();
+    </script>
 </body>
 </html>
