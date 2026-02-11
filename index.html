@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Chat</title>
+    <title>CIS Datapad</title>
     <style>
         * {
             margin: 0;
@@ -113,7 +113,8 @@
             100% { left: 100%; }
         }
 
-        .terminal {
+        /* Datapad Menu Styles */
+        .datapad-menu {
             width: 100%;
             max-width: 900px;
             height: 600px;
@@ -127,7 +128,7 @@
             position: relative;
         }
 
-        .terminal::before {
+        .datapad-menu::before {
             content: '';
             position: absolute;
             top: -2px;
@@ -146,7 +147,7 @@
             50% { opacity: 0.6; }
         }
 
-        .terminal-header {
+        .datapad-header {
             background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
             padding: 15px 20px;
             border-bottom: 2px solid #4a9eff;
@@ -168,12 +169,156 @@
             filter: drop-shadow(0 0 5px #4a9eff);
         }
 
+        .datapad-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #4a9eff;
+            text-shadow: 0 0 10px rgba(74, 158, 255, 0.8);
+            letter-spacing: 2px;
+        }
+
+        .time-display {
+            font-size: 12px;
+            color: #4a9eff;
+            text-shadow: 0 0 5px rgba(74, 158, 255, 0.8);
+        }
+
+        .apps-grid {
+            flex: 1;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.5) 0%, rgba(10, 22, 40, 0.8) 100%);
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            border: 2px solid #4a9eff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.2);
+        }
+
+        .app-icon:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(74, 158, 255, 0.6);
+            border-color: #64d9ff;
+        }
+
+        .app-icon.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .app-icon.disabled:hover {
+            transform: none;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.2);
+            border-color: #4a9eff;
+        }
+
+        .app-icon-img {
+            width: 64px;
+            height: 64px;
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 10px #4a9eff);
+        }
+
+        .app-name {
+            color: #4a9eff;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 5px rgba(74, 158, 255, 0.5);
+        }
+
+        .app-status {
+            color: #ff6b6b;
+            font-size: 10px;
+            text-shadow: 0 0 3px rgba(255, 107, 107, 0.5);
+        }
+
+        /* Terminal Chat Styles */
+        .terminal {
+            width: 100%;
+            max-width: 900px;
+            height: 600px;
+            background-color: #0a1628;
+            border: 2px solid #4a9eff;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(74, 158, 255, 0.4), inset 0 0 50px rgba(74, 158, 255, 0.05);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .terminal.active {
+            display: flex;
+        }
+
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #4a9eff, #1e5a9e, #4a9eff);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        .terminal-header {
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            padding: 15px 20px;
+            border-bottom: 2px solid #4a9eff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(74, 158, 255, 0.3);
+            position: relative;
+        }
+
         .terminal-title {
             font-weight: bold;
             font-size: 16px;
             color: #4a9eff;
             text-shadow: 0 0 10px rgba(74, 158, 255, 0.8);
             letter-spacing: 2px;
+        }
+
+        .back-btn {
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            color: #000000;
+            border: 1px solid #64d9ff;
+            padding: 6px 15px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
+            font-size: 12px;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(180deg, #64d9ff 0%, #4a9eff 100%);
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.8);
+            transform: translateY(-2px);
         }
 
         .status {
@@ -185,6 +330,140 @@
         .status.connected {
             color: #4a9eff;
             text-shadow: 0 0 5px rgba(74, 158, 255, 0.8);
+        }
+
+        /* Hidden nickname button in top left corner */
+        .nickname-btn {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 15px;
+            height: 15px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0.1;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .nickname-btn:hover {
+            opacity: 0.5;
+        }
+
+        /* Nickname modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            border: 2px solid #4a9eff;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(74, 158, 255, 0.6);
+        }
+
+        .modal-content h2 {
+            color: #4a9eff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(74, 158, 255, 0.8);
+        }
+
+        .modal-content label {
+            display: block;
+            color: #4a9eff;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            background: #0a1628;
+            border: 1px solid #4a9eff;
+            padding: 10px;
+            border-radius: 6px;
+            color: #64d9ff;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 15px;
+            box-shadow: inset 0 0 10px rgba(74, 158, 255, 0.1);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            border-color: #ffffff;
+        }
+
+        .color-option.selected {
+            border-color: #4a9eff;
+            box-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-buttons button {
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            color: #000000;
+            border: 1px solid #64d9ff;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
+        }
+
+        .modal-buttons button:hover {
+            background: linear-gradient(180deg, #64d9ff 0%, #4a9eff 100%);
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .modal-buttons button.cancel {
+            background: linear-gradient(180deg, #ff6b6b 0%, #d94545 100%);
+            border-color: #ff8888;
+        }
+
+        .modal-buttons button.cancel:hover {
+            background: linear-gradient(180deg, #ff8888 0%, #ff6b6b 100%);
         }
 
         .output {
@@ -234,9 +513,7 @@
         }
 
         .peer-msg {
-            color: #9d7bff;
             margin-bottom: 8px;
-            text-shadow: 0 0 3px rgba(157, 123, 255, 0.5);
         }
 
         .input-area {
@@ -320,15 +597,6 @@
             box-shadow: none;
         }
 
-        .blink {
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 49% { opacity: 1; }
-            50%, 100% { opacity: 0; }
-        }
-
         .hidden {
             display: none;
         }
@@ -336,20 +604,24 @@
 </head>
 <body>
     <div class="boot-screen">
-        <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.0" id="svg2">
-  <defs id="defs4"/>
-  <g transform="translate(-185.63478,162.28357)" id="layer1">
-    <g transform="translate(8.0812203,848.52813)" id="g5243">
-      <path d="M 327.48592,-1010.8117 L 177.55356,-751.00113 L 327.48592,-491.19061 L 627.62122,-491.19061 L 777.55356,-751.00113 L 627.62122,-1010.8117 L 327.48592,-1010.8117 z " style="opacity:1;fill:#15155f;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5241"/>
-      <path d="M 353.46698,-984.83067 L 602.99338,-984.83067 L 518.01366,-837.60469 L 438.44666,-837.60469 L 353.46698,-984.83067 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5239"/>
-      <path d="M 338.04072,-976.71159 L 423.0204,-829.48563 L 382.42502,-759.66149 L 212.46564,-759.66149 L 338.04072,-976.71159 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5237"/>
-      <path d="M 617.87836,-975.62905 L 742.64154,-759.66149 L 572.41148,-759.66149 L 532.89862,-828.40307 L 617.87836,-975.62905 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5235"/>
-      <path d="M 212.46564,-742.34079 L 382.42502,-742.34079 L 423.0204,-672.51671 L 337.77006,-525.29073 L 212.46564,-742.34079 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5233"/>
-      <path d="M 572.41148,-742.34079 L 742.64154,-742.34079 L 617.87836,-526.64391 L 532.89862,-673.59927 L 572.41148,-742.34079 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5231"/>
-      <path d="M 438.17604,-664.39763 L 518.28432,-664.39763 L 603.264,-517.17167 L 353.19632,-517.17167 L 438.17604,-664.39763 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5212"/>
-    </g>
-  </g>
-</svg>
+        <svg class="cis-logo" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(-177.55, 20)">
+                <path d="M 327.49,-1010.81 L 177.55,-751.00 L 327.49,-491.19 L 627.62,-491.19 L 777.55,-751.00 L 627.62,-1010.81 Z" 
+                      fill="#15155f" transform="translate(0, 1260)"/>
+                <path d="M 353.47,-984.83 L 602.99,-984.83 L 518.01,-837.60 L 438.45,-837.60 Z" 
+                      fill="#ffffff" transform="translate(0, 1260)"/>
+                <path d="M 338.04,-976.71 L 423.02,-829.49 L 382.43,-759.66 L 212.47,-759.66 Z" 
+                      fill="#ffffff" transform="translate(0, 1260)"/>
+                <path d="M 617.88,-975.63 L 742.64,-759.66 L 572.41,-759.66 L 532.90,-828.40 Z" 
+                      fill="#ffffff" transform="translate(0, 1260)"/>
+                <path d="M 212.47,-742.34 L 382.43,-742.34 L 423.02,-672.52 L 337.77,-525.29 Z" 
+                      fill="#ffffff" transform="translate(0, 1260)"/>
+                <path d="M 572.41,-742.34 L 742.64,-742.34 L 617.88,-526.64 L 532.90,-673.60 Z" 
+                      fill="#ffffff" transform="translate(0, 1260)"/>
+                <path d="M 438.18,-664.40 L 518.28,-664.40 L 603.26,-517.17 L 353.20,-517.17 Z" 
+                      fill="#ffffff" transform="translate(0, 1260)"/>
+            </g>
+        </svg>
         <div class="boot-text">
             ═══════════════════════════════════<br>
             CONFEDERACY OF INDEPENDENT SYSTEMS<br>
@@ -363,26 +635,112 @@
         <div class="loading-bar"></div>
     </div>
 
-    <div class="terminal">
-        <div class="terminal-header">
+    <!-- Datapad Menu -->
+    <div class="datapad-menu" id="datapadMenu">
+        <div class="datapad-header">
             <div class="header-left">
-        <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.0" width="600" height="519.62109" id="svg2">
-  <defs id="defs4"/>
-  <g transform="translate(-185.63478,162.28357)" id="layer1">
-    <g transform="translate(8.0812203,848.52813)" id="g5243">
-      <path d="M 327.48592,-1010.8117 L 177.55356,-751.00113 L 327.48592,-491.19061 L 627.62122,-491.19061 L 777.55356,-751.00113 L 627.62122,-1010.8117 L 327.48592,-1010.8117 z " style="opacity:1;fill:#15155f;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5241"/>
-      <path d="M 353.46698,-984.83067 L 602.99338,-984.83067 L 518.01366,-837.60469 L 438.44666,-837.60469 L 353.46698,-984.83067 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5239"/>
-      <path d="M 338.04072,-976.71159 L 423.0204,-829.48563 L 382.42502,-759.66149 L 212.46564,-759.66149 L 338.04072,-976.71159 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5237"/>
-      <path d="M 617.87836,-975.62905 L 742.64154,-759.66149 L 572.41148,-759.66149 L 532.89862,-828.40307 L 617.87836,-975.62905 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5235"/>
-      <path d="M 212.46564,-742.34079 L 382.42502,-742.34079 L 423.0204,-672.51671 L 337.77006,-525.29073 L 212.46564,-742.34079 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5233"/>
-      <path d="M 572.41148,-742.34079 L 742.64154,-742.34079 L 617.87836,-526.64391 L 532.89862,-673.59927 L 572.41148,-742.34079 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5231"/>
-      <path d="M 438.17604,-664.39763 L 518.28432,-664.39763 L 603.264,-517.17167 L 353.19632,-517.17167 L 438.17604,-664.39763 z " style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.8;stroke-opacity:1" id="path5212"/>
-    </g>
-  </g>
-</svg>
-                <div class="terminal-title">CIS SECURE COMMS v2.1</div>
+                <svg class="cis-icon" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-177.55, 20)">
+                        <path d="M 327.49,-1010.81 L 177.55,-751.00 L 327.49,-491.19 L 627.62,-491.19 L 777.55,-751.00 L 627.62,-1010.81 Z" 
+                              fill="#15155f" transform="translate(0, 1260)"/>
+                        <path d="M 353.47,-984.83 L 602.99,-984.83 L 518.01,-837.60 L 438.45,-837.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 338.04,-976.71 L 423.02,-829.49 L 382.43,-759.66 L 212.47,-759.66 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 617.88,-975.63 L 742.64,-759.66 L 572.41,-759.66 L 532.90,-828.40 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 212.47,-742.34 L 382.43,-742.34 L 423.02,-672.52 L 337.77,-525.29 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 572.41,-742.34 L 742.64,-742.34 L 617.88,-526.64 L 532.90,-673.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 438.18,-664.40 L 518.28,-664.40 L 603.26,-517.17 L 353.20,-517.17 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                    </g>
+                </svg>
+                <div class="datapad-title">CIS DATAPAD OS v3.2</div>
             </div>
-            <div class="status" id="status">◉ STANDBY</div>
+            <div class="time-display" id="timeDisplay">00:00</div>
+        </div>
+
+        <div class="apps-grid">
+            <div class="app-icon" id="messagingApp">
+                <div class="app-icon-img">💬</div>
+                <div class="app-name">SECURE<br>MESSAGING</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">📁</div>
+                <div class="app-name">FILE<br>ARCHIVE</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">🗺️</div>
+                <div class="app-name">TACTICAL<br>MAP</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">📊</div>
+                <div class="app-name">FLEET<br>STATUS</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">🎯</div>
+                <div class="app-name">MISSION<br>BRIEFING</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">🔧</div>
+                <div class="app-name">SYSTEM<br>SETTINGS</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">📡</div>
+                <div class="app-name">LONG RANGE<br>SCANNER</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+            
+            <div class="app-icon disabled">
+                <div class="app-icon-img">🔐</div>
+                <div class="app-name">ENCRYPTION<br>TOOLS</div>
+                <div class="app-status">LOCKED</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Chat -->
+    <div class="terminal" id="terminal">
+        <div class="terminal-header">
+            <button class="nickname-btn" id="nicknameBtn" title="Click to customize nickname"></button>
+            <div class="header-left">
+                <svg class="cis-icon" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-177.55, 20)">
+                        <path d="M 327.49,-1010.81 L 177.55,-751.00 L 327.49,-491.19 L 627.62,-491.19 L 777.55,-751.00 L 627.62,-1010.81 Z" 
+                              fill="#15155f" transform="translate(0, 1260)"/>
+                        <path d="M 353.47,-984.83 L 602.99,-984.83 L 518.01,-837.60 L 438.45,-837.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 338.04,-976.71 L 423.02,-829.49 L 382.43,-759.66 L 212.47,-759.66 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 617.88,-975.63 L 742.64,-759.66 L 572.41,-759.66 L 532.90,-828.40 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 212.47,-742.34 L 382.43,-742.34 L 423.02,-672.52 L 337.77,-525.29 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 572.41,-742.34 L 742.64,-742.34 L 617.88,-526.64 L 532.90,-673.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 438.18,-664.40 L 518.28,-664.40 L 603.26,-517.17 L 353.20,-517.17 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                    </g>
+                </svg>
+                <div class="terminal-title">SECURE COMMS v2.1</div>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="status" id="status">◉ STANDBY</div>
+                <button class="back-btn" id="backBtn">← MENU</button>
+            </div>
         </div>
         
         <div class="connection-panel" id="connectionPanel">
@@ -411,8 +769,53 @@
         </div>
     </div>
 
+    <!-- Nickname Modal -->
+    <div class="modal" id="nicknameModal">
+        <div class="modal-content">
+            <h2>CUSTOMIZE IDENTITY</h2>
+            <label>Callsign:</label>
+            <input type="text" id="nicknameInput" placeholder="Enter your nickname..." maxlength="20" />
+            
+            <label>Transmission Color:</label>
+            <div class="color-grid" id="colorGrid"></div>
+            
+            <div class="modal-buttons">
+                <button id="saveNickname">CONFIRM</button>
+                <button class="cancel" id="cancelNickname">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
+        // Time Display
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('timeDisplay').textContent = hours + ':' + minutes;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // App Navigation
+        const datapadMenu = document.getElementById('datapadMenu');
+        const terminal = document.getElementById('terminal');
+        const messagingApp = document.getElementById('messagingApp');
+        const backBtn = document.getElementById('backBtn');
+
+        messagingApp.addEventListener('click', () => {
+            datapadMenu.style.display = 'none';
+            terminal.classList.add('active');
+            roomInput.focus();
+        });
+
+        backBtn.addEventListener('click', () => {
+            terminal.classList.remove('active');
+            datapadMenu.style.display = 'flex';
+        });
+
+        // Chat functionality
         const output = document.getElementById('output');
         const messageInput = document.getElementById('messageInput');
         const roomInput = document.getElementById('roomInput');
@@ -420,15 +823,88 @@
         const copyBtn = document.getElementById('copyBtn');
         const statusEl = document.getElementById('status');
         const connectionPanel = document.getElementById('connectionPanel');
+        const nicknameBtn = document.getElementById('nicknameBtn');
+        const nicknameModal = document.getElementById('nicknameModal');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const colorGrid = document.getElementById('colorGrid');
+        const saveNickname = document.getElementById('saveNickname');
+        const cancelNickname = document.getElementById('cancelNickname');
 
         let peer = null;
-        let conn = null;
+        let connections = [];
         let myId = null;
-        let username = 'User_' + Math.floor(Math.random() * 1000);
+        let username = 'Agent_' + Math.floor(Math.random() * 1000);
+        let userColor = '#9d7bff';
 
-        function addMessage(message, type = 'system') {
+        // Available colors
+        const colors = [
+            '#9d7bff', '#64d9ff', '#4a9eff', '#ff6b6b', 
+            '#51cf66', '#ffd43b', '#ff8787', '#cc5de8',
+            '#20c997', '#ff922b', '#74c0fc', '#a9e34b'
+        ];
+
+        // Initialize color grid
+        colors.forEach(color => {
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'color-option';
+            colorDiv.style.backgroundColor = color;
+            if (color === userColor) {
+                colorDiv.classList.add('selected');
+            }
+            colorDiv.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+                colorDiv.classList.add('selected');
+                userColor = color;
+            });
+            colorGrid.appendChild(colorDiv);
+        });
+
+        // Nickname modal handlers
+        nicknameBtn.addEventListener('click', () => {
+            nicknameModal.classList.add('active');
+            nicknameInput.value = username;
+            nicknameInput.focus();
+        });
+
+        cancelNickname.addEventListener('click', () => {
+            nicknameModal.classList.remove('active');
+        });
+
+        saveNickname.addEventListener('click', () => {
+            const newName = nicknameInput.value.trim();
+            if (newName) {
+                const oldName = username;
+                username = newName;
+                addMessage('[SYSTEM] Identity updated: ' + oldName + ' → ' + username, 'system');
+                
+                // Broadcast name change to all connections
+                connections.forEach(conn => {
+                    if (conn.open) {
+                        conn.send({
+                            type: 'system',
+                            text: oldName + ' changed identity to ' + username,
+                            color: userColor
+                        });
+                    }
+                });
+            }
+            nicknameModal.classList.remove('active');
+        });
+
+        // Close modal on background click
+        nicknameModal.addEventListener('click', (e) => {
+            if (e.target === nicknameModal) {
+                nicknameModal.classList.remove('active');
+            }
+        });
+
+        function addMessage(message, type = 'system', color = null) {
             const div = document.createElement('div');
             div.className = type + '-msg';
+            if (color && type === 'peer') {
+                div.style.color = color;
+                div.style.textShadow = `0 0 3px ${color}80`;
+            }
             div.textContent = message;
             output.appendChild(div);
             output.scrollTop = output.scrollHeight;
@@ -447,10 +923,8 @@
             const roomCode = roomInput.value.trim();
             
             if (roomCode) {
-                // Join existing room
                 joinRoom(roomCode);
             } else {
-                // Create new room
                 createRoom();
             }
             
@@ -473,14 +947,13 @@
             
             peer.on('open', (id) => {
                 addMessage('[SYSTEM] Secure channel established', 'system');
-                addMessage('[SYSTEM] Awaiting incoming transmission...', 'system');
+                addMessage('[SYSTEM] Awaiting incoming transmissions...', 'system');
                 updateStatus('AWAITING LINK');
                 copyBtn.classList.remove('hidden');
             });
 
             peer.on('connection', (connection) => {
-                conn = connection;
-                setupConnection();
+                setupConnection(connection);
             });
 
             peer.on('error', (err) => {
@@ -496,8 +969,13 @@
             
             peer.on('open', (id) => {
                 myId = id;
-                conn = peer.connect(roomCode);
-                setupConnection();
+                const conn = peer.connect(roomCode);
+                setupConnection(conn);
+                
+                // Also listen for other connections
+                peer.on('connection', (connection) => {
+                    setupConnection(connection);
+                });
             });
 
             peer.on('error', (err) => {
@@ -507,35 +985,51 @@
             });
         }
 
-        function setupConnection() {
+        function setupConnection(conn) {
+            connections.push(conn);
+            
             conn.on('open', () => {
                 addMessage('[SYSTEM] ═══════════════════════════════════════', 'system');
                 addMessage('[SYSTEM] HOLOCOMM LINK ESTABLISHED', 'system');
                 addMessage('[SYSTEM] ENCRYPTION: ACTIVE | STATUS: SECURE', 'system');
                 addMessage('[SYSTEM] ═══════════════════════════════════════', 'system');
-                updateStatus('LINK ACTIVE', true);
+                updateStatus('LINK ACTIVE (' + connections.length + ')', true);
                 messageInput.disabled = false;
                 messageInput.focus();
                 
-                // Send initial greeting
+                // Send initial greeting with color
                 conn.send({
-                    type: 'system',
-                    text: username + ' has entered the secure channel'
+                    type: 'join',
+                    username: username,
+                    color: userColor
                 });
             });
 
             conn.on('data', (data) => {
                 if (data.type === 'message') {
-                    addMessage('[INCOMING] ' + data.text, 'peer');
+                    addMessage('[' + data.username + '] ' + data.text, 'peer', data.color);
+                } else if (data.type === 'join') {
+                    addMessage('[SYSTEM] ' + data.username + ' has entered the secure channel', 'system');
+                    // Send our info back
+                    conn.send({
+                        type: 'info',
+                        username: username,
+                        color: userColor
+                    });
+                } else if (data.type === 'info') {
+                    addMessage('[SYSTEM] ' + data.username + ' is in the channel', 'system');
                 } else if (data.type === 'system') {
                     addMessage('[SYSTEM] ' + data.text, 'system');
                 }
             });
 
             conn.on('close', () => {
-                addMessage('[SYSTEM] Holocomm link terminated', 'system');
-                updateStatus('STANDBY');
-                messageInput.disabled = true;
+                connections = connections.filter(c => c !== conn);
+                addMessage('[SYSTEM] A holocomm link terminated', 'system');
+                updateStatus(connections.length > 0 ? 'LINK ACTIVE (' + connections.length + ')' : 'STANDBY', connections.length > 0);
+                if (connections.length === 0) {
+                    messageInput.disabled = true;
+                }
             });
 
             conn.on('error', (err) => {
@@ -549,27 +1043,31 @@
             roomInput.value = '';
             copyBtn.classList.add('hidden');
             updateStatus('STANDBY');
+            connections = [];
         }
 
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && messageInput.value.trim()) {
                 const message = messageInput.value.trim();
                 
-                if (conn && conn.open) {
-                    conn.send({
-                        type: 'message',
-                        text: message
+                if (connections.length > 0) {
+                    connections.forEach(conn => {
+                        if (conn.open) {
+                            conn.send({
+                                type: 'message',
+                                text: message,
+                                username: username,
+                                color: userColor
+                            });
+                        }
                     });
-                    addMessage('[OUTGOING] ' + message, 'user');
+                    addMessage('[' + username + '] ' + message, 'user');
                     messageInput.value = '';
                 } else {
                     addMessage('[ERROR] No active holocomm link', 'error');
                 }
             }
         });
-
-        // Auto-focus on room input
-        roomInput.focus();
     </script>
 </body>
 </html>
