@@ -600,6 +600,271 @@
         .hidden {
             display: none;
         }
+
+        /* Archive Styles */
+        .archive-content {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .archive-sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            border-right: 2px solid #4a9eff;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .archive-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(74, 158, 255, 0.1);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .archive-section:hover {
+            background: rgba(74, 158, 255, 0.2);
+            border-color: #4a9eff;
+        }
+
+        .archive-section.active {
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            border-color: #64d9ff;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+        }
+
+        .section-icon {
+            font-size: 20px;
+        }
+
+        .section-name {
+            font-size: 11px;
+            font-weight: bold;
+            color: #4a9eff;
+            text-shadow: 0 0 5px rgba(74, 158, 255, 0.5);
+        }
+
+        .archive-section.active .section-name {
+            color: #000000;
+            text-shadow: none;
+        }
+
+        .archive-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.5) 0%, rgba(10, 22, 40, 0.8) 100%);
+        }
+
+        .archive-toolbar {
+            padding: 15px 20px;
+            border-bottom: 2px solid #4a9eff;
+            display: flex;
+            gap: 10px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+        }
+
+        .archive-search {
+            flex: 1;
+            background: #0a1628;
+            border: 1px solid #4a9eff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #64d9ff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .archive-upload-btn {
+            background: linear-gradient(180deg, #51cf66 0%, #2f9e44 100%);
+            color: #000000;
+            border: 1px solid #69db7c;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(81, 207, 102, 0.4);
+        }
+
+        .archive-upload-btn:hover {
+            background: linear-gradient(180deg, #69db7c 0%, #51cf66 100%);
+            box-shadow: 0 0 20px rgba(81, 207, 102, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .archive-files {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .archive-file {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            border: 1px solid #4a9eff;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        .archive-file:hover {
+            border-color: #64d9ff;
+            box-shadow: 0 0 15px rgba(74, 158, 255, 0.4);
+            transform: translateX(5px);
+        }
+
+        .file-icon {
+            font-size: 32px;
+            filter: drop-shadow(0 0 5px #4a9eff);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            color: #64d9ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px rgba(100, 217, 255, 0.5);
+        }
+
+        .file-meta {
+            color: #4a9eff;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .file-action {
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            color: #000000;
+            border: 1px solid #64d9ff;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
+            font-size: 11px;
+        }
+
+        .file-action:hover {
+            background: linear-gradient(180deg, #64d9ff 0%, #4a9eff 100%);
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.8);
+        }
+
+        /* Fleet Status Styles */
+        .fleet-content {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .galaxy-map-container {
+            flex: 1;
+            position: relative;
+            background: #000000;
+            overflow: hidden;
+        }
+
+        #galaxyCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(180deg, rgba(30, 58, 95, 0.9) 0%, rgba(10, 22, 40, 0.9) 100%);
+            border: 2px solid #4a9eff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
+        }
+
+        .map-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #4a9eff;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .planet-info-panel {
+            width: 300px;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0a1628 100%);
+            border-left: 2px solid #4a9eff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px;
+            background: linear-gradient(180deg, #4a9eff 0%, #1e5a9e 100%);
+            color: #000000;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 2px solid #64d9ff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            color: #4a9eff;
+            line-height: 1.6;
+        }
+
+        .panel-content h3 {
+            color: #64d9ff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(100, 217, 255, 0.8);
+        }
+
+        .panel-content .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(74, 158, 255, 0.2);
+        }
+
+        .panel-content .info-label {
+            opacity: 0.7;
+        }
+
+        .panel-content .info-value {
+            font-weight: bold;
+            color: #64d9ff;
+        }
     </style>
 </head>
 <body>
@@ -668,46 +933,189 @@
                 <div class="app-name">SECURE<br>MESSAGING</div>
             </div>
             
-            <div class="app-icon disabled">
+            <div class="app-icon" id="archiveApp">
                 <div class="app-icon-img">📁</div>
                 <div class="app-name">FILE<br>ARCHIVE</div>
-                <div class="app-status">LOCKED</div>
+                <div class="app-status" style="color: #ffd43b;">IN PROGRESS</div>
             </div>
             
-            <div class="app-icon disabled">
-                <div class="app-icon-img">🗺️</div>
-                <div class="app-name">TACTICAL<br>MAP</div>
-                <div class="app-status">LOCKED</div>
-            </div>
-            
-            <div class="app-icon disabled">
+            <div class="app-icon" id="fleetApp">
                 <div class="app-icon-img">📊</div>
                 <div class="app-name">FLEET<br>STATUS</div>
-                <div class="app-status">LOCKED</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Archive -->
+    <div class="terminal" id="archive">
+        <div class="terminal-header">
+            <div class="header-left">
+                <svg class="cis-icon" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-177.55, 20)">
+                        <path d="M 327.49,-1010.81 L 177.55,-751.00 L 327.49,-491.19 L 627.62,-491.19 L 777.55,-751.00 L 627.62,-1010.81 Z" 
+                              fill="#15155f" transform="translate(0, 1260)"/>
+                        <path d="M 353.47,-984.83 L 602.99,-984.83 L 518.01,-837.60 L 438.45,-837.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 338.04,-976.71 L 423.02,-829.49 L 382.43,-759.66 L 212.47,-759.66 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 617.88,-975.63 L 742.64,-759.66 L 572.41,-759.66 L 532.90,-828.40 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 212.47,-742.34 L 382.43,-742.34 L 423.02,-672.52 L 337.77,-525.29 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 572.41,-742.34 L 742.64,-742.34 L 617.88,-526.64 L 532.90,-673.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 438.18,-664.40 L 518.28,-664.40 L 603.26,-517.17 L 353.20,-517.17 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                    </g>
+                </svg>
+                <div class="terminal-title">FILE ARCHIVE v1.3</div>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="app-status" style="color: #ffd43b;">IN PROGRESS</div>
+                <button class="back-btn" id="backBtnArchive">← MENU</button>
+            </div>
+        </div>
+        
+        <div class="archive-content">
+            <div class="archive-sidebar">
+                <div class="archive-section active" data-category="all">
+                    <div class="section-icon">📋</div>
+                    <div class="section-name">ALL FILES</div>
+                </div>
+                <div class="archive-section" data-category="intelligence">
+                    <div class="section-icon">🔍</div>
+                    <div class="section-name">INTELLIGENCE</div>
+                </div>
+                <div class="archive-section" data-category="fleet">
+                    <div class="section-icon">🚀</div>
+                    <div class="section-name">FLEET MANIFESTS</div>
+                </div>
+                <div class="archive-section" data-category="tactical">
+                    <div class="section-icon">⚔️</div>
+                    <div class="section-name">TACTICAL DATA</div>
+                </div>
+                <div class="archive-section" data-category="personnel">
+                    <div class="section-icon">👤</div>
+                    <div class="section-name">PERSONNEL</div>
+                </div>
             </div>
             
-            <div class="app-icon disabled">
-                <div class="app-icon-img">🎯</div>
-                <div class="app-name">MISSION<br>BRIEFING</div>
-                <div class="app-status">LOCKED</div>
+            <div class="archive-main">
+                <div class="archive-toolbar">
+                    <input type="text" id="archiveSearch" placeholder="Search files..." class="archive-search" />
+                    <button class="archive-upload-btn">+ UPLOAD FILE</button>
+                </div>
+                
+                <div class="archive-files" id="archiveFiles">
+                    <div class="archive-file" data-category="intelligence">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">Republic_Fleet_Movements.enc</div>
+                            <div class="file-meta">Intelligence Report • 2.4 MB • 3 days ago</div>
+                        </div>
+                        <button class="file-action">DOWNLOAD</button>
+                    </div>
+                    
+                    <div class="archive-file" data-category="fleet">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">Droid_Army_Deployment_Zones.dat</div>
+                            <div class="file-meta">Fleet Manifest • 1.8 MB • 5 days ago</div>
+                        </div>
+                        <button class="file-action">DOWNLOAD</button>
+                    </div>
+                    
+                    <div class="archive-file" data-category="tactical">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">Hyperspace_Routes_Outer_Rim.map</div>
+                            <div class="file-meta">Tactical Data • 5.2 MB • 1 week ago</div>
+                        </div>
+                        <button class="file-action">DOWNLOAD</button>
+                    </div>
+                    
+                    <div class="archive-file" data-category="personnel">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">Command_Staff_Directory.lst</div>
+                            <div class="file-meta">Personnel File • 890 KB • 2 weeks ago</div>
+                        </div>
+                        <button class="file-action">DOWNLOAD</button>
+                    </div>
+                    
+                    <div class="archive-file" data-category="intelligence">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">Jedi_Temple_Surveillance.vid</div>
+                            <div class="file-meta">Intelligence Report • 12.3 MB • 3 weeks ago</div>
+                        </div>
+                        <button class="file-action">DOWNLOAD</button>
+                    </div>
+                    
+                    <div class="system-msg" style="text-align: center; padding: 40px; opacity: 0.7;">
+                        [NOTICE] File sharing and upload functionality coming soon...<br>
+                        Advanced encryption protocols in development
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fleet Status -->
+    <div class="terminal" id="fleet">
+        <div class="terminal-header">
+            <div class="header-left">
+                <svg class="cis-icon" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-177.55, 20)">
+                        <path d="M 327.49,-1010.81 L 177.55,-751.00 L 327.49,-491.19 L 627.62,-491.19 L 777.55,-751.00 L 627.62,-1010.81 Z" 
+                              fill="#15155f" transform="translate(0, 1260)"/>
+                        <path d="M 353.47,-984.83 L 602.99,-984.83 L 518.01,-837.60 L 438.45,-837.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 338.04,-976.71 L 423.02,-829.49 L 382.43,-759.66 L 212.47,-759.66 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 617.88,-975.63 L 742.64,-759.66 L 572.41,-759.66 L 532.90,-828.40 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 212.47,-742.34 L 382.43,-742.34 L 423.02,-672.52 L 337.77,-525.29 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 572.41,-742.34 L 742.64,-742.34 L 617.88,-526.64 L 532.90,-673.60 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                        <path d="M 438.18,-664.40 L 518.28,-664.40 L 603.26,-517.17 L 353.20,-517.17 Z" 
+                              fill="#ffffff" transform="translate(0, 1260)"/>
+                    </g>
+                </svg>
+                <div class="terminal-title">FLEET STATUS - GALAXY MAP</div>
+            </div>
+            <button class="back-btn" id="backBtnFleet">← MENU</button>
+        </div>
+        
+        <div class="fleet-content">
+            <div class="galaxy-map-container">
+                <canvas id="galaxyCanvas"></canvas>
+                <div class="map-overlay">
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #4a9eff;"></div>
+                            <span>CIS Territory</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #ff6b6b;"></div>
+                            <span>Republic Territory</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #ffd43b;"></div>
+                            <span>Contested</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="app-icon disabled">
-                <div class="app-icon-img">🔧</div>
-                <div class="app-name">SYSTEM<br>SETTINGS</div>
-                <div class="app-status">LOCKED</div>
-            </div>
-            
-            <div class="app-icon disabled">
-                <div class="app-icon-img">📡</div>
-                <div class="app-name">LONG RANGE<br>SCANNER</div>
-                <div class="app-status">LOCKED</div>
-            </div>
-            
-            <div class="app-icon disabled">
-                <div class="app-icon-img">🔐</div>
-                <div class="app-name">ENCRYPTION<br>TOOLS</div>
-                <div class="app-status">LOCKED</div>
+            <div class="planet-info-panel" id="planetInfo">
+                <div class="panel-header">SYSTEM INFORMATION</div>
+                <div class="panel-content">
+                    <p style="opacity: 0.6; text-align: center; padding: 20px;">
+                        Select a system on the map to view details...
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -801,8 +1209,14 @@
         // App Navigation
         const datapadMenu = document.getElementById('datapadMenu');
         const terminal = document.getElementById('terminal');
+        const archive = document.getElementById('archive');
+        const fleet = document.getElementById('fleet');
         const messagingApp = document.getElementById('messagingApp');
+        const archiveApp = document.getElementById('archiveApp');
+        const fleetApp = document.getElementById('fleetApp');
         const backBtn = document.getElementById('backBtn');
+        const backBtnArchive = document.getElementById('backBtnArchive');
+        const backBtnFleet = document.getElementById('backBtnFleet');
 
         messagingApp.addEventListener('click', () => {
             datapadMenu.style.display = 'none';
@@ -810,10 +1224,214 @@
             roomInput.focus();
         });
 
+        archiveApp.addEventListener('click', () => {
+            datapadMenu.style.display = 'none';
+            archive.classList.add('active');
+        });
+
+        fleetApp.addEventListener('click', () => {
+            datapadMenu.style.display = 'none';
+            fleet.classList.add('active');
+            initGalaxyMap();
+        });
+
         backBtn.addEventListener('click', () => {
             terminal.classList.remove('active');
             datapadMenu.style.display = 'flex';
         });
+
+        backBtnArchive.addEventListener('click', () => {
+            archive.classList.remove('active');
+            datapadMenu.style.display = 'flex';
+        });
+
+        backBtnFleet.addEventListener('click', () => {
+            fleet.classList.remove('active');
+            datapadMenu.style.display = 'flex';
+        });
+
+        // Archive functionality
+        const archiveSections = document.querySelectorAll('.archive-section');
+        const archiveFiles = document.querySelectorAll('.archive-file');
+        const archiveSearch = document.getElementById('archiveSearch');
+
+        archiveSections.forEach(section => {
+            section.addEventListener('click', () => {
+                archiveSections.forEach(s => s.classList.remove('active'));
+                section.classList.add('active');
+                
+                const category = section.dataset.category;
+                archiveFiles.forEach(file => {
+                    if (category === 'all' || file.dataset.category === category) {
+                        file.style.display = 'flex';
+                    } else {
+                        file.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        archiveSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            archiveFiles.forEach(file => {
+                const fileName = file.querySelector('.file-name').textContent.toLowerCase();
+                if (fileName.includes(searchTerm)) {
+                    file.style.display = 'flex';
+                } else {
+                    file.style.display = 'none';
+                }
+            });
+        });
+
+        // Galaxy Map functionality
+        let canvas, ctx, galaxyMapImage;
+        const planets = [
+            // Core Worlds
+            { name: "CORUSCANT", x: 50, y: 50, region: "Deep Core", control: "republic", fleets: 12 },
+            { name: "CORELLIA", x: 48, y: 62, region: "Core Worlds", control: "republic", fleets: 8 },
+            // Outer Rim - Top
+            { name: "MORTIS", x: 56, y: 8, region: "Unknown Regions", control: "neutral", fleets: 0 },
+            { name: "DANTOOINE", x: 37, y: 14, region: "Outer Rim", control: "republic", fleets: 3 },
+            { name: "LAT'MU", x: 49, y: 10, region: "Outer Rim", control: "cis", fleets: 5 },
+            { name: "ORD JANON", x: 57, y: 7, region: "Outer Rim", control: "contested", fleets: 7 },
+            { name: "DATHOMIR", x: 58, y: 13, region: "Outer Rim", control: "neutral", fleets: 2 },
+            { name: "BOGANO", x: 62, y: 7, region: "Outer Rim", control: "neutral", fleets: 1 },
+            { name: "ZEFFO", x: 73, y: 10, region: "Outer Rim", control: "neutral", fleets: 1 },
+            { name: "BONADAN", x: 77, y: 13, region: "Outer Rim", control: "republic", fleets: 4 },
+            // Mid section
+            { name: "MYGEETO", x: 30, y: 20, region: "Outer Rim", control: "cis", fleets: 9 },
+            { name: "ILUM", x: 28, y: 32, region: "Unknown Regions", control: "republic", fleets: 3 },
+            { name: "MANDALORE", x: 58, y: 20, region: "Outer Rim", control: "neutral", fleets: 6 },
+            { name: "KAMINO", x: 85, y: 32, region: "Wild Space", control: "republic", fleets: 15 },
+            // Many more planets...
+            { name: "GEONOSIS", x: 60, y: 44, region: "Outer Rim", control: "cis", fleets: 18 },
+            { name: "TATOOINE", x: 55, y: 90, region: "Outer Rim", control: "neutral", fleets: 2 },
+            { name: "MUSTAFAR", x: 48, y: 72, region: "Outer Rim", control: "cis", fleets: 11 },
+            { name: "RYLOTH", x: 72, y: 89, region: "Outer Rim", control: "contested", fleets: 8 }
+        ];
+
+        function initGalaxyMap() {
+            canvas = document.getElementById('galaxyCanvas');
+            if (!canvas || galaxyMapImage) return; // Already initialized
+            
+            ctx = canvas.getContext('2d');
+            
+            // Load the galaxy map image
+            galaxyMapImage = new Image();
+            galaxyMapImage.src = '/mnt/user-data/uploads/1770838519416_image.png';
+            galaxyMapImage.onload = () => {
+                resizeCanvas();
+                drawGalaxyMap();
+            };
+            
+            window.addEventListener('resize', () => {
+                if (fleet.classList.contains('active')) {
+                    resizeCanvas();
+                    drawGalaxyMap();
+                }
+            });
+            
+            canvas.addEventListener('click', handleMapClick);
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        function drawGalaxyMap() {
+            if (!galaxyMapImage.complete) return;
+            
+            // Draw the background image
+            ctx.drawImage(galaxyMapImage, 0, 0, canvas.width, canvas.height);
+            
+            // Draw planets as clickable dots
+            planets.forEach(planet => {
+                const x = (planet.x / 100) * canvas.width;
+                const y = (planet.y / 100) * canvas.height;
+                
+                // Glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = getControlColor(planet.control);
+                
+                // Planet dot
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = getControlColor(planet.control);
+                ctx.fill();
+                
+                // Reset shadow
+                ctx.shadowBlur = 0;
+                
+                // Pulsing ring for systems with fleets
+                if (planet.fleets > 0) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = getControlColor(planet.control);
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function getControlColor(control) {
+            switch(control) {
+                case 'cis': return '#4a9eff';
+                case 'republic': return '#ff6b6b';
+                case 'contested': return '#ffd43b';
+                default: return '#9d7bff';
+            }
+        }
+
+        function handleMapClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = ((e.clientX - rect.left) / canvas.width) * 100;
+            const clickY = ((e.clientY - rect.top) / canvas.height) * 100;
+            
+            // Find clicked planet (within 2% tolerance)
+            const clickedPlanet = planets.find(p => {
+                const dx = p.x - clickX;
+                const dy = p.y - clickY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < 3;
+            });
+            
+            if (clickedPlanet) {
+                showPlanetInfo(clickedPlanet);
+            }
+        }
+
+        function showPlanetInfo(planet) {
+            const panel = document.querySelector('.panel-content');
+            const controlText = planet.control.toUpperCase();
+            const controlColor = getControlColor(planet.control);
+            
+            panel.innerHTML = `
+                <h3>${planet.name}</h3>
+                <div class="info-row">
+                    <span class="info-label">Region:</span>
+                    <span class="info-value">${planet.region}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Control:</span>
+                    <span class="info-value" style="color: ${controlColor};">${controlText}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Fleet Strength:</span>
+                    <span class="info-value">${planet.fleets} Capital Ships</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value">${planet.fleets > 10 ? 'FORTIFIED' : planet.fleets > 5 ? 'DEFENDED' : planet.fleets > 0 ? 'PATROL' : 'UNDEFENDED'}</span>
+                </div>
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(74, 158, 255, 0.3);">
+                    <div class="system-msg" style="font-size: 11px; opacity: 0.7; margin: 0;">
+                        [TACTICAL] Real-time fleet deployment data
+                    </div>
+                </div>
+            `;
+        }
 
         // Chat functionality
         const output = document.getElementById('output');
@@ -1003,11 +1621,27 @@
                     username: username,
                     color: userColor
                 });
+                
+                // Broadcast to all other connections that we have a new peer
+                connections.forEach(otherConn => {
+                    if (otherConn !== conn && otherConn.open) {
+                        otherConn.send({
+                            type: 'new_peer',
+                            peerId: conn.peer
+                        });
+                    }
+                });
             });
 
             conn.on('data', (data) => {
                 if (data.type === 'message') {
                     addMessage('[' + data.username + '] ' + data.text, 'peer', data.color);
+                    // Relay message to all other connections
+                    connections.forEach(otherConn => {
+                        if (otherConn !== conn && otherConn.open) {
+                            otherConn.send(data);
+                        }
+                    });
                 } else if (data.type === 'join') {
                     addMessage('[SYSTEM] ' + data.username + ' has entered the secure channel', 'system');
                     // Send our info back
@@ -1016,10 +1650,31 @@
                         username: username,
                         color: userColor
                     });
+                    // Broadcast join to all other connections
+                    connections.forEach(otherConn => {
+                        if (otherConn !== conn && otherConn.open) {
+                            otherConn.send({
+                                type: 'system',
+                                text: data.username + ' has entered the secure channel'
+                            });
+                        }
+                    });
                 } else if (data.type === 'info') {
                     addMessage('[SYSTEM] ' + data.username + ' is in the channel', 'system');
                 } else if (data.type === 'system') {
                     addMessage('[SYSTEM] ' + data.text, 'system');
+                    // Relay system message to all other connections
+                    connections.forEach(otherConn => {
+                        if (otherConn !== conn && otherConn.open) {
+                            otherConn.send(data);
+                        }
+                    });
+                } else if (data.type === 'new_peer') {
+                    // Connect to the new peer
+                    if (peer && data.peerId !== myId) {
+                        const newConn = peer.connect(data.peerId);
+                        setupConnection(newConn);
+                    }
                 }
             });
 
