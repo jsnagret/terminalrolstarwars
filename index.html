@@ -88,6 +88,32 @@ const firebaseConfig = {
     catch(e) { console.error(e); return false; }
   };
 
+  /* ── BREAKING NEWS BANNER ── */
+  window.loadFirebaseBanner = async function() {
+    try {
+      const snapshot = await getDocs(collection(db, "breaking_news"));
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        if (data.items && Array.isArray(data.items)) {
+          return { id: snapshot.docs[0].id, items: data.items };
+        }
+      }
+      return null;
+    } catch(e) { console.error(e); return null; }
+  };
+
+  window.saveFirebaseBanner = async function(items, docId) {
+    try {
+      const data = { items: items, timestamp: serverTimestamp() };
+      if (docId) {
+        // Update existing
+        await deleteDoc(doc(db, "breaking_news", docId));
+      }
+      const ref = await addDoc(collection(db, "breaking_news"), data);
+      return ref.id;
+    } catch(e) { console.error(e); return null; }
+  };
+
   window.firebaseReady = true;
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
