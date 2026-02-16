@@ -89,29 +89,30 @@ const firebaseConfig = {
   };
 
   /* ── BREAKING NEWS BANNER ── */
-  window.loadFirebaseBanner = async function() {
-    try {
-      const snapshot = await getDocs(collection(db, "breaking_news"));
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
+  window.loadFirebaseBanner = function() {
+    const q = query(collection(db, "breaking_news"), orderBy("timestamp", "desc"));
+    onSnapshot(q, snap => {
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
         if (data.items && Array.isArray(data.items)) {
-          return { id: snapshot.docs[0].id, items: data.items };
+          window.onFirebaseBanner({ id: snap.docs[0].id, items: data.items });
         }
       }
-      return null;
-    } catch(e) { console.error(e); return null; }
+    }, err => {
+      console.error("Banner load error:", err);
+    });
   };
 
-  window.saveFirebaseBanner = async function(items, docId) {
+  window.saveFirebaseBanner = async function(items) {
     try {
       const data = { items: items, timestamp: serverTimestamp() };
-      if (docId) {
-        // Update existing
-        await deleteDoc(doc(db, "breaking_news", docId));
-      }
       const ref = await addDoc(collection(db, "breaking_news"), data);
+      console.log("Banner saved with ID:", ref.id);
       return ref.id;
-    } catch(e) { console.error(e); return null; }
+    } catch(e) { 
+      console.error("Banner save error:", e); 
+      return null; 
+    }
   };
 
   window.firebaseReady = true;
@@ -843,24 +844,18 @@ let breakingNews = [
   "WARRIOR-CASTE TACTICS CONFIRMED — REPUBLIC ANALYSTS WARN OF NEW FRONT IN CLONE WARS",
   "POGGLE THE LESSER UNAVAILABLE FOR COMMENT &#9670; STAY WITH HOLONET NEWS"
 ];
-let bannerDocId = null; // Firebase document ID for banner
+let bannerDocId = null;
+let bannerInitialized = false;
 
-async function loadBreakingNews() {
-  if (window.loadFirebaseBanner) {
-    const data = await window.loadFirebaseBanner();
-    if (data && data.items) {
-      breakingNews = data.items;
-      bannerDocId = data.id;
-      renderBreakingNews();
-    } else {
-      // Save default banner to Firebase
-      renderBreakingNews();
-      if (window.saveFirebaseBanner) {
-        bannerDocId = await window.saveFirebaseBanner(breakingNews, null);
-      }
-    }
+// Called by Firebase when banner data changes
+window.onFirebaseBanner = function(data) {
+  if (data && data.items) {
+    breakingNews = data.items;
+    bannerDocId = data.id;
+    renderBreakingNews();
+    console.log("Breaking news loaded from Firebase:", breakingNews.length, "items");
   }
-}
+};
 
 function renderBreakingNews() {
   const ticker = document.getElementById('ticker-inner');
@@ -877,24 +872,25 @@ async function openBannerEditor() {
     setStatus('⚠ INSUFFICIENT PERMISSIONS', 'var(--red)', 2000);
     return;
   }
+  
   const newsList = breakingNews.map((n, i) => `${i + 1}. ${n.replace(/&#9650;|&#9670;/g, '').trim()}`).join('\n\n');
   const input = prompt('Edit Breaking News (one per line, separated by blank lines):\n\nCurrent news items:\n', newsList);
   
   if (input !== null) {
     const items = input.split('\n\n').map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
     if (items.length > 0) {
-      breakingNews = items;
-      renderBreakingNews();
+      console.log("Saving banner items:", items);
       
       // Save to Firebase
       if (window.saveFirebaseBanner) {
-        const newId = await window.saveFirebaseBanner(breakingNews, bannerDocId);
+        const newId = await window.saveFirebaseBanner(items);
         if (newId) {
-          bannerDocId = newId;
-          setStatus('✓ BREAKING NEWS SAVED', 'var(--green)', 2500);
+          setStatus('✓ BREAKING NEWS SAVED TO FIREBASE', 'var(--green)', 2500);
         } else {
-          setStatus('⚠ FAILED TO SAVE BANNER', 'var(--red)', 2500);
+          setStatus('⚠ FAILED TO SAVE BANNER - CHECK CONSOLE', 'var(--red)', 3000);
         }
+      } else {
+        setStatus('⚠ FIREBASE NOT READY', 'var(--red)', 2000);
       }
     }
   }
@@ -1255,6 +1251,7 @@ function onFirebaseReady(){
   document.getElementById('fblbl').textContent='FIREBASE LIVE';
   if(activeStory!==-1&&window.loadFirebaseComments) window.loadFirebaseComments(activeStory);
   if(window.loadFirebaseLogs) window.loadFirebaseLogs();
+  if(window.loadFirebaseBanner) window.loadFirebaseBanner();
 }
 if(window.firebaseReady) onFirebaseReady();
 else window.addEventListener('firebase-ready',onFirebaseReady);
@@ -1271,7 +1268,7 @@ function esc(t){
 
 // ══ INIT ══════════════════════════════════════════════════════════════════
 renderLogList();
-loadBreakingNews(); // Load from Firebase
+renderBreakingNews(); // Render default, will be replaced by Firebase if data exists
 // Auto-show first story after boot
 setTimeout(()=>showStory(0),5400);
 </script>
