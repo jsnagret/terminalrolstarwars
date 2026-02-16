@@ -580,6 +580,7 @@ body::after{
         <span class="rb-name" id="reporter-name">—</span>
         <button class="logout-btn" onclick="doLogout()">✕ LOG OUT</button>
       </div>
+      <button id="banner-edit-btn" style="display:none;font-size:.38rem;color:rgba(212,168,42,.6);letter-spacing:.12em;padding:4px 8px;cursor:pointer;border:1px solid rgba(212,168,42,.3);background:transparent;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace" onclick="openBannerEditor()">✎ EDIT BANNER</button>
       <div id="login-hint" style="font-size:.44rem;color:rgba(0,153,204,.5);letter-spacing:.1em;cursor:pointer;border:1px solid rgba(0,200,240,.15);padding:4px 9px;border-radius:2px" onclick="showLogin()">⚿ PRESS LOGIN</div>
     </div>
   </div>
@@ -589,16 +590,7 @@ body::after{
     <div class="brk-lbl"><div class="adot"></div>BREAKING NEWS</div>
     <div class="ticker-wrap">
       <div class="ticker" id="ticker-inner">
-        <span>&#9650; CII ANNIHILATED — "FORCE DROIDS" DESTROY FACTION IN SINGLE ENGAGEMENT &#9650;</span>
-        <span class="tsep"> &#9670; </span>
-        <span>LITOLE MISSING — SENATE INTELLIGENCE REQUESTS EMERGENCY BRIEFING ON FORCE DROID ORIGIN</span>
-        <span class="tsep"> &#9670; </span>
-        <span>UNKNOWN GEONOSIAN FACTION LAUNCHES COORDINATED ATTACKS ACROSS OUTER RIM SECTORS</span>
-        <span class="tsep"> &#9670; </span>
-        <span>WARRIOR-CASTE TACTICS CONFIRMED — REPUBLIC ANALYSTS WARN OF NEW FRONT IN CLONE WARS</span>
-        <span class="tsep"> &#9670; </span>
-        <span>POGGLE THE LESSER UNAVAILABLE FOR COMMENT &#9670; STAY WITH HOLONET NEWS</span>
-        <span class="tsep"> &#9670; </span>
+        <!-- Dynamic breaking news content -->
       </div>
     </div>
   </div>
@@ -758,6 +750,11 @@ body::after{
     </div>
 
     <div>
+      <div class="modal-label">LOCATION (OPTIONAL)</div>
+      <input class="m-inp" id="m-location" type="text" placeholder="e.g., OUTER RIM BUREAU, FIELD TRANSMISSION, CORUSCANT" maxlength="60">
+    </div>
+
+    <div>
       <div class="modal-label">TRANSMISSION BODY</div>
       <div class="editor-wrap">
         <!-- TOOLBAR -->
@@ -803,14 +800,51 @@ body::after{
 <script>
 // ══ CREDENTIALS ══════════════════════════════════════════════════════════
 const USERS = {
-  'architect': { pass:'kybord',   reporter:'Jest Ickle',  priority:'mid' },
-  'truehive':  { pass:'geonosis', reporter:'Vine Caleis', priority:'high'  }
+  'architect': { pass:'kybord',   reporter:'Jest Ickle',  priority:'mid', canEditBanner: true },
+  'truehive':  { pass:'geonosis', reporter:'Vine Caleis', priority:'high', canEditBanner: true }
 };
 
 // ══ SESSION ══════════════════════════════════════════════════════════════
 let currentUser = null;
 let activeStory = -1;
 let activeDynId = null; // Firebase ID of currently viewed dynamic log
+
+// ══ BREAKING NEWS MANAGEMENT ══════════════════════════════════════════════
+let breakingNews = [
+  "&#9650; CII ANNIHILATED — \"FORCE DROIDS\" DESTROY FACTION IN SINGLE ENGAGEMENT &#9650;",
+  "LITOLE MISSING — SENATE INTELLIGENCE REQUESTS EMERGENCY BRIEFING ON FORCE DROID ORIGIN",
+  "UNKNOWN GEONOSIAN FACTION LAUNCHES COORDINATED ATTACKS ACROSS OUTER RIM SECTORS",
+  "WARRIOR-CASTE TACTICS CONFIRMED — REPUBLIC ANALYSTS WARN OF NEW FRONT IN CLONE WARS",
+  "POGGLE THE LESSER UNAVAILABLE FOR COMMENT &#9670; STAY WITH HOLONET NEWS"
+];
+
+function renderBreakingNews() {
+  const ticker = document.getElementById('ticker-inner');
+  let html = '';
+  breakingNews.forEach((news, i) => {
+    html += `<span>${news}</span>`;
+    if (i < breakingNews.length - 1) html += '<span class="tsep"> &#9670; </span>';
+  });
+  ticker.innerHTML = html;
+}
+
+function openBannerEditor() {
+  if (!currentUser || !currentUser.canEditBanner) {
+    setStatus('⚠ INSUFFICIENT PERMISSIONS', 'var(--red)', 2000);
+    return;
+  }
+  const newsList = breakingNews.map((n, i) => `${i + 1}. ${n.replace(/&#9650;|&#9670;/g, '').trim()}`).join('\n\n');
+  const input = prompt('Edit Breaking News (one per line, separated by blank lines):\n\nCurrent news items:\n', newsList);
+  
+  if (input !== null) {
+    const items = input.split('\n\n').map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
+    if (items.length > 0) {
+      breakingNews = items;
+      renderBreakingNews();
+      setStatus('✓ BREAKING NEWS UPDATED', 'var(--green)', 2500);
+    }
+  }
+}
 
 // ══ CLOCK ════════════════════════════════════════════════════════════════
 function tick(){
@@ -864,6 +898,7 @@ function updateAuthUI(){
   const badge = document.getElementById('reporter-badge');
   const hint  = document.getElementById('login-hint');
   const addBtn= document.getElementById('add-log-btn');
+  const bannerBtn = document.getElementById('banner-edit-btn');
   const list  = document.getElementById('log-list');
 
   if(currentUser){
@@ -871,12 +906,14 @@ function updateAuthUI(){
     document.getElementById('reporter-name').textContent = currentUser.reporter.toUpperCase();
     hint.style.display='none';
     addBtn.style.display='block';
+    if(currentUser.canEditBanner) bannerBtn.style.display='inline-block';
     // Show delete buttons on log entries
     list.querySelectorAll('.log-entry').forEach(e=>e.classList.add('can-delete'));
   } else {
     badge.style.display='none';
     hint.style.display='block';
     addBtn.style.display='none';
+    bannerBtn.style.display='none';
     list.querySelectorAll('.log-entry').forEach(e=>e.classList.remove('can-delete'));
   }
 }
@@ -939,6 +976,11 @@ function showStory(id){
   document.getElementById('story-placeholder').style.display='none';
   document.querySelectorAll('.story-content').forEach(e=>e.classList.remove('active'));
   document.getElementById('sc-'+id).classList.add('active');
+  
+  // Update header based on story priority
+  const story = STATIC_LOGS.find(s => s.staticId === id);
+  updateHeaderPriority(story ? story.priority : 'high');
+  
   markActive('s'+id);
   activeStory = id;
   activeDynId = null;
@@ -956,11 +998,15 @@ function showDynStory(n){
   document.getElementById('dyn-priority').className = 'story-priority '+pClass;
   document.getElementById('dyn-headline').textContent = n.headline;
 
+  // Update header based on story priority
+  updateHeaderPriority(n.priority);
+
   const now = new Date(), p=x=>String(x).padStart(2,'0');
   const t = n.time||`BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`;
   const reporter = n.reporter||'UNKNOWN CORRESPONDENT';
+  const location = n.location ? ` — ${esc(n.location).toUpperCase()}` : '';
   document.getElementById('dyn-meta').innerHTML =
-    `<span>&#9670; ${esc(t)}</span><span>&#9670; ${esc(reporter.toUpperCase())}, CORRESPONDENT</span>`;
+    `<span>&#9670; ${esc(t)}</span><span>&#9670; ${esc(reporter.toUpperCase())}, CORRESPONDENT${location}</span>`;
 
   // Body is stored as HTML (rich text)
   document.getElementById('dyn-body').innerHTML = n.bodyHtml || esc(n.body||'');
@@ -970,6 +1016,22 @@ function showDynStory(n){
   activeStory = 'dyn_'+n.id;
   activeDynId = n.id;
   if(window.loadFirebaseComments) window.loadFirebaseComments('dyn_'+n.id);
+}
+
+function updateHeaderPriority(priority) {
+  const header = document.querySelector('.c-head .brk');
+  const tag = document.querySelector('.c-tag');
+  
+  if (priority === 'high') {
+    header.textContent = '▲ BREAKING NEWS ▲';
+    tag.textContent = '◆ PRIORITY ALPHA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆';
+  } else if (priority === 'mid') {
+    header.textContent = '▶ DEVELOPING STORY ▶';
+    tag.textContent = '◆ PRIORITY BETA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆';
+  } else {
+    header.textContent = '▷ STANDARD REPORT ▷';
+    tag.textContent = '◆ PRIORITY DELTA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆';
+  }
 }
 
 function markActive(id){
@@ -1003,6 +1065,7 @@ function openModal(){
   if(!currentUser){ setStatus('⚠ LOGIN REQUIRED','var(--red)',2000); return; }
   document.getElementById('log-modal').classList.add('open');
   document.getElementById('m-title').value='';
+  document.getElementById('m-location').value='';
   document.getElementById('editor-body').innerHTML='';
   document.getElementById('m-priority').value = currentUser.priority||'mid';
   setTimeout(()=>document.getElementById('m-title').focus(),80);
@@ -1031,6 +1094,7 @@ document.getElementById('log-modal').addEventListener('click',function(e){
 async function submitLog(){
   if(!currentUser){ setStatus('⚠ LOGIN REQUIRED','var(--red)',2000); return; }
   const title = document.getElementById('m-title').value.trim();
+  const location = document.getElementById('m-location').value.trim();
   const bodyEl= document.getElementById('editor-body');
   const bodyHtml = bodyEl.innerHTML.trim();
   const priority= document.getElementById('m-priority').value;
@@ -1041,6 +1105,7 @@ async function submitLog(){
   const now=new Date(), p=x=>String(x).padStart(2,'0');
   const logData = {
     headline: title,
+    location: location,
     bodyHtml: bodyHtml,
     priority: priority,
     reporter: currentUser.reporter,
@@ -1152,6 +1217,7 @@ function esc(t){
 
 // ══ INIT ══════════════════════════════════════════════════════════════════
 renderLogList();
+renderBreakingNews();
 // Auto-show first story after boot
 setTimeout(()=>showStory(0),5400);
 </script>
