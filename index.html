@@ -14,24 +14,14 @@
     onSnapshot, query, orderBy, serverTimestamp, getDocs
   } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-const firebaseConfig = {
-
-  apiKey: "AIzaSyDOlzHlSSwfbBBrv8mxDVvBeWTcoQFULyw",
-
-  authDomain: "galactive-new-network.firebaseapp.com",
-
-  projectId: "galactive-new-network",
-
-  storageBucket: "galactive-new-network.firebasestorage.app",
-
-  messagingSenderId: "674462233718",
-
-  appId: "1:674462233718:web:a709b51245834e36ba1b57",
-
-  measurementId: "G-V56216WQD1"
-
-};
-
+  const firebaseConfig = {
+    apiKey:            "YOUR_API_KEY",
+    authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId:         "YOUR_PROJECT_ID",
+    storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId:             "YOUR_APP_ID"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
@@ -179,13 +169,7 @@ body::after{
   position:fixed;inset:0;z-index:8000;
   background:linear-gradient(135deg,rgba(1,15,25,.97) 0%,rgba(2,24,38,.97) 100%);
   display:flex;align-items:center;justify-content:center;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .8s ease;
-}
-#login-overlay:not(.hidden){
-  opacity:1;
-  pointer-events:all;
+  opacity:0;animation:fIn .8s ease forwards 5.1s;
 }
 #login-overlay.hidden{display:none}
 @keyframes fIn{from{opacity:0}to{opacity:1}}
@@ -540,7 +524,7 @@ body::after{
 </div>
 
 <!-- LOGIN OVERLAY -->
-<div id="login-overlay" class="hidden">
+<div id="login-overlay">
   <div class="login-box">
     <img class="login-emblem" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
     <div class="login-title">HOLONET PRESS CREDENTIALS</div>
