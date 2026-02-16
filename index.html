@@ -608,6 +608,7 @@ body::after{
         <button class="logout-btn" onclick="doLogout()">✕ LOG OUT</button>
       </div>
       <button id="banner-edit-btn" style="display:none;font-size:.38rem;color:rgba(212,168,42,.6);letter-spacing:.12em;padding:4px 8px;cursor:pointer;border:1px solid rgba(212,168,42,.3);background:transparent;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace" onclick="openBannerEditor()">✎ EDIT BANNER</button>
+      <button id="lang-toggle" style="font-size:.38rem;color:rgba(0,200,240,.6);letter-spacing:.12em;padding:4px 8px;cursor:pointer;border:1px solid rgba(0,200,240,.3);background:transparent;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace" onclick="toggleLanguage()">🌐 ES/EN</button>
       <div id="login-hint" style="font-size:.44rem;color:rgba(0,153,204,.5);letter-spacing:.1em;cursor:pointer;border:1px solid rgba(0,200,240,.15);padding:4px 9px;border-radius:2px" onclick="showLogin()">⚿ PRESS LOGIN</div>
     </div>
   </div>
@@ -645,7 +646,6 @@ body::after{
         <div class="srow"><span>CORUSCANT</span><span class="sv ok">ONLINE</span></div>
         <div class="srow"><span>ALDERAAN</span><span class="sv ok">ONLINE</span></div>
         <div class="srow"><span>NABOO</span><span class="sv ok">ONLINE</span></div>
-        <div class="srow"><span>FELUCIA</span><span class="sv bad">INVASION</span></div>
         <div class="srow"><span>GEONOSIS</span><span class="sv bad">HOSTILE</span></div>
         <div class="srow"><span>KAMINO</span><span class="sv wrn">MONITORED</span></div>
         <div class="srow"><span>TATOOINE</span><span class="sv">UNMON.</span></div>
@@ -832,6 +832,365 @@ const USERS = {
   'truehive':  { pass:'geonosis', reporter:'Vine Caleis', priority:'high', canEditBanner: true }
 };
 
+// ══ LANGUAGE SYSTEM ═══════════════════════════════════════════════════════
+let currentLang = 'en';
+
+const TRANSLATIONS = {
+  en: {
+    // Top bar
+    live: 'LIVE',
+    freq: 'FREQ',
+    correspondent: 'CORRESPONDENT',
+    logout: 'LOG OUT',
+    pressLogin: '⚿ PRESS LOGIN',
+    editBanner: '✎ EDIT BANNER',
+    
+    // Login
+    loginTitle: 'HOLONET PRESS CREDENTIALS',
+    loginSub: 'AUTHORIZED CORRESPONDENTS ONLY — GALACTIC REPUBLIC BUREAU',
+    username: 'USERNAME',
+    password: 'PASSWORD',
+    authenticate: '▶ AUTHENTICATE',
+    pressEnter: 'PRESS ENTER TO SUBMIT',
+    invalidCreds: '⚠ INVALID CREDENTIALS — ACCESS DENIED',
+    
+    // Breaking banner
+    breakingNews: 'BREAKING NEWS',
+    
+    // Left panel
+    republicAuth: 'GALACTIC REPUBLIC<br>AUTHENTICATED BROADCAST',
+    networkStatus: '▸ NETWORK STATUS',
+    uplink: 'UPLINK',
+    encryption: 'ENCRYPTION',
+    active: 'ACTIVE',
+    senateFeed: 'SENATE FEED',
+    jediComms: 'JEDI COMMS',
+    limited: 'LIMITED',
+    outerRim: 'OUTER RIM',
+    disrupted: 'DISRUPTED',
+    coreWorlds: 'CORE WORLDS',
+    nominal: 'NOMINAL',
+    sectorUplinks: '▸ SECTOR UPLINKS',
+    online: 'ONLINE',
+    hostile: 'HOSTILE',
+    monitored: 'MONITORED',
+    unmon: 'UNMON.',
+    signalChannels: '▸ SIGNAL CHANNELS',
+    main: 'MAIN',
+    senate: 'SENATE',
+    encrypted: 'ENCRYPTED',
+    
+    // Center header
+    priorityAlpha: '◆ PRIORITY ALPHA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆',
+    priorityBeta: '◆ PRIORITY BETA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆',
+    priorityDelta: '◆ PRIORITY DELTA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆',
+    breakingNewsHeader: '▲ BREAKING NEWS ▲',
+    developingStory: '▶ DEVELOPING STORY ▶',
+    standardReport: '▷ STANDARD REPORT ▷',
+    
+    // Story view
+    activeTransmission: 'ACTIVE TRANSMISSION',
+    selectTransmission: '◆ SELECT A TRANSMISSION FROM THE LOG TO VIEW FULL REPORT ◆',
+    
+    // Comments
+    citizenTransmissions: '▸ CITIZEN TRANSMISSIONS',
+    connecting: 'CONNECTING...',
+    firebaseLive: 'FIREBASE LIVE',
+    configRequired: 'CONFIG REQUIRED',
+    transmission: 'TRANSMISSION',
+    transmissions: 'TRANSMISSIONS',
+    selectStory: '◇ SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS ◇',
+    noTransmissions: '◇ NO TRANSMISSIONS YET — BE THE FIRST CITIZEN TO RESPOND ◇',
+    citizenName: 'CITIZEN NAME',
+    planet: 'PLANET',
+    enterTransmission: 'Enter your transmission... (Ctrl+Enter)',
+    post: 'POST',
+    
+    // Right panel
+    transmissionLog: '▸ TRANSMISSION LOG',
+    loading: 'LOADING...',
+    entry: 'ENTRY',
+    entries: 'ENTRIES',
+    selectToView: 'SELECT TO VIEW',
+    fileNewTransmission: '＋ FILE NEW TRANSMISSION',
+    viewing: '◀ VIEWING',
+    
+    // Modal
+    fileNewTransmissionTitle: 'FILE NEW TRANSMISSION',
+    authorizedOnly: 'AUTHORIZED CORRESPONDENTS ONLY ◆ REPUBLIC HOLONET BUREAU',
+    headlineTitle: 'HEADLINE / TITLE',
+    enterHeadline: 'Enter transmission headline...',
+    priorityLevel: 'PRIORITY LEVEL',
+    alphaBreaking: '▲ ALPHA — BREAKING',
+    betaDeveloping: '▶ BETA — DEVELOPING',
+    deltaStandard: '▷ DELTA — STANDARD',
+    locationOptional: 'LOCATION (OPTIONAL)',
+    locationPlaceholder: 'e.g., OUTER RIM BUREAU, FIELD TRANSMISSION, CORUSCANT',
+    transmissionBody: 'TRANSMISSION BODY',
+    editorPlaceholder: 'Write your transmission here... Use the toolbar above to format text.',
+    cancel: '◼ CANCEL',
+    transmitToHolonet: '▶ TRANSMIT TO HOLONET',
+    
+    // Bottom bar
+    authenticatedBroadcast: 'GALACTIC REPUBLIC HOLONET NEWS ◆ CORUSCANT ◆ AUTHENTICATED SECURE BROADCAST',
+    terminalActive: 'TERMINAL ACTIVE — IN THE NAME OF THE REPUBLIC',
+    
+    // Status messages
+    welcome: '✓ WELCOME, CORRESPONDENT',
+    sessionTerminated: 'SESSION TERMINATED — TERMINAL ACTIVE',
+    mustLogin: '⚠ MUST BE LOGGED IN TO DELETE',
+    loginRequired: '⚠ LOGIN REQUIRED',
+    transmissionFiled: '✓ TRANSMISSION FILED TO HOLONET',
+    transmissionFailed: '⚠ TRANSMISSION FAILED — CHECK FIREBASE',
+    selectStoryFirst: '⚠ SELECT A STORY FIRST',
+    firebaseNotReady: '⚠ FIREBASE NOT READY',
+    enterText: '⚠ ENTER TRANSMISSION TEXT',
+    transmissionReceived: '✓ TRANSMISSION RECEIVED',
+    bannerSaved: '✓ BREAKING NEWS SAVED TO FIREBASE',
+    bannerFailed: '⚠ FAILED TO SAVE BANNER - CHECK CONSOLE',
+    insufficientPerms: '⚠ INSUFFICIENT PERMISSIONS',
+    deleteConfirm: 'Delete this transmission?',
+    editBannerPrompt: 'Edit Breaking News (one per line, separated by blank lines):\n\nCurrent news items:\n'
+  },
+  es: {
+    // Top bar
+    live: 'EN VIVO',
+    freq: 'FREC',
+    correspondent: 'CORRESPONSAL',
+    logout: 'CERRAR SESIÓN',
+    pressLogin: '⚿ PRESIONAR PARA ENTRAR',
+    editBanner: '✎ EDITAR BANNER',
+    
+    // Login
+    loginTitle: 'CREDENCIALES DE PRENSA HOLONET',
+    loginSub: 'SOLO CORRESPONSALES AUTORIZADOS — OFICINA DE LA REPÚBLICA GALÁCTICA',
+    username: 'USUARIO',
+    password: 'CONTRASEÑA',
+    authenticate: '▶ AUTENTICAR',
+    pressEnter: 'PRESIONA ENTER PARA ENVIAR',
+    invalidCreds: '⚠ CREDENCIALES INVÁLIDAS — ACCESO DENEGADO',
+    
+    // Breaking banner
+    breakingNews: 'NOTICIAS DE ÚLTIMA HORA',
+    
+    // Left panel
+    republicAuth: 'REPÚBLICA GALÁCTICA<br>TRANSMISIÓN AUTENTICADA',
+    networkStatus: '▸ ESTADO DE RED',
+    uplink: 'ENLACE',
+    encryption: 'ENCRIPTACIÓN',
+    active: 'ACTIVO',
+    senateFeed: 'FEED SENADO',
+    jediComms: 'COMMS JEDI',
+    limited: 'LIMITADO',
+    outerRim: 'BORDE EXTERIOR',
+    disrupted: 'INTERRUMPIDO',
+    coreWorlds: 'MUNDOS NÚCLEO',
+    nominal: 'NOMINAL',
+    sectorUplinks: '▸ ENLACES SECTORIALES',
+    online: 'EN LÍNEA',
+    hostile: 'HOSTIL',
+    monitored: 'MONITOREADO',
+    unmon: 'SIN MON.',
+    signalChannels: '▸ CANALES DE SEÑAL',
+    main: 'PRINCIPAL',
+    senate: 'SENADO',
+    encrypted: 'ENCRIPTADO',
+    
+    // Center header
+    priorityAlpha: '◆ TRANSMISIÓN PRIORIDAD ALFA ◆ AUTENTICADA ◆ OFICINA CORUSCANT ◆',
+    priorityBeta: '◆ TRANSMISIÓN PRIORIDAD BETA ◆ AUTENTICADA ◆ OFICINA CORUSCANT ◆',
+    priorityDelta: '◆ TRANSMISIÓN PRIORIDAD DELTA ◆ AUTENTICADA ◆ OFICINA CORUSCANT ◆',
+    breakingNewsHeader: '▲ NOTICIAS DE ÚLTIMA HORA ▲',
+    developingStory: '▶ HISTORIA EN DESARROLLO ▶',
+    standardReport: '▷ REPORTE ESTÁNDAR ▷',
+    
+    // Story view
+    activeTransmission: 'TRANSMISIÓN ACTIVA',
+    selectTransmission: '◆ SELECCIONA UNA TRANSMISIÓN DEL REGISTRO PARA VER EL REPORTE COMPLETO ◆',
+    
+    // Comments
+    citizenTransmissions: '▸ TRANSMISIONES CIUDADANAS',
+    connecting: 'CONECTANDO...',
+    firebaseLive: 'FIREBASE EN VIVO',
+    configRequired: 'CONFIG REQUERIDA',
+    transmission: 'TRANSMISIÓN',
+    transmissions: 'TRANSMISIONES',
+    selectStory: '◇ SELECCIONA UNA HISTORIA PARA VER TRANSMISIONES CIUDADANAS ◇',
+    noTransmissions: '◇ AÚN NO HAY TRANSMISIONES — SÉ EL PRIMER CIUDADANO EN RESPONDER ◇',
+    citizenName: 'NOMBRE DE CIUDADANO',
+    planet: 'PLANETA',
+    enterTransmission: 'Ingresa tu transmisión... (Ctrl+Enter)',
+    post: 'PUBLICAR',
+    
+    // Right panel
+    transmissionLog: '▸ REGISTRO DE TRANSMISIÓN',
+    loading: 'CARGANDO...',
+    entry: 'ENTRADA',
+    entries: 'ENTRADAS',
+    selectToView: 'SELECCIONAR PARA VER',
+    fileNewTransmission: '＋ ARCHIVAR NUEVA TRANSMISIÓN',
+    viewing: '◀ VIENDO',
+    
+    // Modal
+    fileNewTransmissionTitle: 'ARCHIVAR NUEVA TRANSMISIÓN',
+    authorizedOnly: 'SOLO CORRESPONSALES AUTORIZADOS ◆ OFICINA HOLONET REPÚBLICA',
+    headlineTitle: 'TITULAR / TÍTULO',
+    enterHeadline: 'Ingresa el titular de la transmisión...',
+    priorityLevel: 'NIVEL DE PRIORIDAD',
+    alphaBreaking: '▲ ALFA — ÚLTIMA HORA',
+    betaDeveloping: '▶ BETA — EN DESARROLLO',
+    deltaStandard: '▷ DELTA — ESTÁNDAR',
+    locationOptional: 'UBICACIÓN (OPCIONAL)',
+    locationPlaceholder: 'ej., OFICINA BORDE EXTERIOR, TRANSMISIÓN DE CAMPO, CORUSCANT',
+    transmissionBody: 'CUERPO DE TRANSMISIÓN',
+    editorPlaceholder: 'Escribe tu transmisión aquí... Usa la barra de herramientas arriba para formatear el texto.',
+    cancel: '◼ CANCELAR',
+    transmitToHolonet: '▶ TRANSMITIR A HOLONET',
+    
+    // Bottom bar
+    authenticatedBroadcast: 'NOTICIAS HOLONET REPÚBLICA GALÁCTICA ◆ CORUSCANT ◆ TRANSMISIÓN SEGURA AUTENTICADA',
+    terminalActive: 'TERMINAL ACTIVA — EN NOMBRE DE LA REPÚBLICA',
+    
+    // Status messages
+    welcome: '✓ BIENVENIDO, CORRESPONSAL',
+    sessionTerminated: 'SESIÓN TERMINADA — TERMINAL ACTIVA',
+    mustLogin: '⚠ DEBES INICIAR SESIÓN PARA ELIMINAR',
+    loginRequired: '⚠ SE REQUIERE INICIO DE SESIÓN',
+    transmissionFiled: '✓ TRANSMISIÓN ARCHIVADA EN HOLONET',
+    transmissionFailed: '⚠ TRANSMISIÓN FALLÓ — VERIFICA FIREBASE',
+    selectStoryFirst: '⚠ SELECCIONA UNA HISTORIA PRIMERO',
+    firebaseNotReady: '⚠ FIREBASE NO ESTÁ LISTO',
+    enterText: '⚠ INGRESA TEXTO DE TRANSMISIÓN',
+    transmissionReceived: '✓ TRANSMISIÓN RECIBIDA',
+    bannerSaved: '✓ NOTICIAS DE ÚLTIMA HORA GUARDADAS EN FIREBASE',
+    bannerFailed: '⚠ FALLÓ AL GUARDAR BANNER - VERIFICA CONSOLA',
+    insufficientPerms: '⚠ PERMISOS INSUFICIENTES',
+    deleteConfirm: '¿Eliminar esta transmisión?',
+    editBannerPrompt: 'Editar Noticias de Última Hora (una por línea, separadas por líneas en blanco):\n\nElementos de noticias actuales:\n'
+  }
+};
+
+function t(key) {
+  return TRANSLATIONS[currentLang][key] || TRANSLATIONS.en[key] || key;
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'es' : 'en';
+  updateAllTranslations();
+  setStatus(currentLang === 'es' ? '✓ IDIOMA CAMBIADO A ESPAÑOL' : '✓ LANGUAGE CHANGED TO ENGLISH', 'var(--green)', 2000);
+}
+
+function updateAllTranslations() {
+  // Top bar
+  document.querySelector('.topright').childNodes.forEach((node, i) => {
+    if (node.nodeType === 3 && node.textContent.trim()) {
+      if (node.textContent.includes('LIVE')) node.textContent = t('live');
+      if (node.textContent.includes('FREQ')) node.textContent = 'FREQ';
+    }
+  });
+  
+  // Login
+  document.querySelector('.login-title').textContent = t('loginTitle');
+  document.querySelector('.login-sub').textContent = t('loginSub');
+  document.getElementById('l-user').placeholder = t('username');
+  document.getElementById('l-pass').placeholder = t('password');
+  document.querySelector('.l-btn').textContent = t('authenticate');
+  
+  // Left panel
+  document.querySelector('.holo-lbl').innerHTML = t('republicAuth');
+  const secTitles = document.querySelectorAll('.sec-t');
+  if (secTitles[0]) secTitles[0].textContent = t('networkStatus');
+  if (secTitles[1]) secTitles[1].textContent = t('sectorUplinks');
+  if (secTitles[2]) secTitles[2].textContent = t('signalChannels');
+  
+  // Update status values
+  document.querySelectorAll('.srow').forEach(row => {
+    const label = row.querySelector('span:first-child');
+    const value = row.querySelector('.sv');
+    if (label) {
+      const text = label.textContent.trim();
+      if (text === 'UPLINK' || text === 'ENLACE') label.textContent = t('uplink');
+      if (text === 'ENCRYPTION' || text === 'ENCRIPTACIÓN') label.textContent = t('encryption');
+      if (text === 'SENATE FEED' || text === 'FEED SENADO') label.textContent = t('senateFeed');
+      if (text === 'JEDI COMMS' || text === 'COMMS JEDI') label.textContent = t('jediComms');
+      if (text === 'OUTER RIM' || text === 'BORDE EXTERIOR') label.textContent = t('outerRim');
+      if (text === 'CORE WORLDS' || text === 'MUNDOS NÚCLEO') label.textContent = t('coreWorlds');
+    }
+    if (value && !value.className.includes('ok') && !value.className.includes('bad') && !value.className.includes('wrn')) {
+      const vtext = value.textContent.trim();
+      if (vtext === 'ACTIVE' || vtext === 'ACTIVO') value.textContent = t('active');
+      if (vtext === 'LIVE' || vtext === 'EN VIVO') value.textContent = t('live');
+      if (vtext === 'LIMITED' || vtext === 'LIMITADO') value.textContent = t('limited');
+      if (vtext === 'DISRUPTED' || vtext === 'INTERRUMPIDO') value.textContent = t('disrupted');
+      if (vtext === 'NOMINAL') value.textContent = t('nominal');
+      if (vtext === 'ONLINE' || vtext === 'EN LÍNEA') value.textContent = t('online');
+      if (vtext === 'HOSTILE' || vtext === 'HOSTIL') value.textContent = t('hostile');
+      if (vtext === 'MONITORED' || vtext === 'MONITOREADO') value.textContent = t('monitored');
+      if (vtext === 'UNMON.' || vtext === 'SIN MON.') value.textContent = t('unmon');
+    }
+  });
+  
+  // Story box
+  document.querySelector('.story-box').setAttribute('data-label', t('activeTransmission'));
+  if (document.getElementById('story-placeholder').style.display !== 'none') {
+    document.getElementById('story-placeholder').textContent = t('selectTransmission');
+  }
+  
+  // Comments
+  document.querySelector('.cmt-title').innerHTML = `<div class="lpulse"></div>${t('citizenTransmissions')}`;
+  document.getElementById('cf-name').placeholder = t('citizenName');
+  document.getElementById('cf-planet').placeholder = t('planet');
+  document.getElementById('cf-txt').placeholder = t('enterTransmission');
+  document.querySelector('.cf-sub').innerHTML = `${t('post')}<br>&#9670;`;
+  
+  // Right panel
+  document.querySelector('.log-title').innerHTML = `<div class="lpulse"></div>${t('transmissionLog')}`;
+  const addBtn = document.getElementById('add-log-btn');
+  if (addBtn) addBtn.textContent = t('fileNewTransmission');
+  
+  // Modal
+  document.querySelector('.modal-title').textContent = t('fileNewTransmissionTitle');
+  document.querySelector('.modal-sub').textContent = t('authorizedOnly');
+  const modalLabels = document.querySelectorAll('.modal-label');
+  if (modalLabels[0]) modalLabels[0].textContent = t('headlineTitle');
+  if (modalLabels[1]) modalLabels[1].textContent = t('priorityLevel');
+  if (modalLabels[2]) modalLabels[2].textContent = t('locationOptional');
+  if (modalLabels[3]) modalLabels[3].textContent = t('transmissionBody');
+  
+  document.getElementById('m-title').placeholder = t('enterHeadline');
+  document.getElementById('m-location').placeholder = t('locationPlaceholder');
+  document.getElementById('editor-body').setAttribute('data-placeholder', t('editorPlaceholder'));
+  
+  const options = document.querySelectorAll('.m-select option');
+  if (options[0]) options[0].textContent = t('alphaBreaking');
+  if (options[1]) options[1].textContent = t('betaDeveloping');
+  if (options[2]) options[2].textContent = t('deltaStandard');
+  
+  document.querySelector('.m-cancel').textContent = t('cancel');
+  document.querySelector('.m-post').textContent = t('transmitToHolonet');
+  
+  // Bottom bar
+  document.querySelector('.bot span:first-child').textContent = t('authenticatedBroadcast');
+  
+  // Buttons
+  const loginHint = document.getElementById('login-hint');
+  if (loginHint) loginHint.textContent = t('pressLogin');
+  const bannerBtn = document.getElementById('banner-edit-btn');
+  if (bannerBtn) bannerBtn.textContent = t('editBanner');
+  const logoutBtn = document.querySelector('.logout-btn');
+  if (logoutBtn) logoutBtn.textContent = t('logout');
+  
+  // Update current header if story is showing
+  if (activeStory !== -1) {
+    const story = activeStory >= 0 ? STATIC_LOGS.find(s => s.staticId === activeStory) : null;
+    const dynStory = activeDynId ? dynamicLogs.find(l => l.id === activeDynId) : null;
+    const priority = story ? story.priority : (dynStory ? dynStory.priority : 'high');
+    updateHeaderPriority(priority);
+  }
+  
+  renderLogList();
+}
+
 // ══ SESSION ══════════════════════════════════════════════════════════════
 let currentUser = null;
 let activeStory = -1;
@@ -870,12 +1229,12 @@ function renderBreakingNews() {
 
 async function openBannerEditor() {
   if (!currentUser || !currentUser.canEditBanner) {
-    setStatus('⚠ INSUFFICIENT PERMISSIONS', 'var(--red)', 2000);
+    setStatus(t('insufficientPerms'), 'var(--red)', 2000);
     return;
   }
   
   const newsList = breakingNews.map((n, i) => `${i + 1}. ${n.replace(/&#9650;|&#9670;/g, '').trim()}`).join('\n\n');
-  const input = prompt('Edit Breaking News (one per line, separated by blank lines):\n\nCurrent news items:\n', newsList);
+  const input = prompt(t('editBannerPrompt'), newsList);
   
   if (input !== null) {
     const items = input.split('\n\n').map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
@@ -886,12 +1245,12 @@ async function openBannerEditor() {
       if (window.saveFirebaseBanner) {
         const newId = await window.saveFirebaseBanner(items);
         if (newId) {
-          setStatus('✓ BREAKING NEWS SAVED TO FIREBASE', 'var(--green)', 2500);
+          setStatus(t('bannerSaved'), 'var(--green)', 2500);
         } else {
-          setStatus('⚠ FAILED TO SAVE BANNER - CHECK CONSOLE', 'var(--red)', 3000);
+          setStatus(t('bannerFailed'), 'var(--red)', 3000);
         }
       } else {
-        setStatus('⚠ FIREBASE NOT READY', 'var(--red)', 2000);
+        setStatus(t('firebaseNotReady'), 'var(--red)', 2000);
       }
     }
   }
@@ -928,11 +1287,11 @@ function doLogin(){
     errEl.textContent='';
     hideLogin();
     updateAuthUI();
-    setStatus(`✓ WELCOME, CORRESPONDENT ${currentUser.reporter.toUpperCase()}`, 'var(--green)', 3000);
+    setStatus(`${t('welcome')} ${currentUser.reporter.toUpperCase()}`, 'var(--green)', 3000);
     document.getElementById('l-user').value='';
     document.getElementById('l-pass').value='';
   } else {
-    errEl.textContent='⚠ INVALID CREDENTIALS — ACCESS DENIED';
+    errEl.textContent=t('invalidCreds');
     errEl.style.animation='none';
     requestAnimationFrame(()=>{ errEl.style.animation='shake .3s ease'; });
     document.getElementById('l-pass').value='';
@@ -942,7 +1301,7 @@ function doLogin(){
 function doLogout(){
   currentUser = null;
   updateAuthUI();
-  setStatus('SESSION TERMINATED — TERMINAL ACTIVE', 'var(--blue-dim)', 2500);
+  setStatus(t('sessionTerminated'), 'var(--blue-dim)', 2500);
 }
 
 function updateAuthUI(){
@@ -1018,7 +1377,8 @@ function renderLogList(){
   });
 
   const count = all.length;
-  document.getElementById('log-sub').textContent = `${count} ${count===1?'ENTRY':'ENTRIES'} — SELECT TO VIEW`;
+  const countText = count === 1 ? t('entry') : t('entries');
+  document.getElementById('log-sub').textContent = `${count} ${countText} — ${t('selectToView')}`;
   updateAuthUI();
 }
 
@@ -1074,14 +1434,14 @@ function updateHeaderPriority(priority) {
   const tag = document.querySelector('.c-tag');
   
   if (priority === 'high') {
-    header.textContent = '▲ BREAKING NEWS ▲';
-    tag.textContent = '◆ PRIORITY ALPHA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆';
+    header.textContent = t('breakingNewsHeader');
+    tag.textContent = t('priorityAlpha');
   } else if (priority === 'mid') {
-    header.textContent = '▶ DEVELOPING STORY ▶';
-    tag.textContent = '◆ PRIORITY BETA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆';
+    header.textContent = t('developingStory');
+    tag.textContent = t('priorityBeta');
   } else {
-    header.textContent = '▷ STANDARD REPORT ▷';
-    tag.textContent = '◆ PRIORITY DELTA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆';
+    header.textContent = t('standardReport');
+    tag.textContent = t('priorityDelta');
   }
 }
 
@@ -1099,8 +1459,8 @@ window.onFirebaseLogs = function(logs){
 
 async function removeLog(e, logId){
   e.stopPropagation();
-  if(!currentUser){ setStatus('⚠ MUST BE LOGGED IN TO DELETE','var(--red)',2000); return; }
-  if(!confirm('Delete this transmission?')) return;
+  if(!currentUser){ setStatus(t('mustLogin'),'var(--red)',2000); return; }
+  if(!confirm(t('deleteConfirm'))) return;
   if(window.deleteFirebaseLog){
     await window.deleteFirebaseLog(logId);
     if(activeDynId===logId){
@@ -1113,7 +1473,7 @@ async function removeLog(e, logId){
 
 // ══ MODAL / RICH TEXT ═════════════════════════════════════════════════════
 function openModal(){
-  if(!currentUser){ setStatus('⚠ LOGIN REQUIRED','var(--red)',2000); return; }
+  if(!currentUser){ setStatus(t('loginRequired'),'var(--red)',2000); return; }
   document.getElementById('log-modal').classList.add('open');
   document.getElementById('m-title').value='';
   document.getElementById('m-location').value='';
@@ -1143,7 +1503,7 @@ document.getElementById('log-modal').addEventListener('click',function(e){
 });
 
 async function submitLog(){
-  if(!currentUser){ setStatus('⚠ LOGIN REQUIRED','var(--red)',2000); return; }
+  if(!currentUser){ setStatus(t('loginRequired'),'var(--red)',2000); return; }
   const title = document.getElementById('m-title').value.trim();
   const location = document.getElementById('m-location').value.trim();
   const bodyEl= document.getElementById('editor-body');
@@ -1167,9 +1527,9 @@ async function submitLog(){
     const id = await window.postFirebaseLog(logData);
     if(id){
       closeModal();
-      setStatus('✓ TRANSMISSION FILED TO HOLONET','var(--green)',3000);
+      setStatus(t('transmissionFiled'),'var(--green)',3000);
     } else {
-      setStatus('⚠ TRANSMISSION FAILED — CHECK FIREBASE','var(--red)',3000);
+      setStatus(t('transmissionFailed'),'var(--red)',3000);
     }
   }
 }
@@ -1182,15 +1542,16 @@ window.renderComments = function(comments, isPlaceholder){
 
   if(isPlaceholder){
     list.innerHTML='';
-    empty.textContent='◇ SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS ◇';
+    empty.textContent=t('selectStory');
     list.appendChild(empty);
     countEl.textContent='';
     return;
   }
-  countEl.textContent = comments.length ? `${comments.length} ${comments.length===1?'TRANSMISSION':'TRANSMISSIONS'}` : '';
+  const countText = comments.length === 1 ? t('transmission') : t('transmissions');
+  countEl.textContent = comments.length ? `${comments.length} ${countText}` : '';
   list.innerHTML='';
   if(!comments.length){
-    empty.textContent='◇ NO TRANSMISSIONS YET — BE THE FIRST CITIZEN TO RESPOND ◇';
+    empty.textContent=t('noTransmissions');
     list.appendChild(empty);
     return;
   }
@@ -1215,8 +1576,8 @@ window.renderComments = function(comments, isPlaceholder){
 };
 
 async function postComment(){
-  if(activeStory===-1){ setStatus('⚠ SELECT A STORY FIRST','var(--gold)',2000); return; }
-  if(!window.postFirebaseComment){ setStatus('⚠ FIREBASE NOT READY','var(--red)',2000); return; }
+  if(activeStory===-1){ setStatus(t('selectStoryFirst'),'var(--gold)',2000); return; }
+  if(!window.postFirebaseComment){ setStatus(t('firebaseNotReady'),'var(--red)',2000); return; }
   const nameEl=document.getElementById('cf-name');
   const planetEl=document.getElementById('cf-planet');
   const textEl=document.getElementById('cf-txt');
@@ -1224,16 +1585,16 @@ async function postComment(){
   const name=nameEl.value.trim()||'ANONYMOUS CITIZEN';
   const planet=planetEl.value.trim();
   const text=textEl.value.trim();
-  if(!text){ setStatus('⚠ ENTER TRANSMISSION TEXT','var(--red)',2000); return; }
+  if(!text){ setStatus(t('enterText'),'var(--red)',2000); return; }
   btn.disabled=true; btn.textContent='...';
   const ok=await window.postFirebaseComment(activeStory,name,planet,text);
-  btn.disabled=false; btn.innerHTML='POST<br>◇';
-  if(ok){ nameEl.value=''; planetEl.value=''; textEl.value=''; setStatus('✓ TRANSMISSION RECEIVED','var(--green)',2500); }
-  else setStatus('⚠ TRANSMISSION FAILED','var(--red)',3000);
+  btn.disabled=false; btn.innerHTML=`${t('post')}<br>◇`;
+  if(ok){ nameEl.value=''; planetEl.value=''; textEl.value=''; setStatus(t('transmissionReceived'),'var(--green)',2500); }
+  else setStatus(t('transmissionFailed'),'var(--red)',3000);
 }
 
 async function deleteComment(cid){
-  if(!confirm('Delete this transmission?')) return;
+  if(!confirm(t('deleteConfirm'))) return;
   if(window.deleteFirebaseComment) await window.deleteFirebaseComment(activeStory, cid);
 }
 
@@ -1249,16 +1610,16 @@ function setStatus(msg,color,dur){
 // ══ FIREBASE READY ════════════════════════════════════════════════════════
 function onFirebaseReady(){
   document.getElementById('fbdot').className='fbdot on';
-  document.getElementById('fblbl').textContent='FIREBASE LIVE';
+  document.getElementById('fblbl').textContent=t('firebaseLive');
   if(activeStory!==-1&&window.loadFirebaseComments) window.loadFirebaseComments(activeStory);
   if(window.loadFirebaseLogs) window.loadFirebaseLogs();
   if(window.loadFirebaseBanner) window.loadFirebaseBanner();
 }
 if(window.firebaseReady) onFirebaseReady();
 else window.addEventListener('firebase-ready',onFirebaseReady);
-setTimeout(()=>{ if(document.getElementById('fblbl').textContent==='CONNECTING...'){
+setTimeout(()=>{ if(document.getElementById('fblbl').textContent==='CONNECTING...' || document.getElementById('fblbl').textContent==='CONECTANDO...'){
   document.getElementById('fbdot').className='fbdot err';
-  document.getElementById('fblbl').textContent='CONFIG REQUIRED';
+  document.getElementById('fblbl').textContent=t('configRequired');
 }},7000);
 
 // ══ UTILS ═════════════════════════════════════════════════════════════════
