@@ -843,6 +843,24 @@ let breakingNews = [
   "WARRIOR-CASTE TACTICS CONFIRMED — REPUBLIC ANALYSTS WARN OF NEW FRONT IN CLONE WARS",
   "POGGLE THE LESSER UNAVAILABLE FOR COMMENT &#9670; STAY WITH HOLONET NEWS"
 ];
+let bannerDocId = null; // Firebase document ID for banner
+
+async function loadBreakingNews() {
+  if (window.loadFirebaseBanner) {
+    const data = await window.loadFirebaseBanner();
+    if (data && data.items) {
+      breakingNews = data.items;
+      bannerDocId = data.id;
+      renderBreakingNews();
+    } else {
+      // Save default banner to Firebase
+      renderBreakingNews();
+      if (window.saveFirebaseBanner) {
+        bannerDocId = await window.saveFirebaseBanner(breakingNews, null);
+      }
+    }
+  }
+}
 
 function renderBreakingNews() {
   const ticker = document.getElementById('ticker-inner');
@@ -854,7 +872,7 @@ function renderBreakingNews() {
   ticker.innerHTML = html;
 }
 
-function openBannerEditor() {
+async function openBannerEditor() {
   if (!currentUser || !currentUser.canEditBanner) {
     setStatus('⚠ INSUFFICIENT PERMISSIONS', 'var(--red)', 2000);
     return;
@@ -867,7 +885,17 @@ function openBannerEditor() {
     if (items.length > 0) {
       breakingNews = items;
       renderBreakingNews();
-      setStatus('✓ BREAKING NEWS UPDATED', 'var(--green)', 2500);
+      
+      // Save to Firebase
+      if (window.saveFirebaseBanner) {
+        const newId = await window.saveFirebaseBanner(breakingNews, bannerDocId);
+        if (newId) {
+          bannerDocId = newId;
+          setStatus('✓ BREAKING NEWS SAVED', 'var(--green)', 2500);
+        } else {
+          setStatus('⚠ FAILED TO SAVE BANNER', 'var(--red)', 2500);
+        }
+      }
     }
   }
 }
@@ -1243,7 +1271,7 @@ function esc(t){
 
 // ══ INIT ══════════════════════════════════════════════════════════════════
 renderLogList();
-renderBreakingNews();
+loadBreakingNews(); // Load from Firebase
 // Auto-show first story after boot
 setTimeout(()=>showStory(0),5400);
 </script>
