@@ -1,249 +1,882 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Access - Tatooine Mining Facility</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galactic Republic — HoloNet News Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-        body {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            line-height: 1.6;
-        }
+<!-- ═══════════════════════════════════════════════════════════════════════
+     FIREBASE SETUP — REPLACE THE VALUES BELOW WITH YOUR OWN PROJECT CONFIG
+     Get these from: Firebase Console → Project Settings → Your Apps → SDK setup
+     ════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, deleteDoc, doc,
+    onSnapshot, query, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        .terminal {
-            max-width: 900px;
-            margin: 0 auto;
-            border: 2px solid #0f0;
-            padding: 20px;
-            background: rgba(0, 20, 0, 0.8);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
+  // ── YOUR FIREBASE CONFIG GOES HERE ─────────────────────────────────────
+  const firebaseConfig = {
+    apiKey:            "YOUR_API_KEY",
+    authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId:         "YOUR_PROJECT_ID",
+    storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId:             "YOUR_APP_ID"
+  };
+  // ───────────────────────────────────────────────────────────────────────
 
-        .header {
-            border-bottom: 2px solid #0f0;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
-        .header h1 {
-            font-size: 1.2em;
-            text-align: center;
-            animation: flicker 3s infinite;
-        }
+  // Active story subscription handle
+  let unsubscribe = null;
 
-        .access-info {
-            color: #ffff00;
-            margin-bottom: 20px;
-        }
+  // ── LOAD COMMENTS (real-time) ─────────────────────────────────────────
+  window.loadFirebaseComments = function(storyId) {
+    // Cancel previous listener
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
 
-        .content {
-            margin: 20px 0;
-        }
+    if (storyId === -1) {
+      renderComments([], true);
+      return;
+    }
 
-        .section {
-            margin: 15px 0;
-            padding: 10px;
-            border-left: 3px solid #0f0;
-            padding-left: 15px;
-        }
+    const q = query(
+      collection(db, "comments_story_" + storyId),
+      orderBy("timestamp", "asc")
+    );
 
-        .section-title {
-            color: #ffff00;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+    unsubscribe = onSnapshot(q, (snapshot) => {
+      const comments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderComments(comments, false);
+    }, (err) => {
+      console.error("Firebase error:", err);
+      document.getElementById('cmt-list').innerHTML =
+        '<div class="comment-empty">⚠ CONNECTION ERROR — CHECK FIREBASE CONFIG</div>';
+    });
+  };
 
-        .classification {
-            color: #ff0000;
-            font-weight: bold;
-            animation: blink 1s infinite;
-        }
+  // ── POST COMMENT ──────────────────────────────────────────────────────
+  window.postFirebaseComment = async function(storyId, name, planet, text) {
+    try {
+      await addDoc(collection(db, "comments_story_" + storyId), {
+        name:      name.toUpperCase().substring(0, 32),
+        planet:    planet.toUpperCase().substring(0, 20),
+        text:      text.substring(0, 400),
+        timestamp: serverTimestamp()
+      });
+      return true;
+    } catch(e) {
+      console.error("Post error:", e);
+      return false;
+    }
+  };
 
-        .warning {
-            background: rgba(255, 0, 0, 0.2);
-            border: 2px solid #ff0000;
-            color: #ff0000;
-            padding: 15px;
-            margin-top: 20px;
-            text-align: center;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-        }
+  // ── DELETE COMMENT ────────────────────────────────────────────────────
+  window.deleteFirebaseComment = async function(storyId, commentId) {
+    try {
+      await deleteDoc(doc(db, "comments_story_" + storyId, commentId));
+      return true;
+    } catch(e) {
+      console.error("Delete error:", e);
+      return false;
+    }
+  };
 
-        .timestamp {
-            color: #00ffff;
-            font-size: 0.9em;
-        }
+  // Signal that Firebase is ready
+  window.firebaseReady = true;
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
 
-        .cii-marker {
-            color: #ffff00;
-            font-weight: bold;
-        }
+<style>
+  :root {
+    --blue-bright: #00d4ff;
+    --blue-mid:    #0099cc;
+    --gold:        #c8a227;
+    --gold-glow:   rgba(200,162,39,.45);
+    --white:       #e8f8ff;
+    --red-alert:   #ff3a3a;
+    --green-ok:    #00ff88;
+    --scan:        rgba(0,180,230,.055);
+    --bg:          #000a10;
+    --panel-bg:    rgba(0,14,24,.7);
+  }
 
-        .transmission {
-            background: rgba(0, 100, 255, 0.1);
-            border-left: 3px solid #00f;
-            padding: 10px;
-            margin: 10px 0;
-            font-style: italic;
-            color: #00ffff;
-        }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
 
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
+  body {
+    background:var(--bg);
+    font-family:'Share Tech Mono', monospace;
+    color:var(--blue-bright);
+    overflow:hidden;
+    position:relative;
+  }
 
-        @keyframes blink {
-            0%, 50%, 100% { opacity: 1; }
-            25%, 75% { opacity: 0; }
-        }
+  /* CRT scanlines */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:1000;
+    background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,var(--scan) 3px,var(--scan) 4px);
+  }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
+  /* Vignette */
+  body::after {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+    background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.88) 100%);
+  }
 
-        .cursor {
-            animation: blink 1s infinite;
-        }
+  /* Stars */
+  .starfield {
+    position:fixed; inset:0; z-index:0; opacity:.65;
+    background:
+      radial-gradient(1px 1px at 8%  15%, rgba(0,212,255,.7) 0%,transparent 100%),
+      radial-gradient(1px 1px at 22% 72%, rgba(0,212,255,.45) 0%,transparent 100%),
+      radial-gradient(1px 1px at 38% 8%,  rgba(0,212,255,.6) 0%,transparent 100%),
+      radial-gradient(1px 1px at 55% 55%, rgba(0,212,255,.35) 0%,transparent 100%),
+      radial-gradient(1px 1px at 73% 30%, rgba(0,212,255,.5) 0%,transparent 100%),
+      radial-gradient(1px 1px at 88% 80%, rgba(0,212,255,.55) 0%,transparent 100%),
+      radial-gradient(1.5px 1.5px at 12% 90%,rgba(0,212,255,.4) 0%,transparent 100%),
+      radial-gradient(1px 1px at 65% 88%, rgba(0,212,255,.35) 0%,transparent 100%),
+      radial-gradient(1px 1px at 44% 40%, rgba(0,212,255,.3) 0%,transparent 100%),
+      radial-gradient(1px 1px at 92% 12%, rgba(0,212,255,.5) 0%,transparent 100%);
+  }
 
-        .glitch {
-            position: relative;
-        }
+  /* ── BOOT ─────────────────────────────────────────────────────────── */
+  #boot {
+    position:fixed; inset:0; background:#000810; z-index:9000;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    animation:bootFade .5s ease forwards 4.6s;
+  }
+  @keyframes bootFade { to{opacity:0;visibility:hidden;pointer-events:none} }
 
-        .glitch::before {
-            content: attr(data-text);
-            position: absolute;
-            left: 2px;
-            text-shadow: -2px 0 #ff00ff;
-            animation: glitch-1 0.3s infinite;
-        }
+  .boot-emblem {
+    width:110px; height:110px; margin-bottom:28px; opacity:0;
+    filter:drop-shadow(0 0 22px var(--blue-bright));
+    animation:emblemIn .9s ease forwards .3s;
+  }
+  @keyframes emblemIn {
+    from{opacity:0;transform:scale(.4) rotate(-200deg)}
+    to{opacity:1;transform:scale(1) rotate(0deg)}
+  }
 
-        @keyframes glitch-1 {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 0.3; }
-        }
-    </style>
+  .boot-title {
+    font-family:'Orbitron',sans-serif; font-size:1.05rem; letter-spacing:.4em;
+    color:var(--blue-bright); text-shadow:0 0 20px var(--blue-bright);
+    opacity:0; animation:fadeUp .5s ease forwards 1.2s; margin-bottom:6px;
+  }
+  .boot-sub {
+    font-size:.68rem; letter-spacing:.24em; color:var(--blue-mid);
+    opacity:0; animation:fadeUp .5s ease forwards 1.5s; margin-bottom:36px;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .boot-log { font-size:.63rem; color:var(--blue-mid); width:370px; }
+  .blog { padding:2px 0; opacity:0; }
+  .blog:nth-child(1){animation:fadeUp .2s ease forwards 2.0s}
+  .blog:nth-child(2){animation:fadeUp .2s ease forwards 2.3s}
+  .blog:nth-child(3){animation:fadeUp .2s ease forwards 2.6s}
+  .blog:nth-child(4){animation:fadeUp .2s ease forwards 2.9s}
+  .blog:nth-child(5){animation:fadeUp .2s ease forwards 3.2s;color:var(--gold)}
+
+  /* ── TERMINAL SHELL ───────────────────────────────────────────────── */
+  #terminal {
+    position:relative; z-index:1; height:100vh;
+    display:flex; flex-direction:column;
+    opacity:0; animation:fadeIn 1s ease forwards 5s;
+  }
+  @keyframes fadeIn { to{opacity:1} }
+
+  /* ── TOP BAR ─────────────────────────────────────────────────────── */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 20px; flex-shrink:0;
+    background:linear-gradient(to bottom,rgba(0,28,48,.97),rgba(0,16,28,.93));
+    border-bottom:1px solid rgba(0,212,255,.28);
+    position:relative; overflow:hidden;
+  }
+  .topbar::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,var(--blue-bright),var(--gold),var(--blue-bright),transparent);
+    background-size:200% 100%; animation:slideShimmer 4s linear infinite;
+  }
+  @keyframes slideShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  .logo { display:flex; align-items:center; gap:11px; }
+  .logo img {
+    width:40px; height:40px;
+    filter:drop-shadow(0 0 10px var(--blue-bright)) drop-shadow(0 0 20px rgba(0,212,255,.5));
+    animation:glow 3s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%,100%{filter:drop-shadow(0 0 8px var(--blue-bright)) drop-shadow(0 0 16px rgba(0,212,255,.4))}
+    50%{filter:drop-shadow(0 0 14px var(--blue-bright)) drop-shadow(0 0 30px rgba(0,212,255,.7))}
+  }
+  .logo-txt { display:flex; flex-direction:column; }
+  .logo-main { font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:.3em; color:var(--blue-bright); text-shadow:0 0 12px var(--blue-bright); }
+  .logo-sub  { font-size:.48rem; letter-spacing:.22em; color:var(--gold); text-shadow:0 0 8px var(--gold-glow); }
+
+  .topright { display:flex; align-items:center; gap:14px; font-size:.56rem; letter-spacing:.12em; color:var(--blue-mid); }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--green-ok); box-shadow:0 0 6px var(--green-ok); animation:blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  #clock { font-family:'Orbitron',sans-serif; font-size:.66rem; color:var(--blue-bright); letter-spacing:.1em; }
+
+  /* ── BREAKING BANNER ─────────────────────────────────────────────── */
+  .banner {
+    display:flex; align-items:stretch; flex-shrink:0;
+    background:linear-gradient(135deg,rgba(255,58,58,.13),rgba(150,0,0,.08));
+    border-top:2px solid var(--red-alert); border-bottom:2px solid rgba(255,58,58,.3);
+    overflow:hidden;
+  }
+  .brk-label {
+    background:var(--red-alert); color:#fff;
+    font-family:'Orbitron',sans-serif; font-size:.7rem; font-weight:900; letter-spacing:.15em;
+    padding:9px 26px 9px 15px; white-space:nowrap;
+    display:flex; align-items:center; gap:7px; flex-shrink:0;
+    clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);
+    animation:brkPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes brkPulse { 0%,100%{background:#ff3a3a} 50%{background:#bb1010} }
+  .adot { width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 8px #fff; animation:blink .8s ease-in-out infinite; }
+
+  .ticker-wrap { flex:1; overflow:hidden; display:flex; align-items:center; padding:8px 0; position:relative; }
+  .ticker-wrap::after { content:''; position:absolute; right:0; top:0; bottom:0; width:55px; background:linear-gradient(to left,rgba(8,0,0,.95),transparent); z-index:2; }
+  .ticker {
+    display:inline-flex; align-items:center; white-space:nowrap; gap:48px;
+    font-size:.74rem; color:#ffdddd; letter-spacing:.04em;
+    animation:tick 50s linear infinite;
+  }
+  @keyframes tick { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
+  .tsep { color:var(--red-alert); }
+
+  /* ── MAIN 3-COL GRID ─────────────────────────────────────────────── */
+  .grid { flex:1; display:grid; grid-template-columns:240px 1fr 290px; min-height:0; }
+
+  /* scrollbars shared */
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-track { background:rgba(0,212,255,.03); }
+  ::-webkit-scrollbar-thumb { background:rgba(0,212,255,.2); border-radius:2px; }
+  * { scrollbar-width:thin; scrollbar-color:rgba(0,212,255,.2) transparent; }
+
+  /* ── LEFT PANEL ──────────────────────────────────────────────────── */
+  .left {
+    border-right:1px solid rgba(0,212,255,.12);
+    background:var(--panel-bg);
+    padding:14px 12px;
+    display:flex; flex-direction:column; gap:13px;
+    overflow-y:auto;
+  }
+
+  .sec-title {
+    font-family:'Orbitron',sans-serif; font-size:.46rem; letter-spacing:.28em;
+    color:var(--gold); text-shadow:0 0 8px var(--gold-glow);
+    border-bottom:1px solid rgba(200,162,39,.17); padding-bottom:5px; margin-bottom:7px;
+  }
+
+  .holo-box {
+    display:flex; flex-direction:column; align-items:center;
+    padding:13px; border:1px solid rgba(0,212,255,.14); border-radius:3px;
+    background:rgba(0,18,32,.55); position:relative; overflow:hidden;
+  }
+  .holo-box::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse at center,rgba(0,212,255,.05) 0%,transparent 70%);
+  }
+  .holo-box img {
+    width:72px; height:72px;
+    filter:drop-shadow(0 0 12px var(--blue-bright)) drop-shadow(0 0 24px rgba(0,212,255,.5));
+    animation:spin 22s linear infinite;
+  }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .holo-lbl { font-family:'Orbitron',sans-serif; font-size:.4rem; letter-spacing:.22em; color:var(--blue-mid); margin-top:9px; text-align:center; }
+
+  .srow { display:flex; justify-content:space-between; align-items:center; font-size:.54rem; color:var(--blue-mid); padding:3px 0; letter-spacing:.06em; border-bottom:1px solid rgba(0,212,255,.05); }
+  .sv      { font-size:.56rem; color:var(--blue-bright); }
+  .sv.ok   { color:var(--green-ok); }
+  .sv.bad  { color:var(--red-alert); animation:blink 1.5s infinite; }
+  .sv.wrn  { color:var(--gold); }
+
+  .freq-row { display:flex; flex-direction:column; gap:2px; margin-bottom:5px; }
+  .freq-lbl { display:flex; justify-content:space-between; font-size:.46rem; color:var(--blue-mid); letter-spacing:.05em; }
+  .freq-track { height:3px; background:rgba(0,212,255,.07); border-radius:2px; overflow:hidden; }
+  .freq-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--blue-mid),var(--blue-bright)); box-shadow:0 0 5px var(--blue-bright); animation:freqA 2s ease-in-out infinite alternate; }
+  .ff1{width:86%;animation-delay:0s} .ff2{width:61%;animation-delay:.4s} .ff3{width:93%;animation-delay:.8s}
+  @keyframes freqA { from{opacity:.4} to{opacity:1} }
+
+  /* ── CENTER PANEL ────────────────────────────────────────────────── */
+  .center { display:flex; flex-direction:column; background:rgba(0,7,14,.78); min-height:0; }
+
+  .c-header {
+    padding:16px 24px 13px; flex-shrink:0;
+    border-bottom:1px solid rgba(0,212,255,.08);
+    background:linear-gradient(to bottom,rgba(0,20,38,.88),transparent);
+  }
+  .c-tag { font-size:.46rem; letter-spacing:.32em; color:var(--gold); text-shadow:0 0 8px var(--gold-glow); margin-bottom:5px; }
+  .c-head { font-family:'Orbitron',sans-serif; font-size:1.7rem; font-weight:900; color:var(--white); text-shadow:0 0 20px var(--blue-bright),0 0 40px rgba(0,212,255,.35); letter-spacing:.05em; }
+  .c-head .brk { color:var(--blue-bright); font-size:.88rem; display:block; letter-spacing:.3em; margin-bottom:3px; animation:flicker 5s ease-in-out infinite; }
+  @keyframes flicker { 0%,90%,100%{opacity:1} 92%{opacity:.6} 95%{opacity:1} 97%{opacity:.5} 99%{opacity:1} }
+
+  /* story view */
+  .story-view { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; }
+
+  .story-box {
+    border:1px solid rgba(0,212,255,.14); border-radius:2px;
+    padding:18px 22px; background:rgba(0,212,255,.02);
+    position:relative; min-height:80px;
+  }
+  .story-box::before {
+    content:attr(data-label); position:absolute; top:-1px; left:14px;
+    font-size:.36rem; letter-spacing:.28em; color:var(--blue-mid);
+    background:rgba(0,7,14,.97); padding:2px 8px; transform:translateY(-50%);
+  }
+  .story-box::after {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--blue-bright),transparent 55%); opacity:.3;
+  }
+
+  .story-empty { font-size:.78rem; color:rgba(0,153,204,.4); letter-spacing:.08em; font-style:italic; padding:20px 0; text-align:center; }
+
+  .story-content { display:none; }
+  .story-content.active { display:block; }
+
+  .story-priority {
+    font-size:.58rem; letter-spacing:.2em; font-family:'Orbitron',sans-serif; font-weight:700;
+    margin-bottom:10px; padding:3px 10px; display:inline-block; border:1px solid; border-radius:1px;
+  }
+  .story-priority.high { color:var(--red-alert); border-color:rgba(255,58,58,.4); }
+  .story-priority.mid  { color:var(--gold); border-color:rgba(200,162,39,.4); }
+
+  .story-headline { font-family:'Orbitron',sans-serif; font-size:.95rem; font-weight:800; color:var(--white); letter-spacing:.06em; line-height:1.3; text-shadow:0 0 14px rgba(0,212,255,.3); margin-bottom:6px; }
+  .story-meta { font-size:.5rem; color:rgba(0,153,204,.65); letter-spacing:.12em; margin-bottom:14px; display:flex; gap:16px; flex-wrap:wrap; }
+  .story-body { font-size:.78rem; color:rgba(200,230,245,.85); line-height:1.85; letter-spacing:.03em; }
+  .story-body p { margin-bottom:1em; }
+  .story-body p:last-child { margin-bottom:0; }
+
+  /* ── COMMENT SECTION ─────────────────────────────────────────────── */
+  .comment-section {
+    border-top:1px solid rgba(0,212,255,.1);
+    padding:14px 24px; flex-shrink:0;
+    background:rgba(0,5,11,.88);
+    display:flex; flex-direction:column; gap:9px;
+  }
+
+  .cmt-hdr { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+  .cmt-title {
+    font-family:'Orbitron',sans-serif; font-size:.5rem; letter-spacing:.28em;
+    color:var(--gold); text-shadow:0 0 8px var(--gold-glow);
+    display:flex; align-items:center; gap:7px;
+  }
+  .lpulse { width:6px; height:6px; border-radius:50%; background:var(--red-alert); box-shadow:0 0 6px var(--red-alert); animation:blink 1s infinite; }
+  .cmt-count { font-size:.44rem; color:var(--blue-mid); letter-spacing:.1em; }
+
+  /* firebase status indicator */
+  .fb-status { font-size:.42rem; letter-spacing:.1em; display:flex; align-items:center; gap:5px; }
+  .fb-dot { width:5px; height:5px; border-radius:50%; }
+  .fb-dot.connected { background:var(--green-ok); box-shadow:0 0 5px var(--green-ok); }
+  .fb-dot.connecting { background:var(--gold); animation:blink .8s infinite; }
+  .fb-dot.error { background:var(--red-alert); }
+
+  .comment-list {
+    max-height:120px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:6px; padding-right:3px;
+  }
+  .comment-empty { font-size:.62rem; color:rgba(0,153,204,.35); letter-spacing:.08em; font-style:italic; }
+
+  .c-entry {
+    border:1px solid rgba(0,212,255,.08); border-radius:2px;
+    padding:7px 10px; background:rgba(0,212,255,.015); position:relative;
+    animation:cSlide .3s ease;
+  }
+  @keyframes cSlide { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  .c-entry::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; border-radius:2px 0 0 2px; background:var(--blue-mid); }
+
+  .c-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .c-name { font-family:'Orbitron',sans-serif; font-size:.46rem; letter-spacing:.12em; color:var(--blue-bright); }
+  .c-time { font-size:.42rem; color:rgba(0,153,204,.55); letter-spacing:.08em; }
+  .c-text { font-size:.62rem; color:rgba(180,220,240,.8); line-height:1.55; letter-spacing:.03em; }
+  .c-del {
+    position:absolute; top:5px; right:7px;
+    font-size:.4rem; color:rgba(255,58,58,.35); cursor:pointer;
+    border:none; background:none; font-family:inherit; letter-spacing:.08em; transition:color .2s;
+  }
+  .c-del:hover { color:var(--red-alert); }
+
+  .comment-form { display:flex; gap:8px; align-items:flex-end; }
+  .cf-fields { display:flex; flex-direction:column; gap:5px; flex:1; }
+  .cf-name-row { display:flex; gap:6px; }
+
+  .cf-input {
+    background:rgba(0,212,255,.03); border:1px solid rgba(0,212,255,.2); border-radius:2px;
+    color:var(--blue-bright); font-family:'Share Tech Mono',monospace;
+    font-size:.7rem; padding:7px 10px; outline:none; letter-spacing:.04em;
+    transition:border-color .2s, box-shadow .2s; caret-color:var(--blue-bright);
+  }
+  .cf-input:focus { border-color:var(--blue-bright); box-shadow:0 0 12px rgba(0,212,255,.16),inset 0 0 6px rgba(0,212,255,.04); }
+  .cf-input::placeholder { color:rgba(0,153,204,.3); font-size:.65rem; }
+  .cf-name { flex:1; } .cf-planet { width:100px; }
+  .cf-text { width:100%; resize:none; min-height:44px; }
+
+  .cf-submit {
+    background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(0,150,200,.07));
+    border:1px solid rgba(0,212,255,.3); color:var(--blue-bright);
+    font-family:'Orbitron',sans-serif; font-size:.44rem; font-weight:700;
+    letter-spacing:.16em; padding:10px 14px; cursor:pointer; border-radius:2px;
+    transition:all .2s; white-space:nowrap; align-self:stretch;
+    display:flex; align-items:center; gap:5px; text-shadow:0 0 8px var(--blue-bright);
+  }
+  .cf-submit:hover { border-color:var(--blue-bright); box-shadow:0 0 14px rgba(0,212,255,.28); background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(0,150,200,.12)); }
+  .cf-submit:active { transform:scale(.96); }
+  .cf-submit:disabled { opacity:.4; cursor:not-allowed; }
+
+  /* ── RIGHT PANEL — LOG ───────────────────────────────────────────── */
+  .right { border-left:1px solid rgba(0,212,255,.12); background:rgba(0,7,17,.82); display:flex; flex-direction:column; min-height:0; }
+
+  .log-hdr { padding:12px 12px 8px; flex-shrink:0; border-bottom:1px solid rgba(0,212,255,.09); background:rgba(0,14,28,.6); }
+  .log-title { font-family:'Orbitron',sans-serif; font-size:.49rem; letter-spacing:.28em; color:var(--gold); text-shadow:0 0 8px var(--gold-glow); display:flex; align-items:center; gap:7px; }
+  .log-sub { font-size:.42rem; color:var(--blue-mid); margin-top:3px; letter-spacing:.1em; }
+
+  .log-list { flex:1; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:7px; }
+
+  .log-entry {
+    border:1px solid rgba(0,212,255,.09); border-radius:2px;
+    padding:8px 10px; background:rgba(0,212,255,.015);
+    cursor:pointer; transition:all .2s; position:relative;
+  }
+  .log-entry:hover { border-color:rgba(0,212,255,.25); background:rgba(0,212,255,.045); }
+  .log-entry.active-entry { border-color:rgba(0,212,255,.4); background:rgba(0,212,255,.06); }
+  .log-entry.active-entry::after { content:'◀ VIEWING'; position:absolute; bottom:4px; right:7px; font-size:.38rem; color:var(--blue-mid); letter-spacing:.08em; }
+  .log-entry::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; border-radius:2px 0 0 2px; }
+  .log-entry.ph::before { background:var(--red-alert); box-shadow:0 0 5px var(--red-alert); }
+  .log-entry.pm::before { background:var(--gold); box-shadow:0 0 4px var(--gold-glow); }
+  .log-entry.pl::before { background:var(--blue-mid); }
+
+  .le-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .le-time { font-size:.42rem; color:rgba(0,153,204,.65); letter-spacing:.09em; }
+  .le-tag { font-size:.36rem; letter-spacing:.13em; padding:1px 5px; border-radius:1px; border:1px solid currentColor; }
+  .le-tag.high { color:var(--red-alert); } .le-tag.mid { color:var(--gold); } .le-tag.low { color:var(--blue-mid); }
+  .le-hl { font-family:'Orbitron',sans-serif; font-size:.47rem; font-weight:700; color:var(--white); letter-spacing:.07em; line-height:1.3; text-shadow:0 0 6px rgba(0,212,255,.22); }
+
+  /* ── BOTTOM BAR ──────────────────────────────────────────────────── */
+  .bot {
+    border-top:1px solid rgba(0,212,255,.1); background:rgba(0,5,10,.97);
+    padding:5px 20px; display:flex; justify-content:space-between; align-items:center;
+    font-size:.46rem; color:rgba(0,153,204,.5); letter-spacing:.1em; flex-shrink:0;
+    position:relative; overflow:hidden;
+  }
+  .bot::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,212,255,.2),transparent); }
+  #status { transition:color .4s; }
+</style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="header">
-            <h1>◄═══ HUTT CARTEL INTELLIGENCE NETWORK ═══►</h1>
-            <div style="text-align: center; margin-top: 10px;">
-                <span class="timestamp">ACCESS GRANTED :: TERMINAL TS-0847</span>
-            </div>
+<div class="starfield"></div>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <img class="boot-emblem" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
+  <div class="boot-title">GALACTIC REPUBLIC</div>
+  <div class="boot-sub">HOLONET NEWS TERMINAL v4.7.2</div>
+  <div class="boot-log">
+    <div class="blog">[SYS] Initializing HoloNet uplink...</div>
+    <div class="blog">[SYS] Verifying Senate authentication... OK</div>
+    <div class="blog">[SYS] Establishing secure frequency... 1138.4 GHz</div>
+    <div class="blog">[SYS] Encryption layers active... OK</div>
+    <div class="blog">[SYS] TERMINAL READY — IN THE NAME OF THE REPUBLIC</div>
+  </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="terminal">
+
+  <div class="topbar">
+    <div class="logo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="Republic Emblem">
+      <div class="logo-txt">
+        <span class="logo-main">HOLONET NEWS</span>
+        <span class="logo-sub">GALACTIC REPUBLIC — CORUSCANT BUREAU</span>
+      </div>
+    </div>
+    <div class="topright">
+      <div class="live-dot"></div><span>LIVE</span>
+      <span>|</span><span>FREQ: 1138.4 GHz</span>
+      <span>|</span><span>SEC: DELTA-7</span>
+      <span>|</span><span id="clock">--:--:-- GST</span>
+    </div>
+  </div>
+
+  <div class="banner">
+    <div class="brk-label"><div class="adot"></div>BREAKING NEWS</div>
+    <div class="ticker-wrap">
+      <div class="ticker">
+        <span>&#9650; CII ANNIHILATED — "FORCE DROIDS" DESTROY FACTION IN SINGLE ENGAGEMENT &#9650;</span>
+        <span class="tsep"> &#9670; </span>
+        <span>LITOLE MISSING — SENATE INTELLIGENCE REQUESTS EMERGENCY BRIEFING ON FORCE DROID ORIGIN</span>
+        <span class="tsep"> &#9670; </span>
+        <span>UNKNOWN GEONOSIAN FACTION LAUNCHES COORDINATED ATTACKS ACROSS OUTER RIM SECTORS</span>
+        <span class="tsep"> &#9670; </span>
+        <span>WARRIOR-CASTE TACTICS CONFIRMED — REPUBLIC ANALYSTS WARN OF NEW FRONT IN CLONE WARS</span>
+        <span class="tsep"> &#9670; </span>
+        <span>POGGLE THE LESSER UNAVAILABLE FOR COMMENT — GEONOSIS UPLINK HOSTILE &#9670; STAY WITH HOLONET NEWS</span>
+        <span class="tsep"> &#9670; </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT -->
+    <div class="left">
+      <div class="holo-box">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
+        <div class="holo-lbl">GALACTIC REPUBLIC<br>AUTHENTICATED BROADCAST</div>
+      </div>
+      <div>
+        <div class="sec-title">▸ NETWORK STATUS</div>
+        <div class="srow"><span>UPLINK</span><span class="sv ok">98.4%</span></div>
+        <div class="srow"><span>ENCRYPTION</span><span class="sv ok">ACTIVE</span></div>
+        <div class="srow"><span>SENATE FEED</span><span class="sv ok">LIVE</span></div>
+        <div class="srow"><span>JEDI COMMS</span><span class="sv wrn">LIMITED</span></div>
+        <div class="srow"><span>OUTER RIM</span><span class="sv bad">DISRUPTED</span></div>
+        <div class="srow"><span>CORE WORLDS</span><span class="sv ok">NOMINAL</span></div>
+      </div>
+      <div>
+        <div class="sec-title">▸ SECTOR UPLINKS</div>
+        <div class="srow"><span>CORUSCANT</span><span class="sv ok">ONLINE</span></div>
+        <div class="srow"><span>ALDERAAN</span><span class="sv ok">ONLINE</span></div>
+        <div class="srow"><span>NABOO</span><span class="sv ok">ONLINE</span></div>
+        <div class="srow"><span>GEONOSIS</span><span class="sv bad">HOSTILE</span></div>
+        <div class="srow"><span>KAMINO</span><span class="sv wrn">MONITORED</span></div>
+        <div class="srow"><span>TATOOINE</span><span class="sv">UNMON.</span></div>
+      </div>
+      <div>
+        <div class="sec-title">▸ SIGNAL CHANNELS</div>
+        <div class="freq-row">
+          <div class="freq-lbl"><span>MAIN — 1138.4</span><span class="sv ok" style="font-size:.42rem">●</span></div>
+          <div class="freq-track"><div class="freq-fill ff1"></div></div>
         </div>
-
-        <div class="access-info">
-            <p>LOCATION: Tatooine Sector 7-B (Abandoned Republic Testing Facility)</p>
-            <p>DATE: <span class="glitch" data-text="[CORRUPTED]">[CORRUPTED]</span></p>
-            <p class="classification">CLASSIFICATION: RESTRICTED - HUTT CARTEL INTELLIGENCE</p>
+        <div class="freq-row">
+          <div class="freq-lbl"><span>SENATE — 5501.0</span><span class="sv ok" style="font-size:.42rem">●</span></div>
+          <div class="freq-track"><div class="freq-fill ff3"></div></div>
         </div>
-
-        <div class="content">
-            <div class="section">
-                <div class="section-title">═══ INCIDENT REPORT: BASE BREACH ═══</div>
-                <p>Three standard rotations ago, our scavenger teams reported unusual activity near the old Republic durasteel mines. Initial reconnaissance confirmed the presence of armed hostiles bearing yellow hexagonal insignia—<span class="cii-marker">CONFEDERACY OF EQUALITY</span> operatives.</p>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ CII RAID SUMMARY ═══</div>
-                <p>The <span class="cii-marker">CII</span> strike force bypassed external defenses with precision, suggesting prior intelligence on facility layout. Their objective appeared focused on the sub-level hangar containing the <strong>Proto TIE experimental craft</strong>.</p>
-                <br>
-                <p>Security footage (partially recovered) shows approximately 12-15 hostiles, all equipped with non-lethal incapacitation weaponry initially, switching to lethal force only when encountering automated defense systems.</p>
-                <br>
-                <p><strong>OPERATIONAL PROFILE:</strong></p>
-                <ul style="margin-left: 20px;">
-                    <li>Yellow hexagonal armor insignia confirmed</li>
-                    <li>Mixed species composition (defected CIS leaders, Republic deserters)</li>
-                    <li>Methodology: Incapacitation preferred, lethal force authorized for extreme threats</li>
-                    <li>Known leader: <span class="cii-marker">Halgane Litole</span> (Human, alias: "Litole")</li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ RECOVERED TRANSMISSION FRAGMENT ═══</div>
-                <div class="transmission">
-                    "Litole wants confirmation on Republic weapons testing. The Architect's intel was accurate—this site predates the Clone Wars. Secure all data cores before Republic remnants or Separatist scavengers arrive. Our people deserve to know what they built here."
-                    <br><br>
-                    "No unnecessary casualties. We're liberators, not conquerors. Any CIS or Republic forces are to be captured and brought before the Confederacy tribunal. The galaxy needs to see the truth."
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ AFTERMATH ═══</div>
-                <ul style="margin-left: 20px;">
-                    <li>Proto TIE remains present but extensively documented/scanned</li>
-                    <li>Multiple data terminals accessed, contents unknown</li>
-                    <li>No casualties among CII forces (3 security droids destroyed)</li>
-                    <li>CII withdrew before our reinforcements arrived</li>
-                    <li>Evidence of advanced slicing equipment used on Republic-era encryption</li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ INTELLIGENCE ASSESSMENT ═══</div>
-                <p>The <span class="cii-marker">Confederacy of Equality</span> continues gathering evidence against both Republic and CIS leadership. Their stated ideology mirrors modern galactic liberal thought—exposing government corruption and revealing the CIS's secret plans.</p>
-                <br>
-                <p><strong>THREAT LEVEL:</strong> HIGH</p>
-                <p>Their alliance with the entity known as <span style="color: #ff00ff;">"the Architect"</span> grants them dangerous foresight and access to classified historical data. This organization will NOT trust external parties and operates under strict tribunal justice system for captured enemies.</p>
-                <br>
-                <p><strong>RECOMMENDATION:</strong> Increased security on all pre-Clone War sites. Monitor for yellow hexagonal insignia.</p>
-            </div>
-
-            <div class="section">
-                <div class="section-title">═══ ADDENDUM ═══</div>
-                <p>Lord Jabba has deemed this facility "unprofitable for further investment." Site designated for slave labor mineral extraction only. Proto TIE craft to remain in situ as potential future asset.</p>
-            </div>
+        <div class="freq-row">
+          <div class="freq-lbl"><span>ENCRYPTED</span><span class="sv wrn" style="font-size:.42rem">●</span></div>
+          <div class="freq-track"><div class="freq-fill ff2"></div></div>
         </div>
-
-        <div class="warning">
-            ⚠ WARNING: UNAUTHORIZED ACCESS DETECTED ⚠
-            <br>
-            THIS TERMINAL WILL PURGE IN 60 SECONDS
-            <br>
-            SECURITY PROTOCOLS ENGAGED
-        </div>
-
-        <div style="margin-top: 20px; text-align: center; color: #0f0;">
-            <p>█ TERMINAL READY <span class="cursor">_</span></p>
-        </div>
+      </div>
     </div>
 
-    <script>
-        // Optional: Add a countdown timer
-        let countdown = 60;
-        const warningDiv = document.querySelector('.warning');
-        
-        setInterval(() => {
-            countdown--;
-            if (countdown > 0) {
-                warningDiv.innerHTML = `
-                    ⚠ WARNING: UNAUTHORIZED ACCESS DETECTED ⚠
-                    <br>
-                    THIS TERMINAL WILL PURGE IN ${countdown} SECONDS
-                    <br>
-                    SECURITY PROTOCOLS ENGAGED
-                `;
-            } else {
-                warningDiv.innerHTML = `
-                    ⚠ TERMINAL PURGED ⚠
-                    <br>
-                    CONNECTION TERMINATED
-                `;
-                warningDiv.style.background = 'rgba(255, 0, 0, 0.5)';
-            }
-        }, 1000);
-    </script>
+    <!-- CENTER -->
+    <div class="center">
+      <div class="c-header">
+        <div class="c-tag">&#9670; PRIORITY ALPHA TRANSMISSION &#9670; AUTHENTICATED &#9670; CORUSCANT BUREAU &#9670;</div>
+        <div class="c-head"><span class="brk">&#9650; BREAKING NEWS &#9650;</span></div>
+      </div>
+
+      <div class="story-view">
+        <div class="story-box" data-label="ACTIVE TRANSMISSION">
+          <div id="story-placeholder" class="story-empty">&#9670; SELECT A TRANSMISSION FROM THE LOG TO VIEW FULL REPORT &#9670;</div>
+
+          <!-- STORY 0 — CII -->
+          <div class="story-content" id="sc-0">
+            <div class="story-priority high">&#9650; PRIORITY ALPHA</div>
+            <div class="story-headline">CII OBLITERATED — UNIDENTIFIED "FORCE DROIDS" ANNIHILATE DISSIDENT FACTION IN SINGLE ENGAGEMENT</div>
+            <div class="story-meta">
+              <span>&#9670; BBY 22 — 06:14:02 GST</span>
+              <span>&#9670; CORUSCANT BUREAU</span>
+              <span>&#9670; CORRESPONDENT: FINIS VALORUM JR.</span>
+            </div>
+            <div class="story-body">
+              <p>CORUSCANT — In what Republic Intelligence is describing as one of the most sudden and complete military annihilations in the history of the Clone Wars, the <strong style="color:var(--blue-bright)">Confederación de la Igualdad e Independencia</strong> — known across the Outer Rim and among dissident circles under the initials <strong style="color:var(--blue-bright)">CII</strong> — has been utterly destroyed. The organization, which had been growing in size and influence for several standard years, was wiped out in a single engagement of remarkable brevity against a series of unidentified droid units displaying capabilities that senior Republic analysts and at least two members of the Jedi Council are struggling, by all accounts, to classify. The working designation applied to the attackers in classified Senate briefings — already leaking into intelligence circles — is <em>"Force Droids."</em> No such designation has any known precedent in the military doctrine of either the Galactic Republic or the Confederacy of Independent Systems.</p>
+
+              <p>The CII was not a conventional rebel faction. It was founded in the shadow of the Clone Wars by individuals who had grown disillusioned with both sides of the conflict, and its composition reflected that breadth of rejection. Its membership included defectors from CIS command — officers who had seen the inner workings of the Separatist machine and found it no less corrupt than the institution it claimed to oppose — alongside soldiers recruited from dozens of worlds throughout the Mid and Outer Rim. They wore no colors of either the Republic or the CIS. Instead, members were distinguished by a striking and deliberate symbol: a <strong style="color:var(--blue-bright)">yellow hexagon</strong> emblazoned on their armor, representing neither side's geometry, neither side's claim to legitimacy. A symbol of refusal. The faction's total membership count at the time of its destruction is estimated by intelligence analysts at somewhere between three and six thousand combatants, supported by an unknown number of civilian sympathizers on at least fourteen worlds.</p>
+
+              <p>What made the CII philosophically distinct — and what made it so difficult for the Republic to categorize — was its code of conduct. The faction did not wage war the way either belligerent in the Clone Wars did. Their doctrine was explicit and, by multiple accounts, genuinely observed: <strong style="color:var(--blue-bright)">enemies were to be incapacitated, not killed.</strong> Lethal force was authorized only when an adversary was deemed an irreducible threat to the lives of CII personnel or the continuation of the faction's mission. Those captured in battle were not imprisoned in field camps or transferred to labor facilities. They were transported — regardless of how far that required traveling — to CII judicial councils, where a formal legal proceeding, with representation and evidence, determined their fate. Republic officers who had been through this process and subsequently released described it, privately and with evident discomfort, as <em>"more fair than anything the Senate has produced in a decade."</em></p>
+
+              <p>The faction's ideological foundation drew comparisons to pre-Republic governmental philosophies and to certain strains of contemporary political thought that have gained traction on worlds dissatisfied with the Senate's conduct of the war. In broad terms, the CII believed that the Galactic Republic had become a vehicle for concentrated power rather than distributed justice — that the Senate, whatever its origins, had evolved into an instrument of the interests of its most powerful members, not its most numerous citizens. They also believed — and this element is perhaps the most explosive — that the CIS had a <strong style="color:var(--blue-bright)">secret agenda</strong> that went beyond the stated aims of the Separatist movement. The precise nature of that alleged agenda has not been made public, and whether the CII possessed specific intelligence on it died with the faction. The Senate has declined to comment on whether any documents recovered from CII strongholds are being examined.</p>
+
+              <p>The organization's founder, supreme commander, and the face of its ideology was a human man known publicly as <strong style="color:var(--blue-bright)">Halgane Litole</strong> — referred to by his followers almost exclusively simply as <em>Litole.</em> His background before the founding of the CII is partially documented: he held a mid-level command position within the CIS before his defection, which appears to have been precipitated by direct exposure to the upper echelons of Separatist leadership. Those who knew him described a patient and meticulous strategist, a man who planned in years rather than months, and who held a genuine and deeply felt conviction that the galaxy's two warring powers were not opposites but mirrors. His current status is <strong style="color:var(--red-alert)">UNKNOWN.</strong> No confirmed identification of his remains has been produced. Republic search teams operating at the site of the final engagement have found no trace of him among the dead.</p>
+
+              <p>The engagement itself lasted, by all accounts, less than four hours. The site — a fortified facility on the edge of the Outer Rim, whose location this correspondent has agreed not to publish pending ongoing security operations — was reduced to structural ruin by energies that Republic forensic teams cannot match to any catalogued weapon system in existence. Witnesses in the surrounding area, a small number of non-combatant civilians, described the attackers in terms that have been consistent across independent interviews. The droids moved, they said, with a quality of awareness that standard battle droids do not possess. They seemed to anticipate movement before it occurred. Blaster fire was deflected — not by shields, but by physical repositioning executed at inhuman speed and precision. One witness, speaking on condition of anonymity, offered the statement that has since circulated in intelligence circles: <em>"They weren't fighting like droids. They were fighting like something that knew what was going to happen before it did."</em></p>
+
+              <p>The Jedi Council has been formally notified. No public statement has been issued. Senate hearings on the matter are expected to be convened within the week, though whether those hearings will be classified remains under discussion. This correspondent urges all citizens to treat unverified reports with appropriate caution while acknowledging that the destruction of the CII, whatever one thought of its politics, represents an event of significant consequence — and that the weapon used to achieve it remains entirely unaccounted for.</p>
+            </div>
+          </div>
+
+          <!-- STORY 1 — TRUE HIVE -->
+          <div class="story-content" id="sc-1">
+            <div class="story-priority high">&#9650; PRIORITY ALPHA</div>
+            <div class="story-headline">ANCIENT FURY REBORN — UNIDENTIFIED GEONOSIAN WARRIOR FACTION STRIKES OUTER RIM IN COORDINATED CAMPAIGN OF UNPRECEDENTED FEROCITY</div>
+            <div class="story-meta">
+              <span>&#9670; BBY 22 — 08:47:33 GST</span>
+              <span>&#9670; OUTER RIM BUREAU — FIELD TRANSMISSION</span>
+              <span>&#9670; CORRESPONDENT: DENNII SUNBER</span>
+            </div>
+            <div class="story-body">
+              <p>OUTER RIM TERRITORIES — I am filing this report from a secure relay station three systems removed from the most recent engagement site, and I want the editors and the citizens reading this to understand something before the facts begin: what is happening in the Outer Rim right now does not fit any existing category of threat that this correspondent — or, by the accounts reaching me, any Republic military analyst — has encountered during the Clone Wars. A faction has emerged from Geonosis that is not the Separatists, not an extension of Poggle the Lesser's apparatus, and not a criminal organization operating under a political banner. It is something older than all of those things, and considerably more dangerous.</p>
+
+              <p>Clone commanders across at least seven separate engagement sites have used the same phrase in their after-action reports, independently and without apparent coordination: <em>"warrior caste."</em> The attackers are Geonosian — insectoid, some winged, physically formidable in a way that the drone-caste Geonosians encountered throughout the Clone Wars simply are not. They conduct ground assaults <strong style="color:var(--blue-bright)">personally and deliberately.</strong> They close distance. They fight in melee range. They use their own bodies as primary weapons and treat the destruction of an enemy as an act requiring personal presence. Republic troopers — veterans of Christophsis, of Ryloth, of a dozen campaigns across three years of war — have described these warriors as the most physically dangerous adversaries they have encountered in the field. That assessment, from soldiers who have faced Jedi, Sith assassins, and the full weight of Separatist droid armies, is not a statement this correspondent makes lightly.</p>
+
+              <p>Droids are present in this faction's operations, but their role is categorically secondary. The faction fields its own fleet — vessels of Geonosian design but not matching any configuration in the Republic's recognition databases — and deploys automated units for perimeter enforcement, fire support, and logistical functions. But in every ground engagement documented thus far, droids have served as tools. Scaffolding. The killing, as every survivor account confirms, is done by the warriors. This is not incidental. It is, by all evidence, <strong style="color:var(--blue-bright)">doctrine.</strong></p>
+
+              <p>To understand why requires understanding the grievance at the movement's core, and that grievance is directed at a specific individual: <strong style="color:var(--blue-bright)">Poggle the Lesser</strong>, Archduke of Geonosis, the Geonosian leader who forged the planet's alliance with Count Dooku and the CIS in the years before the Battle of Geonosis. The terms of that alliance are well known: Geonosis became the primary manufacturing base for the Separatist droid army. Its tunnels, its foundries, its ancient arenas, the physical substance of Geonosian civilization — all of it was converted, methodically and at an accelerating pace, into production infrastructure for machines. Poggle delivered his world to the war. He delivered his people's culture, their history, and their identity to the war. And from the perspective of this emerging faction, he delivered all of it not for Geonosian independence or Geonosian glory, but for the strategic calculations of offworld commanders who view the planet as a manufacturing asset, nothing more.</p>
+
+              <p>The warriors will not forgive this. Their attacks on Separatist supply lines have been as aggressive as their attacks on Republic forces — perhaps more so. They do not distinguish between the two powers of the Clone Wars, except insofar as both represent the political order they have rejected. Their stated purpose, communicated openly to at least one Republic officer who survived a brief capture and was released with what appears to have been deliberate care, is to <strong style="color:var(--blue-bright)">end the Clone Wars</strong> — not through diplomacy, not through political pressure, but by dismantling both sides until neither can continue. Beyond that, they intend to <strong style="color:var(--blue-bright)">rule the galaxy.</strong> And they intend to <strong style="color:var(--blue-bright)">retake Geonosis.</strong> These are not the stated ambitions of a resistance movement. These are the stated ambitions of a power that considers itself the legitimate inheritor of galactic authority, waiting for the current occupants to exhaust themselves into irrelevance.</p>
+
+              <p>At the center of this faction is a queen. Geonosian social structure has always been organized around queens — biological and political authorities of absolute status within their hive. This faction's queen is referred to in intercepted Geonosian transmissions by a name that Republic xenolinguistics specialists have rendered as <strong style="color:var(--blue-bright)">Yamilei.</strong> What is known of her is limited. She has not been confirmed present at any engagement. Her communications with her forces use encryption methods that have resisted all current Republic decryption efforts. The officer who survived capture described being brought before a presence he never directly saw, in a chamber he could not precisely locate, and receiving a message delivered through intermediaries: the Republic should consider what it has done to worlds like Geonosis, because it will be held accountable. He was then returned to his unit, unharmed.</p>
+
+              <p>The faction's tactical discipline is extraordinary. They do not overextend. They do not hold ground they cannot defend. They strike in concentrated bursts, cause maximum damage in minimum time, and withdraw before reinforcements can arrive. Every engagement has ended with the warriors gone. No prisoners have been taken from their side. No equipment has been recovered intact. The Republic's forensic picture of this faction has been assembled almost entirely from what they chose to leave behind, which appears to be exactly nothing of intelligence value. They are learning faster than our analysts can track them.</p>
+
+              <p>Glory, as one fragment of recovered Geonosian writing has been tentatively translated to mean, is not measured by what you control. It is measured by what you defeat. By whom you face in combat, directly, with your own strength, and overcome. The old way. The way that Poggle abandoned when he handed Geonosis to Count Dooku. The way that Queen Yamilei, it appears, intends to restore — whether the galaxy consents to that restoration or not. This correspondent will continue to file from the field. Citizens of the Republic are advised to exercise caution in Outer Rim sectors flagged in the accompanying security bulletin. This story is not over. It is, by all indications, just beginning.</p>
+            </div>
+          </div>
+        </div><!-- /story-box -->
+      </div><!-- /story-view -->
+
+      <!-- COMMENT SECTION -->
+      <div class="comment-section">
+        <div class="cmt-hdr">
+          <div class="cmt-title"><div class="lpulse"></div>▸ CITIZEN TRANSMISSIONS</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="fb-status" id="fb-status">
+              <div class="fb-dot connecting" id="fb-dot"></div>
+              <span id="fb-label">CONNECTING...</span>
+            </div>
+            <span class="cmt-count" id="cmt-count"></span>
+          </div>
+        </div>
+
+        <div class="comment-list" id="cmt-list">
+          <div class="comment-empty" id="cmt-empty">&#9670; SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS &#9670;</div>
+        </div>
+
+        <div class="comment-form">
+          <div class="cf-fields">
+            <div class="cf-name-row">
+              <input class="cf-input cf-name"   id="cf-name"   type="text" placeholder="CITIZEN NAME"  maxlength="32">
+              <input class="cf-input cf-planet" id="cf-planet" type="text" placeholder="PLANET"         maxlength="20">
+            </div>
+            <textarea class="cf-input cf-text" id="cf-text" placeholder="Enter your transmission... (Ctrl+Enter to submit)" rows="2" maxlength="400"></textarea>
+          </div>
+          <button class="cf-submit" id="cf-submit" onclick="postComment()">POST<br>&#9670;</button>
+        </div>
+      </div>
+
+    </div><!-- /center -->
+
+    <!-- RIGHT — LOG -->
+    <div class="right">
+      <div class="log-hdr">
+        <div class="log-title"><div class="lpulse"></div>▸ TRANSMISSION LOG</div>
+        <div class="log-sub">2 ENTRIES — SELECT TO VIEW</div>
+      </div>
+      <div class="log-list" id="log-list"></div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <div class="bot">
+    <span>GALACTIC REPUBLIC HOLONET NEWS &#9670; CORUSCANT &#9670; AUTHENTICATED SECURE BROADCAST</span>
+    <span id="status">TERMINAL ACTIVE — IN THE NAME OF THE REPUBLIC</span>
+  </div>
+
+</div><!-- /terminal -->
+
+<script>
+  // ── CLOCK ──────────────────────────────────────────────────────────────
+  function tick() {
+    const n = new Date(), p = x => String(x).padStart(2,'0');
+    document.getElementById('clock').textContent =
+      `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())} GST`;
+  }
+  setInterval(tick, 1000); tick();
+
+  // ── NEWS LOG DATA ──────────────────────────────────────────────────────
+  const NEWS = [
+    { id:0, time:'BBY 22 — 06:14 GST', priority:'high', tag:'ALPHA', headline:'CII OBLITERATED — "FORCE DROIDS" ANNIHILATE DISSIDENT FACTION' },
+    { id:1, time:'BBY 22 — 08:47 GST', priority:'high', tag:'ALPHA', headline:'GEONOSIAN INSURGENTS STRIKE OUTER RIM — ANCIENT WARRIOR FACTION CONFIRMED' }
+  ];
+
+  // ── ACTIVE STORY ───────────────────────────────────────────────────────
+  let activeStory = -1;
+
+  function showStory(id) {
+    document.getElementById('story-placeholder').style.display = 'none';
+    document.querySelectorAll('.story-content').forEach(el => el.classList.remove('active'));
+    const el = document.getElementById('sc-' + id);
+    if (el) el.classList.add('active');
+    document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('active-entry'));
+    const le = document.getElementById('le-' + id);
+    if (le) le.classList.add('active-entry');
+    activeStory = id;
+
+    // Load Firebase comments for this story
+    if (window.loadFirebaseComments) {
+      window.loadFirebaseComments(id);
+    }
+  }
+
+  // ── RENDER LOG ─────────────────────────────────────────────────────────
+  function renderLog() {
+    const list = document.getElementById('log-list');
+    list.innerHTML = '';
+    NEWS.forEach(n => {
+      const d = document.createElement('div');
+      d.className = `log-entry ${n.priority === 'high' ? 'ph' : n.priority === 'mid' ? 'pm' : 'pl'}`;
+      d.id = 'le-' + n.id;
+      d.innerHTML = `
+        <div class="le-top">
+          <span class="le-time">${n.time}</span>
+          <span class="le-tag ${n.priority}">${n.tag}</span>
+        </div>
+        <div class="le-hl">${esc(n.headline)}</div>`;
+      d.addEventListener('click', () => showStory(n.id));
+      list.appendChild(d);
+    });
+  }
+
+  // ── RENDER COMMENTS (called by Firebase module) ────────────────────────
+  window.renderComments = function(comments, isPlaceholder) {
+    const list   = document.getElementById('cmt-list');
+    const empty  = document.getElementById('cmt-empty');
+    const countEl = document.getElementById('cmt-count');
+
+    if (isPlaceholder) {
+      list.innerHTML = '';
+      empty.textContent = '◇ SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS ◇';
+      list.appendChild(empty);
+      countEl.textContent = '';
+      return;
+    }
+
+    countEl.textContent = comments.length
+      ? `${comments.length} ${comments.length === 1 ? 'TRANSMISSION' : 'TRANSMISSIONS'}`
+      : '';
+
+    list.innerHTML = '';
+
+    if (comments.length === 0) {
+      empty.textContent = '◇ NO TRANSMISSIONS YET — BE THE FIRST CITIZEN TO RESPOND ◇';
+      list.appendChild(empty);
+      return;
+    }
+
+    comments.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'c-entry';
+      div.dataset.cid = c.id;
+
+      // Format timestamp from Firestore
+      let timeStr = '';
+      if (c.timestamp && c.timestamp.toDate) {
+        const d = c.timestamp.toDate();
+        const p = x => String(x).padStart(2,'0');
+        timeStr = `${p(d.getHours())}:${p(d.getMinutes())} GST`;
+      }
+
+      div.innerHTML = `
+        <div class="c-meta">
+          <span class="c-name">${esc(c.name)}${c.planet ? ' — ' + esc(c.planet) : ''}</span>
+          <span class="c-time">${timeStr}</span>
+        </div>
+        <div class="c-text">${esc(c.text)}</div>
+        <button class="c-del" onclick="deleteComment('${c.id}')">✕ DEL</button>`;
+      list.appendChild(div);
+    });
+
+    setTimeout(() => { list.scrollTop = list.scrollHeight; }, 40);
+  };
+
+  // ── POST COMMENT ───────────────────────────────────────────────────────
+  async function postComment() {
+    if (activeStory === -1) { setStatus('⚠ SELECT A STORY FIRST', 'var(--gold)', 2000); return; }
+    if (!window.postFirebaseComment) { setStatus('⚠ FIREBASE NOT READY', 'var(--red-alert)', 2000); return; }
+
+    const nameEl   = document.getElementById('cf-name');
+    const planetEl = document.getElementById('cf-planet');
+    const textEl   = document.getElementById('cf-text');
+    const btn      = document.getElementById('cf-submit');
+
+    const name   = (nameEl.value.trim()   || 'ANONYMOUS CITIZEN');
+    const planet = planetEl.value.trim();
+    const text   = textEl.value.trim();
+
+    if (!text) { setStatus('⚠ ENTER TRANSMISSION TEXT', 'var(--red-alert)', 2000); return; }
+
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const ok = await window.postFirebaseComment(activeStory, name, planet, text);
+
+    btn.disabled = false;
+    btn.innerHTML = 'POST<br>◇';
+
+    if (ok) {
+      nameEl.value = '';
+      planetEl.value = '';
+      textEl.value = '';
+      setStatus('✓ TRANSMISSION RECEIVED', 'var(--green-ok)', 2500);
+    } else {
+      setStatus('⚠ TRANSMISSION FAILED — CHECK CONNECTION', 'var(--red-alert)', 3000);
+    }
+  }
+
+  // ── DELETE COMMENT ─────────────────────────────────────────────────────
+  async function deleteComment(commentId) {
+    if (!confirm('Delete this transmission?')) return;
+    if (!window.deleteFirebaseComment) return;
+    await window.deleteFirebaseComment(activeStory, commentId);
+  }
+
+  // ── STATUS BAR ─────────────────────────────────────────────────────────
+  function setStatus(msg, color, duration) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.style.color = color || '';
+    if (duration) setTimeout(() => { el.textContent = 'TERMINAL ACTIVE — IN THE NAME OF THE REPUBLIC'; el.style.color = ''; }, duration);
+  }
+
+  // ── CTRL+ENTER ─────────────────────────────────────────────────────────
+  document.getElementById('cf-text').addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); postComment(); }
+  });
+
+  // ── ESCAPE HTML ────────────────────────────────────────────────────────
+  function esc(t) {
+    if (!t) return '';
+    return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  // ── FIREBASE READY HANDLER ─────────────────────────────────────────────
+  function onFirebaseReady() {
+    const dot   = document.getElementById('fb-dot');
+    const label = document.getElementById('fb-label');
+    dot.className   = 'fb-dot connected';
+    label.textContent = 'FIREBASE LIVE';
+    // If a story is already active, reload comments
+    if (activeStory !== -1) window.loadFirebaseComments(activeStory);
+  }
+
+  if (window.firebaseReady) {
+    onFirebaseReady();
+  } else {
+    window.addEventListener('firebase-ready', onFirebaseReady);
+  }
+
+  // Show error state if Firebase fails to load
+  setTimeout(() => {
+    const label = document.getElementById('fb-label');
+    if (label.textContent === 'CONNECTING...') {
+      document.getElementById('fb-dot').className = 'fb-dot error';
+      label.textContent = 'CONFIG REQUIRED';
+    }
+  }, 6000);
+
+  // ── INIT ───────────────────────────────────────────────────────────────
+  renderLog();
+
+  // Auto-show first story after boot animation
+  setTimeout(() => showStory(0), 5400);
+</script>
 </body>
 </html>
