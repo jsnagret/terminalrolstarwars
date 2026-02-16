@@ -179,10 +179,18 @@ body::after{
   position:fixed;inset:0;z-index:8000;
   background:linear-gradient(135deg,rgba(1,15,25,.97) 0%,rgba(2,24,38,.97) 100%);
   display:flex;align-items:center;justify-content:center;
-  opacity:0;animation:fIn .8s ease forwards 5.1s;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .8s ease;
 }
-#login-overlay.hidden{display:none}
-@keyframes fIn{from{opacity:0}to{opacity:1}}
+#login-overlay:not(.hidden){
+  opacity:1;
+  pointer-events:all;
+}
+#login-overlay.hidden{
+  opacity:0;
+  pointer-events:none;
+}
 
 .login-box{
   border:1px solid rgba(0,200,240,.3);border-radius:4px;
@@ -237,6 +245,7 @@ body::after{
   display:flex;flex-direction:column;
   opacity:0;animation:fIn 1s ease forwards 5s;
 }
+@keyframes fIn{from{opacity:0}to{opacity:1}}
 
 /* ── TOP BAR ── */
 .topbar{
@@ -533,8 +542,8 @@ body::after{
   </div>
 </div>
 
-<!-- LOGIN OVERLAY -->
-<div id="login-overlay">
+<!-- LOGIN OVERLAY (Hidden by default) -->
+<div id="login-overlay" class="hidden">
   <div class="login-box">
     <img class="login-emblem" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
     <div class="login-title">HOLONET PRESS CREDENTIALS</div>
@@ -571,7 +580,7 @@ body::after{
         <span class="rb-name" id="reporter-name">—</span>
         <button class="logout-btn" onclick="doLogout()">✕ LOG OUT</button>
       </div>
-      <div id="login-hint" style="font-size:.44rem;color:rgba(0,153,204,.5);letter-spacing:.1em;cursor:pointer;border:1px solid rgba(0,200,240,.15);padding:4px 9px;border-radius:2px" onclick="showLogin()">⚿ PRESS LOGIN</button>
+      <div id="login-hint" style="font-size:.44rem;color:rgba(0,153,204,.5);letter-spacing:.1em;cursor:pointer;border:1px solid rgba(0,200,240,.15);padding:4px 9px;border-radius:2px" onclick="showLogin()">⚿ PRESS LOGIN</div>
     </div>
   </div>
 
@@ -794,8 +803,8 @@ body::after{
 <script>
 // ══ CREDENTIALS ══════════════════════════════════════════════════════════
 const USERS = {
-  'architect': { pass:'kybord',   reporter:'Jest Ickle',  priority:'high' },
-  'truehive':  { pass:'geonosis', reporter:'Vine Caleis', priority:'mid'  }
+  'architect': { pass:'kybord',   reporter:'Jest Ickle',  priority:'mid' },
+  'truehive':  { pass:'geonosis', reporter:'Vine Caleis', priority:'high'  }
 };
 
 // ══ SESSION ══════════════════════════════════════════════════════════════
@@ -1145,11 +1154,6 @@ function esc(t){
 renderLogList();
 // Auto-show first story after boot
 setTimeout(()=>showStory(0),5400);
-// After boot, show login overlay (slight delay so terminal fades in first)
-setTimeout(()=>{
-  // Only show if not already dismissed (they won't be logged in on first load)
-  // Login overlay starts hidden until Firebase is ready or 5.5s
-},5500);
 </script>
 </body>
 </html>
