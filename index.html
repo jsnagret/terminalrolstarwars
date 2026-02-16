@@ -6,520 +6,570 @@
 <title>Galactic Republic — HoloNet News Terminal</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-<!-- ═══════════════════════════════════════════════════════════════════════
-     FIREBASE SETUP — REPLACE THE VALUES BELOW WITH YOUR OWN PROJECT CONFIG
-     Get these from: Firebase Console → Project Settings → Your Apps → SDK setup
-     ════════════════════════════════════════════════════════════════════════ -->
+<!-- FIREBASE — replace config values below -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import {
     getFirestore, collection, addDoc, deleteDoc, doc,
-    onSnapshot, query, orderBy, serverTimestamp
+    onSnapshot, query, orderBy, serverTimestamp, getDocs
   } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  // ── YOUR FIREBASE CONFIG GOES HERE ─────────────────────────────────────
   const firebaseConfig = {
-
-    apiKey: "AIzaSyDOlzHlSSwfbBBrv8mxDVvBeWTcoQFULyw",
-
-    authDomain: "galactive-new-network.firebaseapp.com",
-
-    projectId: "galactive-new-network",
-
-    storageBucket: "galactive-new-network.firebasestorage.app",
-
-    messagingSenderId: "674462233718",
-
-    appId: "1:674462233718:web:a709b51245834e36ba1b57",
-
-    measurementId: "G-V56216WQD1"
-
+    apiKey:            "YOUR_API_KEY",
+    authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId:         "YOUR_PROJECT_ID",
+    storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId:             "YOUR_APP_ID"
   };
-
-
-  // ───────────────────────────────────────────────────────────────────────
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
+  let unsubComments = null;
+  let unsubLogs = null;
 
-  // Active story subscription handle
-  let unsubscribe = null;
-
-  // ── LOAD COMMENTS (real-time) ─────────────────────────────────────────
+  /* ── COMMENTS ── */
   window.loadFirebaseComments = function(storyId) {
-    // Cancel previous listener
-    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-
-    if (storyId === -1) {
-      renderComments([], true);
-      return;
-    }
-
-    const q = query(
-      collection(db, "comments_story_" + storyId),
-      orderBy("timestamp", "asc")
-    );
-
-    unsubscribe = onSnapshot(q, (snapshot) => {
-      const comments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderComments(comments, false);
-    }, (err) => {
-      console.error("Firebase error:", err);
-      document.getElementById('cmt-list').innerHTML =
-        '<div class="comment-empty">⚠ CONNECTION ERROR — CHECK FIREBASE CONFIG</div>';
+    if (unsubComments) { unsubComments(); unsubComments = null; }
+    if (storyId === -1) { window.renderComments([], true); return; }
+    const q = query(collection(db, "comments_" + storyId), orderBy("timestamp","asc"));
+    unsubComments = onSnapshot(q, snap => {
+      window.renderComments(snap.docs.map(d => ({id:d.id,...d.data()})), false);
+    }, err => {
+      console.error(err);
+      document.getElementById('cmt-list').innerHTML = '<div class="cmt-empty">⚠ CONNECTION ERROR</div>';
     });
   };
 
-  // ── POST COMMENT ──────────────────────────────────────────────────────
   window.postFirebaseComment = async function(storyId, name, planet, text) {
     try {
-      await addDoc(collection(db, "comments_story_" + storyId), {
-        name:      name.toUpperCase().substring(0, 32),
-        planet:    planet.toUpperCase().substring(0, 20),
-        text:      text.substring(0, 400),
-        timestamp: serverTimestamp()
+      await addDoc(collection(db, "comments_" + storyId), {
+        name: name.substring(0,32), planet: planet.substring(0,20),
+        text: text.substring(0,400), timestamp: serverTimestamp()
       });
       return true;
-    } catch(e) {
-      console.error("Post error:", e);
-      return false;
-    }
+    } catch(e) { console.error(e); return false; }
   };
 
-  // ── DELETE COMMENT ────────────────────────────────────────────────────
-  window.deleteFirebaseComment = async function(storyId, commentId) {
+  window.deleteFirebaseComment = async function(storyId, cid) {
+    try { await deleteDoc(doc(db, "comments_" + storyId, cid)); return true; }
+    catch(e) { console.error(e); return false; }
+  };
+
+  /* ── NEWS LOGS ── */
+  window.loadFirebaseLogs = function() {
+    if (unsubLogs) { unsubLogs(); unsubLogs = null; }
+    const q = query(collection(db, "news_logs"), orderBy("timestamp","asc"));
+    unsubLogs = onSnapshot(q, snap => {
+      const logs = snap.docs.map(d => ({id:d.id,...d.data()}));
+      window.onFirebaseLogs(logs);
+    }, err => console.error(err));
+  };
+
+  window.postFirebaseLog = async function(logData) {
     try {
-      await deleteDoc(doc(db, "comments_story_" + storyId, commentId));
-      return true;
-    } catch(e) {
-      console.error("Delete error:", e);
-      return false;
-    }
+      const ref = await addDoc(collection(db, "news_logs"), {...logData, timestamp: serverTimestamp()});
+      return ref.id;
+    } catch(e) { console.error(e); return null; }
   };
 
-  // Signal that Firebase is ready
+  window.deleteFirebaseLog = async function(logId) {
+    try { await deleteDoc(doc(db, "news_logs", logId)); return true; }
+    catch(e) { console.error(e); return false; }
+  };
+
   window.firebaseReady = true;
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 
 <style>
-  :root {
-    --blue-bright: #00d4ff;
-    --blue-mid:    #0099cc;
-    --gold:        #c8a227;
-    --gold-glow:   rgba(200,162,39,.45);
-    --white:       #e8f8ff;
-    --red-alert:   #ff3a3a;
-    --green-ok:    #00ff88;
-    --scan:        rgba(0,180,230,.055);
-    --bg:          #000a10;
-    --panel-bg:    rgba(0,14,24,.7);
-  }
+:root {
+  --blue: #00c8f0;
+  --blue-dim: #0088bb;
+  --gold: #d4a82a;
+  --gold-dim: rgba(212,168,42,.4);
+  --white: #dff4ff;
+  --red: #ff4444;
+  --green: #22ffaa;
+  --scan: rgba(0,180,230,.04);
+  --bg: #021018;
+  --panel: rgba(0,30,50,.55);
+  --panel2: rgba(0,22,38,.65);
+  --border: rgba(0,200,240,.18);
+  --border2: rgba(0,200,240,.1);
+}
 
-  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
 
-  body {
-    background:var(--bg);
-    font-family:'Share Tech Mono', monospace;
-    color:var(--blue-bright);
-    overflow:hidden;
-    position:relative;
-  }
+body{
+  background:linear-gradient(135deg,#021520 0%,#031c2a 40%,#021018 100%);
+  font-family:'Share Tech Mono',monospace;
+  color:var(--blue);
+  position:relative;
+}
 
-  /* CRT scanlines */
-  body::before {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:1000;
-    background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,var(--scan) 3px,var(--scan) 4px);
-  }
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,var(--scan) 3px,var(--scan) 4px);
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.6) 100%);
+}
 
-  /* Vignette */
-  body::after {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
-    background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.88) 100%);
-  }
+.starfield{
+  position:fixed;inset:0;z-index:0;opacity:.5;
+  background:
+    radial-gradient(1px 1px at 8%  15%,rgba(0,210,255,.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 72%,rgba(0,210,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 38% 8%, rgba(0,210,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 55% 55%,rgba(0,210,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 73% 30%,rgba(0,210,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 80%,rgba(0,210,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 12% 90%,rgba(0,210,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 65% 88%,rgba(0,210,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 44% 40%,rgba(0,210,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 92% 12%,rgba(0,210,255,.6) 0%,transparent 100%);
+}
 
-  /* Stars */
-  .starfield {
-    position:fixed; inset:0; z-index:0; opacity:.65;
-    background:
-      radial-gradient(1px 1px at 8%  15%, rgba(0,212,255,.7) 0%,transparent 100%),
-      radial-gradient(1px 1px at 22% 72%, rgba(0,212,255,.45) 0%,transparent 100%),
-      radial-gradient(1px 1px at 38% 8%,  rgba(0,212,255,.6) 0%,transparent 100%),
-      radial-gradient(1px 1px at 55% 55%, rgba(0,212,255,.35) 0%,transparent 100%),
-      radial-gradient(1px 1px at 73% 30%, rgba(0,212,255,.5) 0%,transparent 100%),
-      radial-gradient(1px 1px at 88% 80%, rgba(0,212,255,.55) 0%,transparent 100%),
-      radial-gradient(1.5px 1.5px at 12% 90%,rgba(0,212,255,.4) 0%,transparent 100%),
-      radial-gradient(1px 1px at 65% 88%, rgba(0,212,255,.35) 0%,transparent 100%),
-      radial-gradient(1px 1px at 44% 40%, rgba(0,212,255,.3) 0%,transparent 100%),
-      radial-gradient(1px 1px at 92% 12%, rgba(0,212,255,.5) 0%,transparent 100%);
-  }
+/* scrollbars */
+*{scrollbar-width:thin;scrollbar-color:rgba(0,200,240,.25) transparent}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(0,200,240,.25);border-radius:2px}
 
-  /* ── BOOT ─────────────────────────────────────────────────────────── */
-  #boot {
-    position:fixed; inset:0; background:#000810; z-index:9000;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    animation:bootFade .5s ease forwards 4.6s;
-  }
-  @keyframes bootFade { to{opacity:0;visibility:hidden;pointer-events:none} }
+/* ══ BOOT ══════════════════════════════════════════════════════════════ */
+#boot{
+  position:fixed;inset:0;background:#010d15;z-index:9000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:bootFade .5s ease forwards 4.6s;
+}
+@keyframes bootFade{to{opacity:0;visibility:hidden;pointer-events:none}}
 
-  .boot-emblem {
-    width:110px; height:110px; margin-bottom:28px; opacity:0;
-    filter:drop-shadow(0 0 22px var(--blue-bright));
-    animation:emblemIn .9s ease forwards .3s;
-  }
-  @keyframes emblemIn {
-    from{opacity:0;transform:scale(.4) rotate(-200deg)}
-    to{opacity:1;transform:scale(1) rotate(0deg)}
-  }
+.boot-img{width:110px;height:110px;margin-bottom:26px;opacity:0;
+  filter:drop-shadow(0 0 24px var(--blue));animation:embIn .9s ease forwards .3s}
+@keyframes embIn{from{opacity:0;transform:scale(.4) rotate(-200deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
 
-  .boot-title {
-    font-family:'Orbitron',sans-serif; font-size:1.05rem; letter-spacing:.4em;
-    color:var(--blue-bright); text-shadow:0 0 20px var(--blue-bright);
-    opacity:0; animation:fadeUp .5s ease forwards 1.2s; margin-bottom:6px;
-  }
-  .boot-sub {
-    font-size:.68rem; letter-spacing:.24em; color:var(--blue-mid);
-    opacity:0; animation:fadeUp .5s ease forwards 1.5s; margin-bottom:36px;
-  }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.boot-t{font-family:'Orbitron',sans-serif;font-size:1.05rem;letter-spacing:.4em;
+  color:var(--blue);text-shadow:0 0 20px var(--blue);opacity:0;animation:fUp .5s ease forwards 1.2s;margin-bottom:6px}
+.boot-s{font-size:.66rem;letter-spacing:.24em;color:var(--blue-dim);
+  opacity:0;animation:fUp .5s ease forwards 1.5s;margin-bottom:34px}
+@keyframes fUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-  .boot-log { font-size:.63rem; color:var(--blue-mid); width:370px; }
-  .blog { padding:2px 0; opacity:0; }
-  .blog:nth-child(1){animation:fadeUp .2s ease forwards 2.0s}
-  .blog:nth-child(2){animation:fadeUp .2s ease forwards 2.3s}
-  .blog:nth-child(3){animation:fadeUp .2s ease forwards 2.6s}
-  .blog:nth-child(4){animation:fadeUp .2s ease forwards 2.9s}
-  .blog:nth-child(5){animation:fadeUp .2s ease forwards 3.2s;color:var(--gold)}
+.boot-log{font-size:.62rem;color:var(--blue-dim);width:370px}
+.bl{padding:2px 0;opacity:0}
+.bl:nth-child(1){animation:fUp .2s ease forwards 2.0s}
+.bl:nth-child(2){animation:fUp .2s ease forwards 2.3s}
+.bl:nth-child(3){animation:fUp .2s ease forwards 2.6s}
+.bl:nth-child(4){animation:fUp .2s ease forwards 2.9s}
+.bl:nth-child(5){animation:fUp .2s ease forwards 3.2s;color:var(--gold)}
 
-  /* ── TERMINAL SHELL ───────────────────────────────────────────────── */
-  #terminal {
-    position:relative; z-index:1; height:100vh;
-    display:flex; flex-direction:column;
-    opacity:0; animation:fadeIn 1s ease forwards 5s;
-  }
-  @keyframes fadeIn { to{opacity:1} }
+/* ══ LOGIN OVERLAY ══════════════════════════════════════════════════════ */
+#login-overlay{
+  position:fixed;inset:0;z-index:8000;
+  background:linear-gradient(135deg,rgba(1,15,25,.97) 0%,rgba(2,24,38,.97) 100%);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;animation:fIn .8s ease forwards 5.1s;
+}
+#login-overlay.hidden{display:none}
+@keyframes fIn{from{opacity:0}to{opacity:1}}
 
-  /* ── TOP BAR ─────────────────────────────────────────────────────── */
-  .topbar {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:9px 20px; flex-shrink:0;
-    background:linear-gradient(to bottom,rgba(0,28,48,.97),rgba(0,16,28,.93));
-    border-bottom:1px solid rgba(0,212,255,.28);
-    position:relative; overflow:hidden;
-  }
-  .topbar::after {
-    content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
-    background:linear-gradient(90deg,transparent,var(--blue-bright),var(--gold),var(--blue-bright),transparent);
-    background-size:200% 100%; animation:slideShimmer 4s linear infinite;
-  }
-  @keyframes slideShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.login-box{
+  border:1px solid rgba(0,200,240,.3);border-radius:4px;
+  background:rgba(0,25,42,.9);padding:40px 48px;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  box-shadow:0 0 60px rgba(0,200,240,.12),0 0 120px rgba(0,200,240,.05);
+  position:relative;overflow:hidden;
+  max-width:400px;width:90%;
+}
+.login-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--blue),var(--gold),var(--blue),transparent);
+  animation:shimmer 3s linear infinite;background-size:200% 100%;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-  .logo { display:flex; align-items:center; gap:11px; }
-  .logo img {
-    width:40px; height:40px;
-    filter:drop-shadow(0 0 10px var(--blue-bright)) drop-shadow(0 0 20px rgba(0,212,255,.5));
-    animation:glow 3s ease-in-out infinite;
-  }
-  @keyframes glow {
-    0%,100%{filter:drop-shadow(0 0 8px var(--blue-bright)) drop-shadow(0 0 16px rgba(0,212,255,.4))}
-    50%{filter:drop-shadow(0 0 14px var(--blue-bright)) drop-shadow(0 0 30px rgba(0,212,255,.7))}
-  }
-  .logo-txt { display:flex; flex-direction:column; }
-  .logo-main { font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:.3em; color:var(--blue-bright); text-shadow:0 0 12px var(--blue-bright); }
-  .logo-sub  { font-size:.48rem; letter-spacing:.22em; color:var(--gold); text-shadow:0 0 8px var(--gold-glow); }
+.login-emblem{width:64px;height:64px;filter:drop-shadow(0 0 14px var(--blue));animation:spin 20s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-  .topright { display:flex; align-items:center; gap:14px; font-size:.56rem; letter-spacing:.12em; color:var(--blue-mid); }
-  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--green-ok); box-shadow:0 0 6px var(--green-ok); animation:blink 2s ease-in-out infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-  #clock { font-family:'Orbitron',sans-serif; font-size:.66rem; color:var(--blue-bright); letter-spacing:.1em; }
+.login-title{font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:.3em;
+  color:var(--blue);text-shadow:0 0 12px var(--blue);text-align:center}
+.login-sub{font-size:.5rem;letter-spacing:.2em;color:var(--blue-dim);text-align:center}
 
-  /* ── BREAKING BANNER ─────────────────────────────────────────────── */
-  .banner {
-    display:flex; align-items:stretch; flex-shrink:0;
-    background:linear-gradient(135deg,rgba(255,58,58,.13),rgba(150,0,0,.08));
-    border-top:2px solid var(--red-alert); border-bottom:2px solid rgba(255,58,58,.3);
-    overflow:hidden;
-  }
-  .brk-label {
-    background:var(--red-alert); color:#fff;
-    font-family:'Orbitron',sans-serif; font-size:.7rem; font-weight:900; letter-spacing:.15em;
-    padding:9px 26px 9px 15px; white-space:nowrap;
-    display:flex; align-items:center; gap:7px; flex-shrink:0;
-    clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);
-    animation:brkPulse 1.2s ease-in-out infinite;
-  }
-  @keyframes brkPulse { 0%,100%{background:#ff3a3a} 50%{background:#bb1010} }
-  .adot { width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 8px #fff; animation:blink .8s ease-in-out infinite; }
+.login-fields{display:flex;flex-direction:column;gap:10px;width:100%}
 
-  .ticker-wrap { flex:1; overflow:hidden; display:flex; align-items:center; padding:8px 0; position:relative; }
-  .ticker-wrap::after { content:''; position:absolute; right:0; top:0; bottom:0; width:55px; background:linear-gradient(to left,rgba(8,0,0,.95),transparent); z-index:2; }
-  .ticker {
-    display:inline-flex; align-items:center; white-space:nowrap; gap:48px;
-    font-size:.74rem; color:#ffdddd; letter-spacing:.04em;
-    animation:tick 50s linear infinite;
-  }
-  @keyframes tick { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
-  .tsep { color:var(--red-alert); }
+.l-input{
+  background:rgba(0,200,240,.04);border:1px solid rgba(0,200,240,.2);border-radius:2px;
+  color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:.78rem;
+  padding:9px 13px;outline:none;letter-spacing:.06em;caret-color:var(--blue);
+  transition:border-color .2s,box-shadow .2s;width:100%;
+}
+.l-input:focus{border-color:var(--blue);box-shadow:0 0 14px rgba(0,200,240,.18)}
+.l-input::placeholder{color:rgba(0,153,204,.35);font-size:.7rem}
 
-  /* ── MAIN 3-COL GRID ─────────────────────────────────────────────── */
-  .grid { flex:1; display:grid; grid-template-columns:240px 1fr 290px; min-height:0; }
+.l-btn{
+  background:linear-gradient(135deg,rgba(0,200,240,.15),rgba(0,140,180,.1));
+  border:1px solid rgba(0,200,240,.4);color:var(--blue);
+  font-family:'Orbitron',sans-serif;font-size:.55rem;font-weight:700;letter-spacing:.22em;
+  padding:11px 20px;cursor:pointer;border-radius:2px;transition:all .2s;width:100%;
+  text-shadow:0 0 8px var(--blue);
+}
+.l-btn:hover{border-color:var(--blue);box-shadow:0 0 18px rgba(0,200,240,.3);background:linear-gradient(135deg,rgba(0,200,240,.25),rgba(0,140,180,.18))}
+.l-btn:active{transform:scale(.97)}
 
-  /* scrollbars shared */
-  ::-webkit-scrollbar { width:3px; }
-  ::-webkit-scrollbar-track { background:rgba(0,212,255,.03); }
-  ::-webkit-scrollbar-thumb { background:rgba(0,212,255,.2); border-radius:2px; }
-  * { scrollbar-width:thin; scrollbar-color:rgba(0,212,255,.2) transparent; }
+.l-err{font-size:.58rem;color:var(--red);letter-spacing:.1em;text-align:center;
+  min-height:16px;text-shadow:0 0 8px rgba(255,68,68,.4);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
-  /* ── LEFT PANEL ──────────────────────────────────────────────────── */
-  .left {
-    border-right:1px solid rgba(0,212,255,.12);
-    background:var(--panel-bg);
-    padding:14px 12px;
-    display:flex; flex-direction:column; gap:13px;
-    overflow-y:auto;
-  }
+/* ══ TERMINAL ═══════════════════════════════════════════════════════════ */
+#terminal{
+  position:relative;z-index:1;height:100vh;
+  display:flex;flex-direction:column;
+  opacity:0;animation:fIn 1s ease forwards 5s;
+}
 
-  .sec-title {
-    font-family:'Orbitron',sans-serif; font-size:.46rem; letter-spacing:.28em;
-    color:var(--gold); text-shadow:0 0 8px var(--gold-glow);
-    border-bottom:1px solid rgba(200,162,39,.17); padding-bottom:5px; margin-bottom:7px;
-  }
+/* ── TOP BAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 18px;flex-shrink:0;
+  background:linear-gradient(to bottom,rgba(0,35,58,.95),rgba(0,22,38,.9));
+  border-bottom:1px solid var(--border);position:relative;overflow:hidden;
+}
+.topbar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--blue),var(--gold),var(--blue),transparent);
+  background-size:200% 100%;animation:shimmer 4s linear infinite;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo img{width:38px;height:38px;filter:drop-shadow(0 0 10px var(--blue)) drop-shadow(0 0 20px rgba(0,200,240,.5));animation:glow 3s ease-in-out infinite}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 8px var(--blue)) drop-shadow(0 0 16px rgba(0,200,240,.4))}50%{filter:drop-shadow(0 0 14px var(--blue)) drop-shadow(0 0 30px rgba(0,200,240,.7))}}
+.logo-main{font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.3em;color:var(--blue);text-shadow:0 0 12px var(--blue)}
+.logo-sub{font-size:.46rem;letter-spacing:.2em;color:var(--gold);text-shadow:0 0 8px var(--gold-dim)}
 
-  .holo-box {
-    display:flex; flex-direction:column; align-items:center;
-    padding:13px; border:1px solid rgba(0,212,255,.14); border-radius:3px;
-    background:rgba(0,18,32,.55); position:relative; overflow:hidden;
-  }
-  .holo-box::before {
-    content:''; position:absolute; inset:0;
-    background:radial-gradient(ellipse at center,rgba(0,212,255,.05) 0%,transparent 70%);
-  }
-  .holo-box img {
-    width:72px; height:72px;
-    filter:drop-shadow(0 0 12px var(--blue-bright)) drop-shadow(0 0 24px rgba(0,212,255,.5));
-    animation:spin 22s linear infinite;
-  }
-  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  .holo-lbl { font-family:'Orbitron',sans-serif; font-size:.4rem; letter-spacing:.22em; color:var(--blue-mid); margin-top:9px; text-align:center; }
+.topright{display:flex;align-items:center;gap:12px;font-size:.54rem;letter-spacing:.1em;color:var(--blue-dim)}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#clock{font-family:'Orbitron',sans-serif;font-size:.64rem;color:var(--blue);letter-spacing:.1em}
 
-  .srow { display:flex; justify-content:space-between; align-items:center; font-size:.54rem; color:var(--blue-mid); padding:3px 0; letter-spacing:.06em; border-bottom:1px solid rgba(0,212,255,.05); }
-  .sv      { font-size:.56rem; color:var(--blue-bright); }
-  .sv.ok   { color:var(--green-ok); }
-  .sv.bad  { color:var(--red-alert); animation:blink 1.5s infinite; }
-  .sv.wrn  { color:var(--gold); }
+.reporter-badge{
+  display:flex;align-items:center;gap:7px;
+  border:1px solid rgba(0,200,240,.25);border-radius:2px;
+  padding:4px 10px;background:rgba(0,200,240,.06);font-size:.52rem;
+  color:var(--blue);letter-spacing:.1em;
+}
+.reporter-badge .rb-name{color:var(--gold);font-family:'Orbitron',sans-serif;font-weight:700;font-size:.5rem;letter-spacing:.15em}
+.logout-btn{
+  background:transparent;border:1px solid rgba(255,68,68,.3);
+  color:rgba(255,68,68,.6);font-family:'Orbitron',sans-serif;
+  font-size:.38rem;letter-spacing:.12em;padding:4px 8px;cursor:pointer;
+  border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace;
+}
+.logout-btn:hover{border-color:var(--red);color:var(--red);box-shadow:0 0 8px rgba(255,68,68,.2)}
 
-  .freq-row { display:flex; flex-direction:column; gap:2px; margin-bottom:5px; }
-  .freq-lbl { display:flex; justify-content:space-between; font-size:.46rem; color:var(--blue-mid); letter-spacing:.05em; }
-  .freq-track { height:3px; background:rgba(0,212,255,.07); border-radius:2px; overflow:hidden; }
-  .freq-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--blue-mid),var(--blue-bright)); box-shadow:0 0 5px var(--blue-bright); animation:freqA 2s ease-in-out infinite alternate; }
-  .ff1{width:86%;animation-delay:0s} .ff2{width:61%;animation-delay:.4s} .ff3{width:93%;animation-delay:.8s}
-  @keyframes freqA { from{opacity:.4} to{opacity:1} }
+/* ── BREAKING BANNER ── */
+.banner{
+  display:flex;align-items:stretch;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(255,68,68,.12),rgba(140,0,0,.07));
+  border-top:2px solid var(--red);border-bottom:1px solid rgba(255,68,68,.25);overflow:hidden;
+}
+.brk-lbl{
+  background:var(--red);color:#fff;
+  font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:900;letter-spacing:.14em;
+  padding:8px 24px 8px 14px;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);
+  animation:brkP 1.2s ease-in-out infinite;
+}
+@keyframes brkP{0%,100%{background:#ff4444}50%{background:#cc1111}}
+.adot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;animation:blink .8s ease-in-out infinite}
+.ticker-wrap{flex:1;overflow:hidden;display:flex;align-items:center;padding:7px 0;position:relative}
+.ticker-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:55px;background:linear-gradient(to left,rgba(1,12,20,.95),transparent);z-index:2}
+.ticker{display:inline-flex;align-items:center;white-space:nowrap;gap:48px;font-size:.72rem;color:#ffcccc;letter-spacing:.04em;animation:tick 50s linear infinite}
+@keyframes tick{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+.tsep{color:var(--red)}
 
-  /* ── CENTER PANEL ────────────────────────────────────────────────── */
-  .center { display:flex; flex-direction:column; background:rgba(0,7,14,.78); min-height:0; }
+/* ── GRID ── */
+.grid{flex:1;display:grid;grid-template-columns:230px 1fr 280px;min-height:0}
 
-  .c-header {
-    padding:16px 24px 13px; flex-shrink:0;
-    border-bottom:1px solid rgba(0,212,255,.08);
-    background:linear-gradient(to bottom,rgba(0,20,38,.88),transparent);
-  }
-  .c-tag { font-size:.46rem; letter-spacing:.32em; color:var(--gold); text-shadow:0 0 8px var(--gold-glow); margin-bottom:5px; }
-  .c-head { font-family:'Orbitron',sans-serif; font-size:1.7rem; font-weight:900; color:var(--white); text-shadow:0 0 20px var(--blue-bright),0 0 40px rgba(0,212,255,.35); letter-spacing:.05em; }
-  .c-head .brk { color:var(--blue-bright); font-size:.88rem; display:block; letter-spacing:.3em; margin-bottom:3px; animation:flicker 5s ease-in-out infinite; }
-  @keyframes flicker { 0%,90%,100%{opacity:1} 92%{opacity:.6} 95%{opacity:1} 97%{opacity:.5} 99%{opacity:1} }
+/* ── LEFT ── */
+.left{
+  border-right:1px solid var(--border2);
+  background:var(--panel);
+  padding:12px 11px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;
+}
+.sec-t{font-family:'Orbitron',sans-serif;font-size:.44rem;letter-spacing:.26em;
+  color:var(--gold);text-shadow:0 0 8px var(--gold-dim);
+  border-bottom:1px solid rgba(212,168,42,.15);padding-bottom:4px;margin-bottom:6px}
+.holo-box{
+  display:flex;flex-direction:column;align-items:center;
+  padding:12px;border:1px solid rgba(0,200,240,.15);border-radius:3px;
+  background:rgba(0,25,42,.6);position:relative;overflow:hidden;
+}
+.holo-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,200,240,.06) 0%,transparent 70%)}
+.holo-box img{width:68px;height:68px;filter:drop-shadow(0 0 12px var(--blue)) drop-shadow(0 0 24px rgba(0,200,240,.5));animation:spin 22s linear infinite}
+.holo-lbl{font-family:'Orbitron',sans-serif;font-size:.38rem;letter-spacing:.2em;color:var(--blue-dim);margin-top:8px;text-align:center}
 
-  /* story view */
-  .story-view { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; }
+.srow{display:flex;justify-content:space-between;align-items:center;font-size:.52rem;color:var(--blue-dim);padding:3px 0;letter-spacing:.05em;border-bottom:1px solid rgba(0,200,240,.05)}
+.sv{font-size:.54rem;color:var(--blue)}
+.sv.ok{color:var(--green)}.sv.bad{color:var(--red);animation:blink 1.5s infinite}.sv.wrn{color:var(--gold)}
 
-  .story-box {
-    border:1px solid rgba(0,212,255,.14); border-radius:2px;
-    padding:18px 22px; background:rgba(0,212,255,.02);
-    position:relative; min-height:80px;
-  }
-  .story-box::before {
-    content:attr(data-label); position:absolute; top:-1px; left:14px;
-    font-size:.36rem; letter-spacing:.28em; color:var(--blue-mid);
-    background:rgba(0,7,14,.97); padding:2px 8px; transform:translateY(-50%);
-  }
-  .story-box::after {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,var(--blue-bright),transparent 55%); opacity:.3;
-  }
+.freq-row{display:flex;flex-direction:column;gap:2px;margin-bottom:5px}
+.freq-lbl{display:flex;justify-content:space-between;font-size:.44rem;color:var(--blue-dim);letter-spacing:.04em}
+.freq-track{height:3px;background:rgba(0,200,240,.07);border-radius:2px;overflow:hidden}
+.freq-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue-dim),var(--blue));box-shadow:0 0 5px var(--blue);animation:freqA 2s ease-in-out infinite alternate}
+.ff1{width:86%;animation-delay:0s}.ff2{width:61%;animation-delay:.4s}.ff3{width:93%;animation-delay:.8s}
+@keyframes freqA{from{opacity:.4}to{opacity:1}}
 
-  .story-empty { font-size:.78rem; color:rgba(0,153,204,.4); letter-spacing:.08em; font-style:italic; padding:20px 0; text-align:center; }
+/* ── CENTER ── */
+.center{display:flex;flex-direction:column;background:rgba(0,15,26,.65);min-height:0}
 
-  .story-content { display:none; }
-  .story-content.active { display:block; }
+.c-header{padding:14px 22px 11px;flex-shrink:0;border-bottom:1px solid rgba(0,200,240,.08);background:linear-gradient(to bottom,rgba(0,30,50,.85),transparent)}
+.c-tag{font-size:.44rem;letter-spacing:.3em;color:var(--gold);text-shadow:0 0 8px var(--gold-dim);margin-bottom:4px}
+.c-head{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:var(--white);text-shadow:0 0 20px var(--blue),0 0 40px rgba(0,200,240,.3);letter-spacing:.05em}
+.c-head .brk{color:var(--blue);font-size:.84rem;display:block;letter-spacing:.3em;margin-bottom:2px;animation:flicker 5s ease-in-out infinite}
+@keyframes flicker{0%,90%,100%{opacity:1}92%{opacity:.6}95%{opacity:1}97%{opacity:.5}99%{opacity:1}}
 
-  .story-priority {
-    font-size:.58rem; letter-spacing:.2em; font-family:'Orbitron',sans-serif; font-weight:700;
-    margin-bottom:10px; padding:3px 10px; display:inline-block; border:1px solid; border-radius:1px;
-  }
-  .story-priority.high { color:var(--red-alert); border-color:rgba(255,58,58,.4); }
-  .story-priority.mid  { color:var(--gold); border-color:rgba(200,162,39,.4); }
+.story-view{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column}
 
-  .story-headline { font-family:'Orbitron',sans-serif; font-size:.95rem; font-weight:800; color:var(--white); letter-spacing:.06em; line-height:1.3; text-shadow:0 0 14px rgba(0,212,255,.3); margin-bottom:6px; }
-  .story-meta { font-size:.5rem; color:rgba(0,153,204,.65); letter-spacing:.12em; margin-bottom:14px; display:flex; gap:16px; flex-wrap:wrap; }
-  .story-body { font-size:.78rem; color:rgba(200,230,245,.85); line-height:1.85; letter-spacing:.03em; }
-  .story-body p { margin-bottom:1em; }
-  .story-body p:last-child { margin-bottom:0; }
+.story-box{border:1px solid rgba(0,200,240,.14);border-radius:2px;padding:16px 20px;background:rgba(0,200,240,.025);position:relative;min-height:80px}
+.story-box::before{content:attr(data-label);position:absolute;top:-1px;left:12px;font-size:.34rem;letter-spacing:.26em;color:var(--blue-dim);background:rgba(0,15,26,.97);padding:2px 7px;transform:translateY(-50%)}
+.story-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),transparent 55%);opacity:.28}
 
-  /* ── COMMENT SECTION ─────────────────────────────────────────────── */
-  .comment-section {
-    border-top:1px solid rgba(0,212,255,.1);
-    padding:14px 24px; flex-shrink:0;
-    background:rgba(0,5,11,.88);
-    display:flex; flex-direction:column; gap:9px;
-  }
+.story-empty{font-size:.76rem;color:rgba(0,153,204,.35);letter-spacing:.08em;font-style:italic;padding:20px 0;text-align:center}
+.story-content{display:none}.story-content.active{display:block}
 
-  .cmt-hdr { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
-  .cmt-title {
-    font-family:'Orbitron',sans-serif; font-size:.5rem; letter-spacing:.28em;
-    color:var(--gold); text-shadow:0 0 8px var(--gold-glow);
-    display:flex; align-items:center; gap:7px;
-  }
-  .lpulse { width:6px; height:6px; border-radius:50%; background:var(--red-alert); box-shadow:0 0 6px var(--red-alert); animation:blink 1s infinite; }
-  .cmt-count { font-size:.44rem; color:var(--blue-mid); letter-spacing:.1em; }
+.story-priority{font-size:.56rem;letter-spacing:.18em;font-family:'Orbitron',sans-serif;font-weight:700;margin-bottom:8px;padding:3px 9px;display:inline-block;border:1px solid;border-radius:1px}
+.story-priority.high{color:var(--red);border-color:rgba(255,68,68,.4)}.story-priority.mid{color:var(--gold);border-color:rgba(212,168,42,.4)}
 
-  /* firebase status indicator */
-  .fb-status { font-size:.42rem; letter-spacing:.1em; display:flex; align-items:center; gap:5px; }
-  .fb-dot { width:5px; height:5px; border-radius:50%; }
-  .fb-dot.connected { background:var(--green-ok); box-shadow:0 0 5px var(--green-ok); }
-  .fb-dot.connecting { background:var(--gold); animation:blink .8s infinite; }
-  .fb-dot.error { background:var(--red-alert); }
+.story-headline{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:800;color:var(--white);letter-spacing:.05em;line-height:1.3;text-shadow:0 0 14px rgba(0,200,240,.3);margin-bottom:5px}
+.story-meta{font-size:.48rem;color:rgba(0,153,204,.6);letter-spacing:.11em;margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap}
+.story-body{font-size:.76rem;color:rgba(210,238,252,.85);line-height:1.85;letter-spacing:.03em}
+.story-body p{margin-bottom:1em}.story-body p:last-child{margin-bottom:0}
 
-  .comment-list {
-    max-height:120px; overflow-y:auto;
-    display:flex; flex-direction:column; gap:6px; padding-right:3px;
-  }
-  .comment-empty { font-size:.62rem; color:rgba(0,153,204,.35); letter-spacing:.08em; font-style:italic; }
+/* ── COMMENT SECTION ── */
+.comment-section{border-top:1px solid rgba(0,200,240,.1);padding:12px 22px;flex-shrink:0;background:rgba(0,10,18,.8);display:flex;flex-direction:column;gap:8px}
+.cmt-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px}
+.cmt-title{font-family:'Orbitron',sans-serif;font-size:.48rem;letter-spacing:.26em;color:var(--gold);text-shadow:0 0 8px var(--gold-dim);display:flex;align-items:center;gap:6px}
+.lpulse{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);animation:blink 1s infinite}
+.cmt-count{font-size:.42rem;color:var(--blue-dim);letter-spacing:.1em}
+.fb-status{font-size:.4rem;letter-spacing:.08em;display:flex;align-items:center;gap:5px}
+.fbdot{width:5px;height:5px;border-radius:50%}
+.fbdot.on{background:var(--green);box-shadow:0 0 5px var(--green)}.fbdot.conn{background:var(--gold);animation:blink .8s infinite}.fbdot.err{background:var(--red)}
 
-  .c-entry {
-    border:1px solid rgba(0,212,255,.08); border-radius:2px;
-    padding:7px 10px; background:rgba(0,212,255,.015); position:relative;
-    animation:cSlide .3s ease;
-  }
-  @keyframes cSlide { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
-  .c-entry::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; border-radius:2px 0 0 2px; background:var(--blue-mid); }
+.cmt-list{max-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:3px}
+.cmt-empty{font-size:.6rem;color:rgba(0,153,204,.32);letter-spacing:.08em;font-style:italic}
+.c-entry{border:1px solid rgba(0,200,240,.08);border-radius:2px;padding:6px 9px;background:rgba(0,200,240,.015);position:relative;animation:cSlide .3s ease}
+@keyframes cSlide{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.c-entry::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;border-radius:2px 0 0 2px;background:var(--blue-dim)}
+.c-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.c-name{font-family:'Orbitron',sans-serif;font-size:.44rem;letter-spacing:.1em;color:var(--blue)}
+.c-time{font-size:.4rem;color:rgba(0,153,204,.5);letter-spacing:.08em}
+.c-text{font-size:.6rem;color:rgba(180,220,240,.78);line-height:1.5;letter-spacing:.03em}
+.c-del{position:absolute;top:5px;right:6px;font-size:.38rem;color:rgba(255,68,68,.32);cursor:pointer;border:none;background:none;font-family:inherit;letter-spacing:.08em;transition:color .2s}
+.c-del:hover{color:var(--red)}
 
-  .c-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-  .c-name { font-family:'Orbitron',sans-serif; font-size:.46rem; letter-spacing:.12em; color:var(--blue-bright); }
-  .c-time { font-size:.42rem; color:rgba(0,153,204,.55); letter-spacing:.08em; }
-  .c-text { font-size:.62rem; color:rgba(180,220,240,.8); line-height:1.55; letter-spacing:.03em; }
-  .c-del {
-    position:absolute; top:5px; right:7px;
-    font-size:.4rem; color:rgba(255,58,58,.35); cursor:pointer;
-    border:none; background:none; font-family:inherit; letter-spacing:.08em; transition:color .2s;
-  }
-  .c-del:hover { color:var(--red-alert); }
+.cmt-form{display:flex;gap:7px;align-items:flex-end}
+.cf-fields{display:flex;flex-direction:column;gap:4px;flex:1}
+.cf-row{display:flex;gap:5px}
+.cf-inp{background:rgba(0,200,240,.04);border:1px solid rgba(0,200,240,.18);border-radius:2px;color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:.68rem;padding:6px 9px;outline:none;letter-spacing:.04em;transition:border-color .2s,box-shadow .2s;caret-color:var(--blue)}
+.cf-inp:focus{border-color:var(--blue);box-shadow:0 0 10px rgba(0,200,240,.15)}
+.cf-inp::placeholder{color:rgba(0,153,204,.28);font-size:.62rem}
+.cf-name{flex:1}.cf-planet{width:90px}
+.cf-txt{width:100%;resize:none;min-height:40px}
+.cf-sub{background:linear-gradient(135deg,rgba(0,200,240,.1),rgba(0,130,170,.07));border:1px solid rgba(0,200,240,.28);color:var(--blue);font-family:'Orbitron',sans-serif;font-size:.42rem;font-weight:700;letter-spacing:.14em;padding:9px 12px;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;align-self:stretch;display:flex;align-items:center;gap:4px;text-shadow:0 0 8px var(--blue)}
+.cf-sub:hover{border-color:var(--blue);box-shadow:0 0 12px rgba(0,200,240,.25);background:linear-gradient(135deg,rgba(0,200,240,.18),rgba(0,130,170,.12))}
+.cf-sub:active{transform:scale(.96)}
+.cf-sub:disabled{opacity:.4;cursor:not-allowed}
 
-  .comment-form { display:flex; gap:8px; align-items:flex-end; }
-  .cf-fields { display:flex; flex-direction:column; gap:5px; flex:1; }
-  .cf-name-row { display:flex; gap:6px; }
+/* ══ RIGHT PANEL ════════════════════════════════════════════════════════ */
+.right{border-left:1px solid var(--border2);background:var(--panel2);display:flex;flex-direction:column;min-height:0}
 
-  .cf-input {
-    background:rgba(0,212,255,.03); border:1px solid rgba(0,212,255,.2); border-radius:2px;
-    color:var(--blue-bright); font-family:'Share Tech Mono',monospace;
-    font-size:.7rem; padding:7px 10px; outline:none; letter-spacing:.04em;
-    transition:border-color .2s, box-shadow .2s; caret-color:var(--blue-bright);
-  }
-  .cf-input:focus { border-color:var(--blue-bright); box-shadow:0 0 12px rgba(0,212,255,.16),inset 0 0 6px rgba(0,212,255,.04); }
-  .cf-input::placeholder { color:rgba(0,153,204,.3); font-size:.65rem; }
-  .cf-name { flex:1; } .cf-planet { width:100px; }
-  .cf-text { width:100%; resize:none; min-height:44px; }
+.log-hdr{padding:11px 11px 7px;flex-shrink:0;border-bottom:1px solid rgba(0,200,240,.09);background:rgba(0,20,35,.6)}
+.log-title{font-family:'Orbitron',sans-serif;font-size:.47rem;letter-spacing:.26em;color:var(--gold);text-shadow:0 0 8px var(--gold-dim);display:flex;align-items:center;gap:6px}
+.log-sub{font-size:.4rem;color:var(--blue-dim);margin-top:3px;letter-spacing:.08em}
 
-  .cf-submit {
-    background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(0,150,200,.07));
-    border:1px solid rgba(0,212,255,.3); color:var(--blue-bright);
-    font-family:'Orbitron',sans-serif; font-size:.44rem; font-weight:700;
-    letter-spacing:.16em; padding:10px 14px; cursor:pointer; border-radius:2px;
-    transition:all .2s; white-space:nowrap; align-self:stretch;
-    display:flex; align-items:center; gap:5px; text-shadow:0 0 8px var(--blue-bright);
-  }
-  .cf-submit:hover { border-color:var(--blue-bright); box-shadow:0 0 14px rgba(0,212,255,.28); background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(0,150,200,.12)); }
-  .cf-submit:active { transform:scale(.96); }
-  .cf-submit:disabled { opacity:.4; cursor:not-allowed; }
+/* ADD LOG button (only shown when logged in) */
+.add-log-btn{
+  display:none;/* toggled by JS */
+  margin:8px 11px 0;
+  background:linear-gradient(135deg,rgba(0,200,240,.1),rgba(0,130,170,.07));
+  border:1px solid rgba(0,200,240,.28);color:var(--blue);
+  font-family:'Orbitron',sans-serif;font-size:.42rem;font-weight:700;letter-spacing:.16em;
+  padding:7px 10px;cursor:pointer;border-radius:2px;transition:all .2s;
+  text-shadow:0 0 8px var(--blue);flex-shrink:0;
+}
+.add-log-btn:hover{border-color:var(--blue);box-shadow:0 0 12px rgba(0,200,240,.22)}
 
-  /* ── RIGHT PANEL — LOG ───────────────────────────────────────────── */
-  .right { border-left:1px solid rgba(0,212,255,.12); background:rgba(0,7,17,.82); display:flex; flex-direction:column; min-height:0; }
+.log-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
 
-  .log-hdr { padding:12px 12px 8px; flex-shrink:0; border-bottom:1px solid rgba(0,212,255,.09); background:rgba(0,14,28,.6); }
-  .log-title { font-family:'Orbitron',sans-serif; font-size:.49rem; letter-spacing:.28em; color:var(--gold); text-shadow:0 0 8px var(--gold-glow); display:flex; align-items:center; gap:7px; }
-  .log-sub { font-size:.42rem; color:var(--blue-mid); margin-top:3px; letter-spacing:.1em; }
+.log-entry{border:1px solid rgba(0,200,240,.09);border-radius:2px;padding:7px 9px;background:rgba(0,200,240,.015);cursor:pointer;transition:all .2s;position:relative}
+.log-entry:hover{border-color:rgba(0,200,240,.22);background:rgba(0,200,240,.04)}
+.log-entry.active-e{border-color:rgba(0,200,240,.38);background:rgba(0,200,240,.055)}
+.log-entry.active-e::after{content:'◀ VIEWING';position:absolute;bottom:3px;right:6px;font-size:.36rem;color:var(--blue-dim);letter-spacing:.08em}
+.log-entry::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;border-radius:2px 0 0 2px}
+.log-entry.ph::before{background:var(--red);box-shadow:0 0 5px var(--red)}.log-entry.pm::before{background:var(--gold)}.log-entry.pl::before{background:var(--blue-dim)}
 
-  .log-list { flex:1; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:7px; }
+.le-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.le-time{font-size:.4rem;color:rgba(0,153,204,.6);letter-spacing:.08em}
+.le-tag{font-size:.34rem;letter-spacing:.12em;padding:1px 4px;border-radius:1px;border:1px solid currentColor}
+.le-tag.high{color:var(--red)}.le-tag.mid{color:var(--gold)}.le-tag.low{color:var(--blue-dim)}
+.le-hl{font-family:'Orbitron',sans-serif;font-size:.45rem;font-weight:700;color:var(--white);letter-spacing:.06em;line-height:1.3;text-shadow:0 0 6px rgba(0,200,240,.2)}
+.le-del{position:absolute;top:4px;right:6px;font-size:.36rem;color:rgba(255,68,68,.28);cursor:pointer;border:none;background:none;font-family:inherit;transition:color .2s;display:none}
+.le-del:hover{color:var(--red)}
+.can-delete .le-del{display:block}
 
-  .log-entry {
-    border:1px solid rgba(0,212,255,.09); border-radius:2px;
-    padding:8px 10px; background:rgba(0,212,255,.015);
-    cursor:pointer; transition:all .2s; position:relative;
-  }
-  .log-entry:hover { border-color:rgba(0,212,255,.25); background:rgba(0,212,255,.045); }
-  .log-entry.active-entry { border-color:rgba(0,212,255,.4); background:rgba(0,212,255,.06); }
-  .log-entry.active-entry::after { content:'◀ VIEWING'; position:absolute; bottom:4px; right:7px; font-size:.38rem; color:var(--blue-mid); letter-spacing:.08em; }
-  .log-entry::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; border-radius:2px 0 0 2px; }
-  .log-entry.ph::before { background:var(--red-alert); box-shadow:0 0 5px var(--red-alert); }
-  .log-entry.pm::before { background:var(--gold); box-shadow:0 0 4px var(--gold-glow); }
-  .log-entry.pl::before { background:var(--blue-mid); }
+/* ══ NEW LOG MODAL ══════════════════════════════════════════════════════ */
+#log-modal{
+  position:fixed;inset:0;z-index:7000;
+  background:rgba(0,8,15,.9);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+#log-modal.open{display:flex}
 
-  .le-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-  .le-time { font-size:.42rem; color:rgba(0,153,204,.65); letter-spacing:.09em; }
-  .le-tag { font-size:.36rem; letter-spacing:.13em; padding:1px 5px; border-radius:1px; border:1px solid currentColor; }
-  .le-tag.high { color:var(--red-alert); } .le-tag.mid { color:var(--gold); } .le-tag.low { color:var(--blue-mid); }
-  .le-hl { font-family:'Orbitron',sans-serif; font-size:.47rem; font-weight:700; color:var(--white); letter-spacing:.07em; line-height:1.3; text-shadow:0 0 6px rgba(0,212,255,.22); }
+.modal-box{
+  background:linear-gradient(135deg,rgba(0,25,42,.98),rgba(0,18,30,.98));
+  border:1px solid rgba(0,200,240,.3);border-radius:4px;
+  padding:28px 32px;width:min(760px,95vw);
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 0 80px rgba(0,200,240,.1);
+  display:flex;flex-direction:column;gap:14px;
+  position:relative;
+}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),var(--gold),var(--blue),transparent);animation:shimmer 3s linear infinite;background-size:200% 100%}
 
-  /* ── BOTTOM BAR ──────────────────────────────────────────────────── */
-  .bot {
-    border-top:1px solid rgba(0,212,255,.1); background:rgba(0,5,10,.97);
-    padding:5px 20px; display:flex; justify-content:space-between; align-items:center;
-    font-size:.46rem; color:rgba(0,153,204,.5); letter-spacing:.1em; flex-shrink:0;
-    position:relative; overflow:hidden;
-  }
-  .bot::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,212,255,.2),transparent); }
-  #status { transition:color .4s; }
+.modal-title{font-family:'Orbitron',sans-serif;font-size:.8rem;letter-spacing:.3em;color:var(--blue);text-shadow:0 0 12px var(--blue);text-align:center}
+.modal-sub{font-size:.48rem;letter-spacing:.2em;color:var(--blue-dim);text-align:center}
+
+.modal-row{display:flex;gap:10px;align-items:flex-start}
+.modal-label{font-size:.48rem;letter-spacing:.18em;color:var(--blue-dim);margin-bottom:4px;font-family:'Orbitron',sans-serif}
+
+.m-inp{background:rgba(0,200,240,.04);border:1px solid rgba(0,200,240,.18);border-radius:2px;color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:.76rem;padding:8px 12px;outline:none;letter-spacing:.04em;transition:border-color .2s,box-shadow .2s;caret-color:var(--blue);width:100%}
+.m-inp:focus{border-color:var(--blue);box-shadow:0 0 12px rgba(0,200,240,.16)}
+.m-inp::placeholder{color:rgba(0,153,204,.28);font-size:.7rem}
+
+/* PRIORITY SELECT */
+.m-select{background:rgba(0,200,240,.04);border:1px solid rgba(0,200,240,.18);border-radius:2px;color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:.72rem;padding:8px 12px;outline:none;cursor:pointer;min-width:130px}
+.m-select option{background:#021018;color:var(--blue)}
+
+/* RICH TEXT EDITOR */
+.editor-wrap{display:flex;flex-direction:column;gap:0;border:1px solid rgba(0,200,240,.18);border-radius:2px;overflow:hidden}
+
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:3px;padding:7px 8px;
+  background:rgba(0,200,240,.06);border-bottom:1px solid rgba(0,200,240,.12);
+}
+.tb-sep{width:1px;height:22px;background:rgba(0,200,240,.15);margin:0 3px;align-self:center}
+
+.tb-btn{
+  background:rgba(0,200,240,.06);border:1px solid rgba(0,200,240,.14);
+  color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:.68rem;
+  padding:3px 8px;cursor:pointer;border-radius:2px;transition:all .15s;
+  white-space:nowrap;letter-spacing:.04em;line-height:1.4;
+}
+.tb-btn:hover{border-color:var(--blue);background:rgba(0,200,240,.14);box-shadow:0 0 8px rgba(0,200,240,.15)}
+.tb-btn.active{background:rgba(0,200,240,.2);border-color:var(--blue)}
+
+.tb-btn.bold-btn{font-weight:700}
+.tb-btn.italic-btn{font-style:italic}
+.tb-btn.blue-btn{color:#00aaff;border-color:rgba(0,170,255,.3)}
+.tb-btn.blue-btn:hover{background:rgba(0,170,255,.15)}
+
+/* COLOR SWATCHES */
+.color-swatch{
+  width:18px;height:18px;border-radius:2px;border:1px solid rgba(255,255,255,.15);
+  cursor:pointer;transition:transform .15s,box-shadow .15s;display:inline-block;
+  flex-shrink:0;
+}
+.color-swatch:hover{transform:scale(1.2);box-shadow:0 0 6px rgba(255,255,255,.4)}
+
+/* CONTENTEDITABLE BODY */
+#editor-body{
+  min-height:180px;max-height:280px;overflow-y:auto;
+  background:rgba(0,12,22,.7);
+  color:rgba(210,238,252,.9);
+  font-family:'Share Tech Mono',monospace;
+  font-size:.78rem;line-height:1.8;letter-spacing:.03em;
+  padding:14px 16px;outline:none;caret-color:var(--blue);
+}
+#editor-body:empty::before{content:attr(data-placeholder);color:rgba(0,153,204,.28);font-size:.72rem;pointer-events:none}
+#editor-body:focus{box-shadow:inset 0 0 0 1px rgba(0,200,240,.1)}
+
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.m-cancel{background:transparent;border:1px solid rgba(255,68,68,.25);color:rgba(255,68,68,.5);font-family:'Orbitron',sans-serif;font-size:.44rem;letter-spacing:.15em;padding:9px 16px;cursor:pointer;border-radius:2px;transition:all .2s}
+.m-cancel:hover{border-color:var(--red);color:var(--red)}
+.m-post{background:linear-gradient(135deg,rgba(0,200,240,.15),rgba(0,130,170,.1));border:1px solid rgba(0,200,240,.35);color:var(--blue);font-family:'Orbitron',sans-serif;font-size:.48rem;font-weight:700;letter-spacing:.2em;padding:10px 22px;cursor:pointer;border-radius:2px;transition:all .2s;text-shadow:0 0 8px var(--blue)}
+.m-post:hover{border-color:var(--blue);box-shadow:0 0 16px rgba(0,200,240,.28);background:linear-gradient(135deg,rgba(0,200,240,.24),rgba(0,130,170,.16))}
+
+/* ── BOTTOM BAR ── */
+.bot{border-top:1px solid rgba(0,200,240,.1);background:rgba(0,8,14,.97);padding:5px 18px;display:flex;justify-content:space-between;align-items:center;font-size:.44rem;color:rgba(0,153,204,.48);letter-spacing:.1em;flex-shrink:0;position:relative;overflow:hidden}
+.bot::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,240,.18),transparent)}
+#status{transition:color .4s}
 </style>
 </head>
 <body>
 <div class="starfield"></div>
 
-<!-- BOOT SCREEN -->
+<!-- BOOT -->
 <div id="boot">
-  <img class="boot-emblem" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
-  <div class="boot-title">GALACTIC REPUBLIC</div>
-  <div class="boot-sub">HOLONET NEWS TERMINAL v4.7.2</div>
+  <img class="boot-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
+  <div class="boot-t">GALACTIC REPUBLIC</div>
+  <div class="boot-s">HOLONET NEWS TERMINAL v4.7.2</div>
   <div class="boot-log">
-    <div class="blog">[SYS] Initializing HoloNet uplink...</div>
-    <div class="blog">[SYS] Verifying Senate authentication... OK</div>
-    <div class="blog">[SYS] Establishing secure frequency... 1138.4 GHz</div>
-    <div class="blog">[SYS] Encryption layers active... OK</div>
-    <div class="blog">[SYS] TERMINAL READY — IN THE NAME OF THE REPUBLIC</div>
+    <div class="bl">[SYS] Initializing HoloNet uplink...</div>
+    <div class="bl">[SYS] Verifying Senate authentication... OK</div>
+    <div class="bl">[SYS] Establishing secure frequency... 1138.4 GHz</div>
+    <div class="bl">[SYS] Encryption layers active... OK</div>
+    <div class="bl">[SYS] TERMINAL READY — IN THE NAME OF THE REPUBLIC</div>
+  </div>
+</div>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <img class="login-emblem" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
+    <div class="login-title">HOLONET PRESS CREDENTIALS</div>
+    <div class="login-sub">AUTHORIZED CORRESPONDENTS ONLY — GALACTIC REPUBLIC BUREAU</div>
+    <div class="login-fields">
+      <input class="l-input" id="l-user" type="text" placeholder="USERNAME" autocomplete="off" spellcheck="false">
+      <input class="l-input" id="l-pass" type="password" placeholder="PASSWORD">
+      <div class="l-err" id="l-err"></div>
+      <button class="l-btn" onclick="doLogin()">▶ AUTHENTICATE</button>
+    </div>
+    <div style="font-size:.42rem;color:rgba(0,153,204,.4);letter-spacing:.1em;text-align:center">PRESS ENTER TO SUBMIT</div>
   </div>
 </div>
 
 <!-- TERMINAL -->
 <div id="terminal">
 
+  <!-- TOP BAR -->
   <div class="topbar">
     <div class="logo">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="Republic Emblem">
-      <div class="logo-txt">
-        <span class="logo-main">HOLONET NEWS</span>
-        <span class="logo-sub">GALACTIC REPUBLIC — CORUSCANT BUREAU</span>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Emblem_of_the_Galactic_Republic.svg/512px-Emblem_of_the_Galactic_Republic.svg.png" alt="">
+      <div>
+        <div class="logo-main">HOLONET NEWS</div>
+        <div class="logo-sub">GALACTIC REPUBLIC — CORUSCANT BUREAU</div>
       </div>
     </div>
     <div class="topright">
-      <div class="live-dot"></div><span>LIVE</span>
+      <div class="ldot"></div><span>LIVE</span>
       <span>|</span><span>FREQ: 1138.4 GHz</span>
-      <span>|</span><span>SEC: DELTA-7</span>
       <span>|</span><span id="clock">--:--:-- GST</span>
+      <span>|</span>
+      <div class="reporter-badge" id="reporter-badge" style="display:none">
+        <span>CORRESPONDENT:</span>
+        <span class="rb-name" id="reporter-name">—</span>
+        <button class="logout-btn" onclick="doLogout()">✕ LOG OUT</button>
+      </div>
+      <div id="login-hint" style="font-size:.44rem;color:rgba(0,153,204,.5);letter-spacing:.1em;cursor:pointer;border:1px solid rgba(0,200,240,.15);padding:4px 9px;border-radius:2px" onclick="showLogin()">⚿ PRESS LOGIN</button>
     </div>
   </div>
 
+  <!-- BREAKING BANNER -->
   <div class="banner">
-    <div class="brk-label"><div class="adot"></div>BREAKING NEWS</div>
+    <div class="brk-lbl"><div class="adot"></div>BREAKING NEWS</div>
     <div class="ticker-wrap">
-      <div class="ticker">
+      <div class="ticker" id="ticker-inner">
         <span>&#9650; CII ANNIHILATED — "FORCE DROIDS" DESTROY FACTION IN SINGLE ENGAGEMENT &#9650;</span>
         <span class="tsep"> &#9670; </span>
         <span>LITOLE MISSING — SENATE INTELLIGENCE REQUESTS EMERGENCY BRIEFING ON FORCE DROID ORIGIN</span>
@@ -528,12 +578,13 @@
         <span class="tsep"> &#9670; </span>
         <span>WARRIOR-CASTE TACTICS CONFIRMED — REPUBLIC ANALYSTS WARN OF NEW FRONT IN CLONE WARS</span>
         <span class="tsep"> &#9670; </span>
-        <span>POGGLE THE LESSER UNAVAILABLE FOR COMMENT — GEONOSIS UPLINK HOSTILE &#9670; STAY WITH HOLONET NEWS</span>
+        <span>POGGLE THE LESSER UNAVAILABLE FOR COMMENT &#9670; STAY WITH HOLONET NEWS</span>
         <span class="tsep"> &#9670; </span>
       </div>
     </div>
   </div>
 
+  <!-- GRID -->
   <div class="grid">
 
     <!-- LEFT -->
@@ -543,7 +594,7 @@
         <div class="holo-lbl">GALACTIC REPUBLIC<br>AUTHENTICATED BROADCAST</div>
       </div>
       <div>
-        <div class="sec-title">▸ NETWORK STATUS</div>
+        <div class="sec-t">▸ NETWORK STATUS</div>
         <div class="srow"><span>UPLINK</span><span class="sv ok">98.4%</span></div>
         <div class="srow"><span>ENCRYPTION</span><span class="sv ok">ACTIVE</span></div>
         <div class="srow"><span>SENATE FEED</span><span class="sv ok">LIVE</span></div>
@@ -552,7 +603,7 @@
         <div class="srow"><span>CORE WORLDS</span><span class="sv ok">NOMINAL</span></div>
       </div>
       <div>
-        <div class="sec-title">▸ SECTOR UPLINKS</div>
+        <div class="sec-t">▸ SECTOR UPLINKS</div>
         <div class="srow"><span>CORUSCANT</span><span class="sv ok">ONLINE</span></div>
         <div class="srow"><span>ALDERAAN</span><span class="sv ok">ONLINE</span></div>
         <div class="srow"><span>NABOO</span><span class="sv ok">ONLINE</span></div>
@@ -561,19 +612,10 @@
         <div class="srow"><span>TATOOINE</span><span class="sv">UNMON.</span></div>
       </div>
       <div>
-        <div class="sec-title">▸ SIGNAL CHANNELS</div>
-        <div class="freq-row">
-          <div class="freq-lbl"><span>MAIN — 1138.4</span><span class="sv ok" style="font-size:.42rem">●</span></div>
-          <div class="freq-track"><div class="freq-fill ff1"></div></div>
-        </div>
-        <div class="freq-row">
-          <div class="freq-lbl"><span>SENATE — 5501.0</span><span class="sv ok" style="font-size:.42rem">●</span></div>
-          <div class="freq-track"><div class="freq-fill ff3"></div></div>
-        </div>
-        <div class="freq-row">
-          <div class="freq-lbl"><span>ENCRYPTED</span><span class="sv wrn" style="font-size:.42rem">●</span></div>
-          <div class="freq-track"><div class="freq-fill ff2"></div></div>
-        </div>
+        <div class="sec-t">▸ SIGNAL CHANNELS</div>
+        <div class="freq-row"><div class="freq-lbl"><span>MAIN — 1138.4</span><span class="sv ok" style="font-size:.4rem">●</span></div><div class="freq-track"><div class="freq-fill ff1"></div></div></div>
+        <div class="freq-row"><div class="freq-lbl"><span>SENATE — 5501.0</span><span class="sv ok" style="font-size:.4rem">●</span></div><div class="freq-track"><div class="freq-fill ff3"></div></div></div>
+        <div class="freq-row"><div class="freq-lbl"><span>ENCRYPTED</span><span class="sv wrn" style="font-size:.4rem">●</span></div><div class="freq-track"><div class="freq-fill ff2"></div></div></div>
       </div>
     </div>
 
@@ -595,299 +637,509 @@
             <div class="story-meta">
               <span>&#9670; BBY 22 — 06:14:02 GST</span>
               <span>&#9670; CORUSCANT BUREAU</span>
-              <span>&#9670; CORRESPONDENT: FINIS VALORUM JR.</span>
+              <span>&#9670; JEST ICKLE, CORRESPONDENT</span>
             </div>
             <div class="story-body">
-              <p>CORUSCANT — In what Republic Intelligence is describing as one of the most sudden and complete military annihilations in the history of the Clone Wars, the <strong style="color:var(--blue-bright)">Confederación de la Igualdad e Independencia</strong> — known across the Outer Rim and among dissident circles under the initials <strong style="color:var(--blue-bright)">CII</strong> — has been utterly destroyed. The organization, which had been growing in size and influence for several standard years, was wiped out in a single engagement of remarkable brevity against a series of unidentified droid units displaying capabilities that senior Republic analysts and at least two members of the Jedi Council are struggling, by all accounts, to classify. The working designation applied to the attackers in classified Senate briefings — already leaking into intelligence circles — is <em>"Force Droids."</em> No such designation has any known precedent in the military doctrine of either the Galactic Republic or the Confederacy of Independent Systems.</p>
-
-              <p>The CII was not a conventional rebel faction. It was founded in the shadow of the Clone Wars by individuals who had grown disillusioned with both sides of the conflict, and its composition reflected that breadth of rejection. Its membership included defectors from CIS command — officers who had seen the inner workings of the Separatist machine and found it no less corrupt than the institution it claimed to oppose — alongside soldiers recruited from dozens of worlds throughout the Mid and Outer Rim. They wore no colors of either the Republic or the CIS. Instead, members were distinguished by a striking and deliberate symbol: a <strong style="color:var(--blue-bright)">yellow hexagon</strong> emblazoned on their armor, representing neither side's geometry, neither side's claim to legitimacy. A symbol of refusal. The faction's total membership count at the time of its destruction is estimated by intelligence analysts at somewhere between three and six thousand combatants, supported by an unknown number of civilian sympathizers on at least fourteen worlds.</p>
-
-              <p>What made the CII philosophically distinct — and what made it so difficult for the Republic to categorize — was its code of conduct. The faction did not wage war the way either belligerent in the Clone Wars did. Their doctrine was explicit and, by multiple accounts, genuinely observed: <strong style="color:var(--blue-bright)">enemies were to be incapacitated, not killed.</strong> Lethal force was authorized only when an adversary was deemed an irreducible threat to the lives of CII personnel or the continuation of the faction's mission. Those captured in battle were not imprisoned in field camps or transferred to labor facilities. They were transported — regardless of how far that required traveling — to CII judicial councils, where a formal legal proceeding, with representation and evidence, determined their fate. Republic officers who had been through this process and subsequently released described it, privately and with evident discomfort, as <em>"more fair than anything the Senate has produced in a decade."</em></p>
-
-              <p>The faction's ideological foundation drew comparisons to pre-Republic governmental philosophies and to certain strains of contemporary political thought that have gained traction on worlds dissatisfied with the Senate's conduct of the war. In broad terms, the CII believed that the Galactic Republic had become a vehicle for concentrated power rather than distributed justice — that the Senate, whatever its origins, had evolved into an instrument of the interests of its most powerful members, not its most numerous citizens. They also believed — and this element is perhaps the most explosive — that the CIS had a <strong style="color:var(--blue-bright)">secret agenda</strong> that went beyond the stated aims of the Separatist movement. The precise nature of that alleged agenda has not been made public, and whether the CII possessed specific intelligence on it died with the faction. The Senate has declined to comment on whether any documents recovered from CII strongholds are being examined.</p>
-
-              <p>The organization's founder, supreme commander, and the face of its ideology was a human man known publicly as <strong style="color:var(--blue-bright)">Halgane Litole</strong> — referred to by his followers almost exclusively simply as <em>Litole.</em> His background before the founding of the CII is partially documented: he held a mid-level command position within the CIS before his defection, which appears to have been precipitated by direct exposure to the upper echelons of Separatist leadership. Those who knew him described a patient and meticulous strategist, a man who planned in years rather than months, and who held a genuine and deeply felt conviction that the galaxy's two warring powers were not opposites but mirrors. His current status is <strong style="color:var(--red-alert)">UNKNOWN.</strong> No confirmed identification of his remains has been produced. Republic search teams operating at the site of the final engagement have found no trace of him among the dead.</p>
-
-              <p>The engagement itself lasted, by all accounts, less than four hours. The site — a fortified facility on the edge of the Outer Rim, whose location this correspondent has agreed not to publish pending ongoing security operations — was reduced to structural ruin by energies that Republic forensic teams cannot match to any catalogued weapon system in existence. Witnesses in the surrounding area, a small number of non-combatant civilians, described the attackers in terms that have been consistent across independent interviews. The droids moved, they said, with a quality of awareness that standard battle droids do not possess. They seemed to anticipate movement before it occurred. Blaster fire was deflected — not by shields, but by physical repositioning executed at inhuman speed and precision. One witness, speaking on condition of anonymity, offered the statement that has since circulated in intelligence circles: <em>"They weren't fighting like droids. They were fighting like something that knew what was going to happen before it did."</em></p>
-
-              <p>The Jedi Council has been formally notified. No public statement has been issued. Senate hearings on the matter are expected to be convened within the week, though whether those hearings will be classified remains under discussion. This correspondent urges all citizens to treat unverified reports with appropriate caution while acknowledging that the destruction of the CII, whatever one thought of its politics, represents an event of significant consequence — and that the weapon used to achieve it remains entirely unaccounted for.</p>
+              <p>CORUSCANT — In what Republic Intelligence is describing as one of the most sudden and complete military annihilations in the history of the Clone Wars, the <strong style="color:var(--blue)">Confederación de la Igualdad e Independencia</strong> — known across the Outer Rim and among dissident circles under the initials <strong style="color:var(--blue)">CII</strong> — has been utterly destroyed. The organization, which had been growing in size and influence for several standard years, was wiped out in a single engagement against a series of unidentified droid units displaying capabilities that senior Republic analysts and at least two members of the Jedi Council are struggling to classify. The working designation applied to the attackers in classified Senate briefings is <em>"Force Droids."</em> No such designation has any known precedent in the military doctrine of either the Galactic Republic or the Confederacy of Independent Systems.</p>
+              <p>The CII was not a conventional rebel faction. Its membership included defectors from CIS command — officers who had seen the inner workings of the Separatist machine and found it no less corrupt than the institution it claimed to oppose — alongside soldiers recruited from dozens of worlds throughout the Mid and Outer Rim. Members were distinguished by a striking symbol: a <strong style="color:var(--blue)">yellow hexagon</strong> emblazoned on their armor, a deliberate rejection of both sides' claims to legitimacy. The faction's total membership at the time of its destruction is estimated at somewhere between three and six thousand combatants, supported by an unknown number of civilian sympathizers on at least fourteen worlds.</p>
+              <p>What made the CII philosophically distinct was its code of conduct. Their doctrine was explicit and genuinely observed: <strong style="color:var(--blue)">enemies were to be incapacitated, not killed.</strong> Lethal force was authorized only when an adversary was deemed an irreducible threat to CII operations. Those captured were transported to CII judicial councils, where a formal legal proceeding determined their fate. Republic officers who had been through this process described it, privately, as <em>"more fair than anything the Senate has produced in a decade."</em></p>
+              <p>The faction's founder and supreme leader, <strong style="color:var(--blue)">Halgane Litole</strong> — referred to by his followers simply as <em>Litole</em> — was a human with a background in CIS command before his defection. He held two primary objectives: to expose the Senate's corruption, and to reveal an alleged secret agenda being pursued by the CIS upper echelons. His current status is <strong style="color:var(--red)">UNKNOWN.</strong> No confirmed identification of his remains has been produced at the engagement site.</p>
+              <p>The engagement lasted less than four hours. Witnesses described the Force Droids as moving with a quality of awareness that standard battle droids do not possess — anticipating movement before it occurred, deflecting blaster fire through physical repositioning executed at inhuman speed. One witness stated: <em>"They weren't fighting like droids. They were fighting like something that knew what was going to happen before it did."</em> The Jedi Council has been formally notified. Senate hearings are expected within the week.</p>
             </div>
           </div>
 
           <!-- STORY 1 — TRUE HIVE -->
           <div class="story-content" id="sc-1">
             <div class="story-priority high">&#9650; PRIORITY ALPHA</div>
-            <div class="story-headline">ANCIENT FURY REBORN — UNIDENTIFIED GEONOSIAN WARRIOR FACTION STRIKES OUTER RIM IN COORDINATED CAMPAIGN OF UNPRECEDENTED FEROCITY</div>
+            <div class="story-headline">ANCIENT FURY REBORN — UNIDENTIFIED GEONOSIAN WARRIOR FACTION STRIKES OUTER RIM IN COORDINATED CAMPAIGN</div>
             <div class="story-meta">
               <span>&#9670; BBY 22 — 08:47:33 GST</span>
               <span>&#9670; OUTER RIM BUREAU — FIELD TRANSMISSION</span>
-              <span>&#9670; CORRESPONDENT: DENNII SUNBER</span>
+              <span>&#9670; VINE CALEIS, CORRESPONDENT</span>
             </div>
             <div class="story-body">
-              <p>OUTER RIM TERRITORIES — I am filing this report from a secure relay station three systems removed from the most recent engagement site, and I want the editors and the citizens reading this to understand something before the facts begin: what is happening in the Outer Rim right now does not fit any existing category of threat that this correspondent — or, by the accounts reaching me, any Republic military analyst — has encountered during the Clone Wars. A faction has emerged from Geonosis that is not the Separatists, not an extension of Poggle the Lesser's apparatus, and not a criminal organization operating under a political banner. It is something older than all of those things, and considerably more dangerous.</p>
-
-              <p>Clone commanders across at least seven separate engagement sites have used the same phrase in their after-action reports, independently and without apparent coordination: <em>"warrior caste."</em> The attackers are Geonosian — insectoid, some winged, physically formidable in a way that the drone-caste Geonosians encountered throughout the Clone Wars simply are not. They conduct ground assaults <strong style="color:var(--blue-bright)">personally and deliberately.</strong> They close distance. They fight in melee range. They use their own bodies as primary weapons and treat the destruction of an enemy as an act requiring personal presence. Republic troopers — veterans of Christophsis, of Ryloth, of a dozen campaigns across three years of war — have described these warriors as the most physically dangerous adversaries they have encountered in the field. That assessment, from soldiers who have faced Jedi, Sith assassins, and the full weight of Separatist droid armies, is not a statement this correspondent makes lightly.</p>
-
-              <p>Droids are present in this faction's operations, but their role is categorically secondary. The faction fields its own fleet — vessels of Geonosian design but not matching any configuration in the Republic's recognition databases — and deploys automated units for perimeter enforcement, fire support, and logistical functions. But in every ground engagement documented thus far, droids have served as tools. Scaffolding. The killing, as every survivor account confirms, is done by the warriors. This is not incidental. It is, by all evidence, <strong style="color:var(--blue-bright)">doctrine.</strong></p>
-
-              <p>To understand why requires understanding the grievance at the movement's core, and that grievance is directed at a specific individual: <strong style="color:var(--blue-bright)">Poggle the Lesser</strong>, Archduke of Geonosis, the Geonosian leader who forged the planet's alliance with Count Dooku and the CIS in the years before the Battle of Geonosis. The terms of that alliance are well known: Geonosis became the primary manufacturing base for the Separatist droid army. Its tunnels, its foundries, its ancient arenas, the physical substance of Geonosian civilization — all of it was converted, methodically and at an accelerating pace, into production infrastructure for machines. Poggle delivered his world to the war. He delivered his people's culture, their history, and their identity to the war. And from the perspective of this emerging faction, he delivered all of it not for Geonosian independence or Geonosian glory, but for the strategic calculations of offworld commanders who view the planet as a manufacturing asset, nothing more.</p>
-
-              <p>The warriors will not forgive this. Their attacks on Separatist supply lines have been as aggressive as their attacks on Republic forces — perhaps more so. They do not distinguish between the two powers of the Clone Wars, except insofar as both represent the political order they have rejected. Their stated purpose, communicated openly to at least one Republic officer who survived a brief capture and was released with what appears to have been deliberate care, is to <strong style="color:var(--blue-bright)">end the Clone Wars</strong> — not through diplomacy, not through political pressure, but by dismantling both sides until neither can continue. Beyond that, they intend to <strong style="color:var(--blue-bright)">rule the galaxy.</strong> And they intend to <strong style="color:var(--blue-bright)">retake Geonosis.</strong> These are not the stated ambitions of a resistance movement. These are the stated ambitions of a power that considers itself the legitimate inheritor of galactic authority, waiting for the current occupants to exhaust themselves into irrelevance.</p>
-
-              <p>At the center of this faction is a queen. Geonosian social structure has always been organized around queens — biological and political authorities of absolute status within their hive. This faction's queen is referred to in intercepted Geonosian transmissions by a name that Republic xenolinguistics specialists have rendered as <strong style="color:var(--blue-bright)">Yamilei.</strong> What is known of her is limited. She has not been confirmed present at any engagement. Her communications with her forces use encryption methods that have resisted all current Republic decryption efforts. The officer who survived capture described being brought before a presence he never directly saw, in a chamber he could not precisely locate, and receiving a message delivered through intermediaries: the Republic should consider what it has done to worlds like Geonosis, because it will be held accountable. He was then returned to his unit, unharmed.</p>
-
-              <p>The faction's tactical discipline is extraordinary. They do not overextend. They do not hold ground they cannot defend. They strike in concentrated bursts, cause maximum damage in minimum time, and withdraw before reinforcements can arrive. Every engagement has ended with the warriors gone. No prisoners have been taken from their side. No equipment has been recovered intact. The Republic's forensic picture of this faction has been assembled almost entirely from what they chose to leave behind, which appears to be exactly nothing of intelligence value. They are learning faster than our analysts can track them.</p>
-
-              <p>Glory, as one fragment of recovered Geonosian writing has been tentatively translated to mean, is not measured by what you control. It is measured by what you defeat. By whom you face in combat, directly, with your own strength, and overcome. The old way. The way that Poggle abandoned when he handed Geonosis to Count Dooku. The way that Queen Yamilei, it appears, intends to restore — whether the galaxy consents to that restoration or not. This correspondent will continue to file from the field. Citizens of the Republic are advised to exercise caution in Outer Rim sectors flagged in the accompanying security bulletin. This story is not over. It is, by all indications, just beginning.</p>
+              <p>OUTER RIM TERRITORIES — A series of coordinated and ferocious attacks across multiple Outer Rim sectors has been attributed to an emerging Geonosian faction whose identity, command structure, and objectives remain almost entirely unknown to Republic forces. What is known — pieced together from survivor accounts, damaged surveillance records, and two Republic patrols who survived contact — paints the portrait of a movement unlike anything the Clone Wars has produced. This faction does not fight like the Separatists. It does not fight like the Republic. It fights like something <em>older.</em></p>
+              <p>Clone commanders across seven separate engagement sites have independently used the same phrase: <em>"warrior caste."</em> The attackers are Geonosian — insectoid, winged in some cases, fighting with the ferocity that distinguished ancient Geonosian armies long before the planet became synonymous with droid foundries. Unlike the Geonosian forces encountered during the Clone Wars, which primarily direct battle droid formations from behind the lines, these warriors conduct <strong style="color:var(--blue)">ground assaults personally and deliberately.</strong> Droids are present — the faction operates its own fleet and deploys automated units — but they serve as tools. The killing is done by the warriors themselves. This is not incidental. It is <strong style="color:var(--blue)">doctrine.</strong></p>
+              <p>The ideological root of this movement is directed at a specific individual: <strong style="color:var(--blue)">Poggle the Lesser</strong>, Archduke of Geonosis. In selling Geonosis wholesale to the CIS war machine — converting its tunnels, its hives, its ancient arenas into droid production facilities — Poggle did not elevate his people. He erased them. He turned a civilization of warriors into a factory floor. This faction will not forgive it. Their attacks on Separatist supply lines have been as aggressive as their attacks on Republic forces — they do not distinguish between the two powers, except insofar as both represent the political order they have rejected.</p>
+              <p>Their stated purpose, communicated openly to at least one Republic officer taken briefly as a prisoner then released unharmed: to <strong style="color:var(--blue)">end the Clone Wars</strong> — not through diplomacy, but by dismantling both sides. Beyond that, they intend to <strong style="color:var(--blue)">rule the galaxy</strong> and to <strong style="color:var(--blue)">retake Geonosis.</strong> These are not the ambitions of a resistance movement. They are the ambitions of a power that considers itself the legitimate inheritor of galactic authority.</p>
+              <p>At the center of this faction is a queen. Her name, as rendered by Republic xenolinguistics specialists from intercepted Geonosian transmissions, is <strong style="color:var(--blue)">Yamilei.</strong> She has not been confirmed present at any engagement. One officer who survived brief capture described being brought before a presence he never directly saw, receiving a message: the Republic should consider what it has done to worlds like Geonosis, because it will be held accountable. He was then returned to his unit, unharmed. Glory, as one recovered Geonosian text states, is not measured by what you control. It is measured by what you defeat. In combat. Personally. The old way. This correspondent advises extreme caution in all flagged Outer Rim sectors. This story is just beginning.</p>
             </div>
           </div>
-        </div><!-- /story-box -->
-      </div><!-- /story-view -->
+
+          <!-- DYNAMIC STORY SLOT (Firebase logs) -->
+          <div id="sc-dynamic" class="story-content">
+            <div class="story-priority mid" id="dyn-priority">&#9658; PRIORITY BETA</div>
+            <div class="story-headline" id="dyn-headline"></div>
+            <div class="story-meta" id="dyn-meta"></div>
+            <div class="story-body" id="dyn-body"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- COMMENT SECTION -->
       <div class="comment-section">
         <div class="cmt-hdr">
           <div class="cmt-title"><div class="lpulse"></div>▸ CITIZEN TRANSMISSIONS</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div class="fb-status" id="fb-status">
-              <div class="fb-dot connecting" id="fb-dot"></div>
-              <span id="fb-label">CONNECTING...</span>
-            </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="fb-status"><div class="fbdot conn" id="fbdot"></div><span id="fblbl" style="font-size:.4rem;letter-spacing:.08em;color:var(--blue-dim)">CONNECTING...</span></div>
             <span class="cmt-count" id="cmt-count"></span>
           </div>
         </div>
-
-        <div class="comment-list" id="cmt-list">
-          <div class="comment-empty" id="cmt-empty">&#9670; SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS &#9670;</div>
-        </div>
-
-        <div class="comment-form">
+        <div class="cmt-list" id="cmt-list"><div class="cmt-empty" id="cmt-empty">&#9670; SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS &#9670;</div></div>
+        <div class="cmt-form">
           <div class="cf-fields">
-            <div class="cf-name-row">
-              <input class="cf-input cf-name"   id="cf-name"   type="text" placeholder="CITIZEN NAME"  maxlength="32">
-              <input class="cf-input cf-planet" id="cf-planet" type="text" placeholder="PLANET"         maxlength="20">
+            <div class="cf-row">
+              <input class="cf-inp cf-name" id="cf-name" type="text" placeholder="CITIZEN NAME" maxlength="32">
+              <input class="cf-inp cf-planet" id="cf-planet" type="text" placeholder="PLANET" maxlength="20">
             </div>
-            <textarea class="cf-input cf-text" id="cf-text" placeholder="Enter your transmission... (Ctrl+Enter to submit)" rows="2" maxlength="400"></textarea>
+            <textarea class="cf-inp cf-txt" id="cf-txt" placeholder="Enter your transmission... (Ctrl+Enter)" rows="2" maxlength="400"></textarea>
           </div>
-          <button class="cf-submit" id="cf-submit" onclick="postComment()">POST<br>&#9670;</button>
+          <button class="cf-sub" id="cf-sub" onclick="postComment()">POST<br>&#9670;</button>
         </div>
       </div>
-
     </div><!-- /center -->
 
     <!-- RIGHT — LOG -->
     <div class="right">
       <div class="log-hdr">
         <div class="log-title"><div class="lpulse"></div>▸ TRANSMISSION LOG</div>
-        <div class="log-sub">2 ENTRIES — SELECT TO VIEW</div>
+        <div class="log-sub" id="log-sub">LOADING...</div>
       </div>
+      <button class="add-log-btn" id="add-log-btn" onclick="openModal()">＋ FILE NEW TRANSMISSION</button>
       <div class="log-list" id="log-list"></div>
     </div>
-
   </div><!-- /grid -->
 
   <div class="bot">
     <span>GALACTIC REPUBLIC HOLONET NEWS &#9670; CORUSCANT &#9670; AUTHENTICATED SECURE BROADCAST</span>
     <span id="status">TERMINAL ACTIVE — IN THE NAME OF THE REPUBLIC</span>
   </div>
-
 </div><!-- /terminal -->
 
-<script>
-  // ── CLOCK ──────────────────────────────────────────────────────────────
-  function tick() {
-    const n = new Date(), p = x => String(x).padStart(2,'0');
-    document.getElementById('clock').textContent =
-      `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())} GST`;
-  }
-  setInterval(tick, 1000); tick();
+<!-- NEW LOG MODAL -->
+<div id="log-modal">
+  <div class="modal-box">
+    <div class="modal-title">FILE NEW TRANSMISSION</div>
+    <div class="modal-sub">AUTHORIZED CORRESPONDENTS ONLY &#9670; REPUBLIC HOLONET BUREAU</div>
 
-  // ── NEWS LOG DATA ──────────────────────────────────────────────────────
-  const NEWS = [
-    { id:0, time:'BBY 22 — 06:14 GST', priority:'high', tag:'ALPHA', headline:'CII OBLITERATED — "FORCE DROIDS" ANNIHILATE DISSIDENT FACTION' },
-    { id:1, time:'BBY 22 — 08:47 GST', priority:'high', tag:'ALPHA', headline:'GEONOSIAN INSURGENTS STRIKE OUTER RIM — ANCIENT WARRIOR FACTION CONFIRMED' }
-  ];
+    <div>
+      <div class="modal-label">HEADLINE / TITLE</div>
+      <input class="m-inp" id="m-title" type="text" placeholder="Enter transmission headline..." maxlength="120">
+    </div>
 
-  // ── ACTIVE STORY ───────────────────────────────────────────────────────
-  let activeStory = -1;
+    <div class="modal-row">
+      <div style="flex:1">
+        <div class="modal-label">PRIORITY LEVEL</div>
+        <select class="m-select" id="m-priority">
+          <option value="high">▲ ALPHA — BREAKING</option>
+          <option value="mid" selected>▶ BETA — DEVELOPING</option>
+          <option value="low">▷ DELTA — STANDARD</option>
+        </select>
+      </div>
+    </div>
 
-  function showStory(id) {
-    document.getElementById('story-placeholder').style.display = 'none';
-    document.querySelectorAll('.story-content').forEach(el => el.classList.remove('active'));
-    const el = document.getElementById('sc-' + id);
-    if (el) el.classList.add('active');
-    document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('active-entry'));
-    const le = document.getElementById('le-' + id);
-    if (le) le.classList.add('active-entry');
-    activeStory = id;
-
-    // Load Firebase comments for this story
-    if (window.loadFirebaseComments) {
-      window.loadFirebaseComments(id);
-    }
-  }
-
-  // ── RENDER LOG ─────────────────────────────────────────────────────────
-  function renderLog() {
-    const list = document.getElementById('log-list');
-    list.innerHTML = '';
-    NEWS.forEach(n => {
-      const d = document.createElement('div');
-      d.className = `log-entry ${n.priority === 'high' ? 'ph' : n.priority === 'mid' ? 'pm' : 'pl'}`;
-      d.id = 'le-' + n.id;
-      d.innerHTML = `
-        <div class="le-top">
-          <span class="le-time">${n.time}</span>
-          <span class="le-tag ${n.priority}">${n.tag}</span>
+    <div>
+      <div class="modal-label">TRANSMISSION BODY</div>
+      <div class="editor-wrap">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <button class="tb-btn bold-btn" title="Bold" onclick="fmt('bold')"><b>B</b></button>
+          <button class="tb-btn italic-btn" title="Italic" onclick="fmt('italic')"><i>I</i></button>
+          <button class="tb-btn" title="Underline" onclick="fmt('underline')"><u>U</u></button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn blue-btn" title="HoloNet Blue" onclick="applyColor('#00c8f0')" style="color:#00c8f0;border-color:rgba(0,200,240,.35)">HOLO</button>
+          <div class="tb-sep"></div>
+          <!-- 16 COLOR SWATCHES -->
+          <span class="color-swatch" style="background:#ff4444" title="Red Alert"        onclick="applyColor('#ff4444')"></span>
+          <span class="color-swatch" style="background:#ff8c00" title="Amber"            onclick="applyColor('#ff8c00')"></span>
+          <span class="color-swatch" style="background:#ffd700" title="Gold"             onclick="applyColor('#ffd700')"></span>
+          <span class="color-swatch" style="background:#d4a82a" title="Republic Gold"    onclick="applyColor('#d4a82a')"></span>
+          <span class="color-swatch" style="background:#22ffaa" title="Jedi Green"       onclick="applyColor('#22ffaa')"></span>
+          <span class="color-swatch" style="background:#00ff00" title="Neon Green"       onclick="applyColor('#00ff00')"></span>
+          <span class="color-swatch" style="background:#00c8f0" title="HoloNet Blue"     onclick="applyColor('#00c8f0')"></span>
+          <span class="color-swatch" style="background:#00aaff" title="Sky Blue"         onclick="applyColor('#00aaff')"></span>
+          <span class="color-swatch" style="background:#5588ff" title="Senate Blue"      onclick="applyColor('#5588ff')"></span>
+          <span class="color-swatch" style="background:#bb55ff" title="Force Purple"     onclick="applyColor('#bb55ff')"></span>
+          <span class="color-swatch" style="background:#ff55cc" title="Pink"             onclick="applyColor('#ff55cc')"></span>
+          <span class="color-swatch" style="background:#ff9966" title="Mando Orange"     onclick="applyColor('#ff9966')"></span>
+          <span class="color-swatch" style="background:#ffffff" title="White"            onclick="applyColor('#ffffff')"></span>
+          <span class="color-swatch" style="background:#aaddff" title="Ice Blue"         onclick="applyColor('#aaddff')"></span>
+          <span class="color-swatch" style="background:#ffaaaa" title="Soft Red"         onclick="applyColor('#ffaaaa')"></span>
+          <span class="color-swatch" style="background:#aaffdd" title="Soft Green"       onclick="applyColor('#aaffdd')"></span>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" title="Remove formatting" onclick="fmt('removeFormat')" style="font-size:.6rem">✕ CLR</button>
         </div>
-        <div class="le-hl">${esc(n.headline)}</div>`;
-      d.addEventListener('click', () => showStory(n.id));
-      list.appendChild(d);
-    });
+        <!-- EDITOR -->
+        <div id="editor-body" contenteditable="true" data-placeholder="Write your transmission here... Use the toolbar above to format text."></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="m-cancel" onclick="closeModal()">◼ CANCEL</button>
+      <button class="m-post" onclick="submitLog()">▶ TRANSMIT TO HOLONET</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ CREDENTIALS ══════════════════════════════════════════════════════════
+const USERS = {
+  'architect': { pass:'kybord',   reporter:'Jest Ickle',  priority:'high' },
+  'truehive':  { pass:'geonosis', reporter:'Vine Caleis', priority:'mid'  }
+};
+
+// ══ SESSION ══════════════════════════════════════════════════════════════
+let currentUser = null;
+let activeStory = -1;
+let activeDynId = null; // Firebase ID of currently viewed dynamic log
+
+// ══ CLOCK ════════════════════════════════════════════════════════════════
+function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())} GST`;
+}
+setInterval(tick,1000);tick();
+
+// ══ STATIC LOGS ══════════════════════════════════════════════════════════
+const STATIC_LOGS = [
+  {id:'s0',staticId:0,time:'BBY 22 — 06:14 GST',priority:'high',tag:'ALPHA',headline:'CII OBLITERATED — "FORCE DROIDS" ANNIHILATE DISSIDENT FACTION'},
+  {id:'s1',staticId:1,time:'BBY 22 — 08:47 GST',priority:'high',tag:'ALPHA',headline:'GEONOSIAN INSURGENTS STRIKE OUTER RIM — ANCIENT WARRIOR FACTION CONFIRMED'}
+];
+let dynamicLogs = []; // from Firebase
+
+// ══ LOGIN ════════════════════════════════════════════════════════════════
+function showLogin(){
+  document.getElementById('login-overlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('l-user').focus(),50);
+}
+function hideLogin(){ document.getElementById('login-overlay').classList.add('hidden'); }
+
+function doLogin(){
+  const u = document.getElementById('l-user').value.trim().toLowerCase();
+  const p = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('l-err');
+
+  if(USERS[u] && USERS[u].pass === p){
+    currentUser = {...USERS[u], username:u};
+    errEl.textContent='';
+    hideLogin();
+    updateAuthUI();
+    setStatus(`✓ WELCOME, CORRESPONDENT ${currentUser.reporter.toUpperCase()}`, 'var(--green)', 3000);
+    document.getElementById('l-user').value='';
+    document.getElementById('l-pass').value='';
+  } else {
+    errEl.textContent='⚠ INVALID CREDENTIALS — ACCESS DENIED';
+    errEl.style.animation='none';
+    requestAnimationFrame(()=>{ errEl.style.animation='shake .3s ease'; });
+    document.getElementById('l-pass').value='';
   }
+}
 
-  // ── RENDER COMMENTS (called by Firebase module) ────────────────────────
-  window.renderComments = function(comments, isPlaceholder) {
-    const list   = document.getElementById('cmt-list');
-    const empty  = document.getElementById('cmt-empty');
-    const countEl = document.getElementById('cmt-count');
+function doLogout(){
+  currentUser = null;
+  updateAuthUI();
+  setStatus('SESSION TERMINATED — TERMINAL ACTIVE', 'var(--blue-dim)', 2500);
+}
 
-    if (isPlaceholder) {
-      list.innerHTML = '';
-      empty.textContent = '◇ SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS ◇';
-      list.appendChild(empty);
-      countEl.textContent = '';
-      return;
-    }
+function updateAuthUI(){
+  const badge = document.getElementById('reporter-badge');
+  const hint  = document.getElementById('login-hint');
+  const addBtn= document.getElementById('add-log-btn');
+  const list  = document.getElementById('log-list');
 
-    countEl.textContent = comments.length
-      ? `${comments.length} ${comments.length === 1 ? 'TRANSMISSION' : 'TRANSMISSIONS'}`
+  if(currentUser){
+    badge.style.display='flex';
+    document.getElementById('reporter-name').textContent = currentUser.reporter.toUpperCase();
+    hint.style.display='none';
+    addBtn.style.display='block';
+    // Show delete buttons on log entries
+    list.querySelectorAll('.log-entry').forEach(e=>e.classList.add('can-delete'));
+  } else {
+    badge.style.display='none';
+    hint.style.display='block';
+    addBtn.style.display='none';
+    list.querySelectorAll('.log-entry').forEach(e=>e.classList.remove('can-delete'));
+  }
+}
+
+// Enter key on login
+['l-user','l-pass'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+});
+
+// ══ RENDER LOG LIST ═══════════════════════════════════════════════════════
+function renderLogList(){
+  const list = document.getElementById('log-list');
+  list.innerHTML='';
+
+  const all = [...STATIC_LOGS, ...dynamicLogs];
+
+  all.forEach(n=>{
+    const d = document.createElement('div');
+    d.className=`log-entry ${n.priority==='high'?'ph':n.priority==='mid'?'pm':'pl'}`;
+    d.id='le-'+n.id;
+    if(currentUser) d.classList.add('can-delete');
+
+    // Delete button (only for dynamic logs)
+    const isDynamic = !n.staticId && n.staticId !== 0;
+    const delBtn = isDynamic
+      ? `<button class="le-del" onclick="removeLog(event,'${n.id}')">✕</button>`
       : '';
 
-    list.innerHTML = '';
+    const now = new Date();
+    const p=x=>String(x).padStart(2,'0');
+    const timeDisplay = n.time || `BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`;
 
-    if (comments.length === 0) {
-      empty.textContent = '◇ NO TRANSMISSIONS YET — BE THE FIRST CITIZEN TO RESPOND ◇';
-      list.appendChild(empty);
-      return;
-    }
+    d.innerHTML=`
+      <div class="le-top">
+        <span class="le-time">${timeDisplay}</span>
+        <span class="le-tag ${n.priority}">${n.tag}</span>
+      </div>
+      <div class="le-hl">${esc(n.headline)}</div>
+      ${delBtn}`;
 
-    comments.forEach(c => {
-      const div = document.createElement('div');
-      div.className = 'c-entry';
-      div.dataset.cid = c.id;
-
-      // Format timestamp from Firestore
-      let timeStr = '';
-      if (c.timestamp && c.timestamp.toDate) {
-        const d = c.timestamp.toDate();
-        const p = x => String(x).padStart(2,'0');
-        timeStr = `${p(d.getHours())}:${p(d.getMinutes())} GST`;
+    d.addEventListener('click', (e)=>{
+      if(e.target.classList.contains('le-del')) return;
+      if(n.staticId !== undefined && n.staticId !== null && typeof n.staticId === 'number'){
+        showStory(n.staticId);
+      } else {
+        showDynStory(n);
       }
-
-      div.innerHTML = `
-        <div class="c-meta">
-          <span class="c-name">${esc(c.name)}${c.planet ? ' — ' + esc(c.planet) : ''}</span>
-          <span class="c-time">${timeStr}</span>
-        </div>
-        <div class="c-text">${esc(c.text)}</div>
-        <button class="c-del" onclick="deleteComment('${c.id}')">✕ DEL</button>`;
-      list.appendChild(div);
     });
 
-    setTimeout(() => { list.scrollTop = list.scrollHeight; }, 40);
-  };
-
-  // ── POST COMMENT ───────────────────────────────────────────────────────
-  async function postComment() {
-    if (activeStory === -1) { setStatus('⚠ SELECT A STORY FIRST', 'var(--gold)', 2000); return; }
-    if (!window.postFirebaseComment) { setStatus('⚠ FIREBASE NOT READY', 'var(--red-alert)', 2000); return; }
-
-    const nameEl   = document.getElementById('cf-name');
-    const planetEl = document.getElementById('cf-planet');
-    const textEl   = document.getElementById('cf-text');
-    const btn      = document.getElementById('cf-submit');
-
-    const name   = (nameEl.value.trim()   || 'ANONYMOUS CITIZEN');
-    const planet = planetEl.value.trim();
-    const text   = textEl.value.trim();
-
-    if (!text) { setStatus('⚠ ENTER TRANSMISSION TEXT', 'var(--red-alert)', 2000); return; }
-
-    btn.disabled = true;
-    btn.textContent = '...';
-
-    const ok = await window.postFirebaseComment(activeStory, name, planet, text);
-
-    btn.disabled = false;
-    btn.innerHTML = 'POST<br>◇';
-
-    if (ok) {
-      nameEl.value = '';
-      planetEl.value = '';
-      textEl.value = '';
-      setStatus('✓ TRANSMISSION RECEIVED', 'var(--green-ok)', 2500);
-    } else {
-      setStatus('⚠ TRANSMISSION FAILED — CHECK CONNECTION', 'var(--red-alert)', 3000);
-    }
-  }
-
-  // ── DELETE COMMENT ─────────────────────────────────────────────────────
-  async function deleteComment(commentId) {
-    if (!confirm('Delete this transmission?')) return;
-    if (!window.deleteFirebaseComment) return;
-    await window.deleteFirebaseComment(activeStory, commentId);
-  }
-
-  // ── STATUS BAR ─────────────────────────────────────────────────────────
-  function setStatus(msg, color, duration) {
-    const el = document.getElementById('status');
-    el.textContent = msg;
-    el.style.color = color || '';
-    if (duration) setTimeout(() => { el.textContent = 'TERMINAL ACTIVE — IN THE NAME OF THE REPUBLIC'; el.style.color = ''; }, duration);
-  }
-
-  // ── CTRL+ENTER ─────────────────────────────────────────────────────────
-  document.getElementById('cf-text').addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); postComment(); }
+    list.appendChild(d);
   });
 
-  // ── ESCAPE HTML ────────────────────────────────────────────────────────
-  function esc(t) {
-    if (!t) return '';
-    return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  }
+  const count = all.length;
+  document.getElementById('log-sub').textContent = `${count} ${count===1?'ENTRY':'ENTRIES'} — SELECT TO VIEW`;
+  updateAuthUI();
+}
 
-  // ── FIREBASE READY HANDLER ─────────────────────────────────────────────
-  function onFirebaseReady() {
-    const dot   = document.getElementById('fb-dot');
-    const label = document.getElementById('fb-label');
-    dot.className   = 'fb-dot connected';
-    label.textContent = 'FIREBASE LIVE';
-    // If a story is already active, reload comments
-    if (activeStory !== -1) window.loadFirebaseComments(activeStory);
-  }
+// ══ SHOW STORIES ══════════════════════════════════════════════════════════
+function showStory(id){
+  document.getElementById('story-placeholder').style.display='none';
+  document.querySelectorAll('.story-content').forEach(e=>e.classList.remove('active'));
+  document.getElementById('sc-'+id).classList.add('active');
+  markActive('s'+id);
+  activeStory = id;
+  activeDynId = null;
+  if(window.loadFirebaseComments) window.loadFirebaseComments(id);
+}
 
-  if (window.firebaseReady) {
-    onFirebaseReady();
-  } else {
-    window.addEventListener('firebase-ready', onFirebaseReady);
-  }
+function showDynStory(n){
+  document.getElementById('story-placeholder').style.display='none';
+  document.querySelectorAll('.story-content').forEach(e=>e.classList.remove('active'));
 
-  // Show error state if Firebase fails to load
-  setTimeout(() => {
-    const label = document.getElementById('fb-label');
-    if (label.textContent === 'CONNECTING...') {
-      document.getElementById('fb-dot').className = 'fb-dot error';
-      label.textContent = 'CONFIG REQUIRED';
+  const pTag = n.priority==='high'?'▲ PRIORITY ALPHA':n.priority==='mid'?'▶ PRIORITY BETA':'▷ PRIORITY DELTA';
+  const pClass= n.priority==='high'?'high':n.priority==='mid'?'mid':'low';
+
+  document.getElementById('dyn-priority').textContent = pTag;
+  document.getElementById('dyn-priority').className = 'story-priority '+pClass;
+  document.getElementById('dyn-headline').textContent = n.headline;
+
+  const now = new Date(), p=x=>String(x).padStart(2,'0');
+  const t = n.time||`BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`;
+  const reporter = n.reporter||'UNKNOWN CORRESPONDENT';
+  document.getElementById('dyn-meta').innerHTML =
+    `<span>&#9670; ${esc(t)}</span><span>&#9670; ${esc(reporter.toUpperCase())}, CORRESPONDENT</span>`;
+
+  // Body is stored as HTML (rich text)
+  document.getElementById('dyn-body').innerHTML = n.bodyHtml || esc(n.body||'');
+
+  document.getElementById('sc-dynamic').classList.add('active');
+  markActive(n.id);
+  activeStory = 'dyn_'+n.id;
+  activeDynId = n.id;
+  if(window.loadFirebaseComments) window.loadFirebaseComments('dyn_'+n.id);
+}
+
+function markActive(id){
+  document.querySelectorAll('.log-entry').forEach(e=>e.classList.remove('active-e'));
+  const el = document.getElementById('le-'+id);
+  if(el) el.classList.add('active-e');
+}
+
+// ══ FIREBASE LOGS ═════════════════════════════════════════════════════════
+window.onFirebaseLogs = function(logs){
+  dynamicLogs = logs.map(l=>({...l, tag: l.priority==='high'?'ALPHA':l.priority==='mid'?'BETA':'DELTA'}));
+  renderLogList();
+};
+
+async function removeLog(e, logId){
+  e.stopPropagation();
+  if(!currentUser){ setStatus('⚠ MUST BE LOGGED IN TO DELETE','var(--red)',2000); return; }
+  if(!confirm('Delete this transmission?')) return;
+  if(window.deleteFirebaseLog){
+    await window.deleteFirebaseLog(logId);
+    if(activeDynId===logId){
+      document.getElementById('story-placeholder').style.display='';
+      document.querySelectorAll('.story-content').forEach(e=>e.classList.remove('active'));
+      activeStory=-1; activeDynId=null;
     }
-  }, 6000);
+  }
+}
 
-  // ── INIT ───────────────────────────────────────────────────────────────
-  renderLog();
+// ══ MODAL / RICH TEXT ═════════════════════════════════════════════════════
+function openModal(){
+  if(!currentUser){ setStatus('⚠ LOGIN REQUIRED','var(--red)',2000); return; }
+  document.getElementById('log-modal').classList.add('open');
+  document.getElementById('m-title').value='';
+  document.getElementById('editor-body').innerHTML='';
+  document.getElementById('m-priority').value = currentUser.priority||'mid';
+  setTimeout(()=>document.getElementById('m-title').focus(),80);
+}
 
-  // Auto-show first story after boot animation
-  setTimeout(() => showStory(0), 5400);
+function closeModal(){
+  document.getElementById('log-modal').classList.remove('open');
+}
+
+// Rich text formatting
+function fmt(cmd){
+  document.getElementById('editor-body').focus();
+  document.execCommand(cmd,false,null);
+}
+
+function applyColor(color){
+  document.getElementById('editor-body').focus();
+  document.execCommand('foreColor',false,color);
+}
+
+// Close modal on backdrop click
+document.getElementById('log-modal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+async function submitLog(){
+  if(!currentUser){ setStatus('⚠ LOGIN REQUIRED','var(--red)',2000); return; }
+  const title = document.getElementById('m-title').value.trim();
+  const bodyEl= document.getElementById('editor-body');
+  const bodyHtml = bodyEl.innerHTML.trim();
+  const priority= document.getElementById('m-priority').value;
+
+  if(!title){ bodyEl.parentElement.parentElement.style.borderColor='rgba(255,68,68,.5)'; setTimeout(()=>bodyEl.parentElement.parentElement.style.borderColor='',1500); return; }
+  if(!bodyEl.textContent.trim()){ bodyEl.style.boxShadow='inset 0 0 0 1px rgba(255,68,68,.4)'; setTimeout(()=>bodyEl.style.boxShadow='',1500); return; }
+
+  const now=new Date(), p=x=>String(x).padStart(2,'0');
+  const logData = {
+    headline: title,
+    bodyHtml: bodyHtml,
+    priority: priority,
+    reporter: currentUser.reporter,
+    time: `BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`
+  };
+
+  if(window.postFirebaseLog){
+    const id = await window.postFirebaseLog(logData);
+    if(id){
+      closeModal();
+      setStatus('✓ TRANSMISSION FILED TO HOLONET','var(--green)',3000);
+    } else {
+      setStatus('⚠ TRANSMISSION FAILED — CHECK FIREBASE','var(--red)',3000);
+    }
+  }
+}
+
+// ══ COMMENTS ══════════════════════════════════════════════════════════════
+window.renderComments = function(comments, isPlaceholder){
+  const list=document.getElementById('cmt-list');
+  const empty=document.getElementById('cmt-empty');
+  const countEl=document.getElementById('cmt-count');
+
+  if(isPlaceholder){
+    list.innerHTML='';
+    empty.textContent='◇ SELECT A STORY TO VIEW CITIZEN TRANSMISSIONS ◇';
+    list.appendChild(empty);
+    countEl.textContent='';
+    return;
+  }
+  countEl.textContent = comments.length ? `${comments.length} ${comments.length===1?'TRANSMISSION':'TRANSMISSIONS'}` : '';
+  list.innerHTML='';
+  if(!comments.length){
+    empty.textContent='◇ NO TRANSMISSIONS YET — BE THE FIRST CITIZEN TO RESPOND ◇';
+    list.appendChild(empty);
+    return;
+  }
+  comments.forEach(c=>{
+    const div=document.createElement('div');
+    div.className='c-entry';
+    let timeStr='';
+    if(c.timestamp&&c.timestamp.toDate){
+      const d=c.timestamp.toDate(),p=x=>String(x).padStart(2,'0');
+      timeStr=`${p(d.getHours())}:${p(d.getMinutes())} GST`;
+    }
+    div.innerHTML=`
+      <div class="c-meta">
+        <span class="c-name">${esc(c.name)}${c.planet?' — '+esc(c.planet):''}</span>
+        <span class="c-time">${timeStr}</span>
+      </div>
+      <div class="c-text">${esc(c.text)}</div>
+      <button class="c-del" onclick="deleteComment('${c.id}')">✕</button>`;
+    list.appendChild(div);
+  });
+  setTimeout(()=>{list.scrollTop=list.scrollHeight;},40);
+};
+
+async function postComment(){
+  if(activeStory===-1){ setStatus('⚠ SELECT A STORY FIRST','var(--gold)',2000); return; }
+  if(!window.postFirebaseComment){ setStatus('⚠ FIREBASE NOT READY','var(--red)',2000); return; }
+  const nameEl=document.getElementById('cf-name');
+  const planetEl=document.getElementById('cf-planet');
+  const textEl=document.getElementById('cf-txt');
+  const btn=document.getElementById('cf-sub');
+  const name=nameEl.value.trim()||'ANONYMOUS CITIZEN';
+  const planet=planetEl.value.trim();
+  const text=textEl.value.trim();
+  if(!text){ setStatus('⚠ ENTER TRANSMISSION TEXT','var(--red)',2000); return; }
+  btn.disabled=true; btn.textContent='...';
+  const ok=await window.postFirebaseComment(activeStory,name,planet,text);
+  btn.disabled=false; btn.innerHTML='POST<br>◇';
+  if(ok){ nameEl.value=''; planetEl.value=''; textEl.value=''; setStatus('✓ TRANSMISSION RECEIVED','var(--green)',2500); }
+  else setStatus('⚠ TRANSMISSION FAILED','var(--red)',3000);
+}
+
+async function deleteComment(cid){
+  if(!confirm('Delete this transmission?')) return;
+  if(window.deleteFirebaseComment) await window.deleteFirebaseComment(activeStory, cid);
+}
+
+document.getElementById('cf-txt').addEventListener('keydown',e=>{ if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();postComment();} });
+
+// ══ STATUS BAR ════════════════════════════════════════════════════════════
+function setStatus(msg,color,dur){
+  const el=document.getElementById('status');
+  el.textContent=msg; el.style.color=color||'';
+  if(dur) setTimeout(()=>{el.textContent='TERMINAL ACTIVE — IN THE NAME OF THE REPUBLIC';el.style.color='';},dur);
+}
+
+// ══ FIREBASE READY ════════════════════════════════════════════════════════
+function onFirebaseReady(){
+  document.getElementById('fbdot').className='fbdot on';
+  document.getElementById('fblbl').textContent='FIREBASE LIVE';
+  if(activeStory!==-1&&window.loadFirebaseComments) window.loadFirebaseComments(activeStory);
+  if(window.loadFirebaseLogs) window.loadFirebaseLogs();
+}
+if(window.firebaseReady) onFirebaseReady();
+else window.addEventListener('firebase-ready',onFirebaseReady);
+setTimeout(()=>{ if(document.getElementById('fblbl').textContent==='CONNECTING...'){
+  document.getElementById('fbdot').className='fbdot err';
+  document.getElementById('fblbl').textContent='CONFIG REQUIRED';
+}},7000);
+
+// ══ UTILS ═════════════════════════════════════════════════════════════════
+function esc(t){
+  if(!t)return'';
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// ══ INIT ══════════════════════════════════════════════════════════════════
+renderLogList();
+// Auto-show first story after boot
+setTimeout(()=>showStory(0),5400);
+// After boot, show login overlay (slight delay so terminal fades in first)
+setTimeout(()=>{
+  // Only show if not already dismissed (they won't be logged in on first load)
+  // Login overlay starts hidden until Firebase is ready or 5.5s
+},5500);
 </script>
 </body>
 </html>
