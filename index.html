@@ -134,6 +134,26 @@ const firebaseConfig = {
   --shadow-c: #8844cc;
   --shadow-dim: rgba(136,68,204,.35);
   --shadow-glow: rgba(136,68,204,.5);
+  /* REPUBLIC EMERGENCY: Senate martial law / Chancellor emergency decree */
+  --repemg: #f0c040;
+  --repemg-dim: rgba(240,192,64,.35);
+  --repemg-glow: rgba(240,192,64,.55);
+  /* SITH PROTOCOL: Sith involvement confirmed */
+  --sith: #cc0000;
+  --sith-dim: rgba(180,0,0,.35);
+  --sith-glow: rgba(200,0,0,.6);
+  /* JEDI COUNCIL: Jedi Order classified dispatch */
+  --jedi: #44ddcc;
+  --jedi-dim: rgba(68,221,204,.3);
+  --jedi-glow: rgba(68,221,204,.5);
+  /* SEPARATIST INTEL: CIS intercepted comms */
+  --sep: #44bb44;
+  --sep-dim: rgba(68,187,68,.3);
+  --sep-glow: rgba(68,187,68,.45);
+  /* ORDER CLASSIFIED: Clone military blackout */
+  --order: #ff8800;
+  --order-dim: rgba(255,136,0,.3);
+  --order-glow: rgba(255,136,0,.5);
 }
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -784,6 +804,120 @@ body.shadow-active .story-headline{text-shadow:0 0 16px rgba(136,68,204,.35)}
 /* OMEGA bottom bar */
 body.omega-active .bot{border-top-color:rgba(255,0,55,.3)}
 body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
+
+/* ══ REPUBLIC EMERGENCY ═══════════════════════════════════════════════════ */
+body.repemg-active::after{background:radial-gradient(ellipse at center,rgba(240,192,64,.05) 0%,rgba(0,0,0,.7) 100%);animation:repemgBreath 1.8s ease-in-out infinite}
+@keyframes repemgBreath{0%,100%{opacity:.85}50%{opacity:1}}
+body.repemg-active .topbar{background:linear-gradient(to bottom,rgba(40,28,0,.98),rgba(24,18,0,.95));border-bottom-color:rgba(240,192,64,.45)}
+body.repemg-active .topbar::after{background:linear-gradient(90deg,transparent,var(--repemg),rgba(255,220,80,.5),var(--repemg),transparent);background-size:200% 100%;animation:shimmer 2s linear infinite}
+body.repemg-active .banner{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(160,120,0,.08));border-top-color:var(--repemg);border-bottom-color:rgba(240,192,64,.35);animation:repemgFlash 2s ease-in-out infinite}
+@keyframes repemgFlash{0%,100%{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(160,120,0,.08))}50%{background:linear-gradient(135deg,rgba(240,192,64,.22),rgba(160,120,0,.14))}}
+body.repemg-active .brk-lbl{background:var(--repemg);color:#0a0800;animation:repemgLbl 1.4s ease-in-out infinite}
+@keyframes repemgLbl{0%,100%{background:#f0c040}50%{background:#c89a20}}
+body.repemg-active .ticker{color:#fff4cc;animation:tick 38s linear infinite}
+body.repemg-active .c-header{background:linear-gradient(to bottom,rgba(40,28,0,.9),transparent)}
+body.repemg-active .c-tag{color:var(--repemg);text-shadow:0 0 12px var(--repemg-glow)}
+body.repemg-active .c-head .brk{color:var(--repemg);text-shadow:0 0 18px var(--repemg-glow);animation:repemgFlicker 2s ease-in-out infinite}
+@keyframes repemgFlicker{0%,100%{opacity:1}45%{opacity:.7}55%{opacity:1}80%{opacity:.8}90%{opacity:1}}
+body.repemg-active .story-box{border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.02)}
+body.repemg-active .story-box::after{background:linear-gradient(90deg,var(--repemg),transparent 55%);opacity:.4}
+body.repemg-active .story-headline{text-shadow:0 0 18px rgba(240,192,64,.35)}
+body.repemg-active .bot{border-top-color:rgba(240,192,64,.3)}
+.log-entry.pre::before{background:var(--repemg);box-shadow:0 0 6px var(--repemg-glow)}
+.log-entry.pre{border-color:rgba(240,192,64,.2);background:rgba(240,192,64,.015)}
+.log-entry.pre:hover{border-color:rgba(240,192,64,.4);background:rgba(240,192,64,.04)}
+.log-entry.pre .le-hl{text-shadow:0 0 8px rgba(240,192,64,.25);color:rgba(255,244,200,.9)}
+.le-tag.repemg{color:var(--repemg)}
+.story-priority.repemg{color:var(--repemg);border-color:rgba(240,192,64,.5);background:rgba(240,192,64,.06);box-shadow:0 0 10px rgba(240,192,64,.2)}
+
+/* ══ SITH PROTOCOL ════════════════════════════════════════════════════════ */
+body.sith-active::after{background:radial-gradient(ellipse at center,rgba(180,0,0,.07) 0%,rgba(0,0,0,.85) 100%)}
+body.sith-active .topbar{background:linear-gradient(to bottom,rgba(30,0,0,.99),rgba(15,0,0,.97));border-bottom-color:rgba(180,0,0,.5)}
+body.sith-active .topbar::after{background:linear-gradient(90deg,transparent,var(--sith),rgba(80,0,0,.4),var(--sith),transparent);background-size:200% 100%;animation:shimmer 3.5s linear infinite}
+body.sith-active .banner{background:linear-gradient(135deg,rgba(160,0,0,.1),rgba(60,0,0,.08));border-top-color:var(--sith);border-bottom-color:rgba(160,0,0,.4)}
+body.sith-active .brk-lbl{background:var(--sith);animation:none}
+body.sith-active .ticker{color:#ffaaaa;animation:tick 80s linear infinite}
+body.sith-active .c-header{background:linear-gradient(to bottom,rgba(30,0,0,.95),transparent)}
+body.sith-active .c-tag{color:var(--sith);text-shadow:0 0 10px var(--sith-glow)}
+body.sith-active .c-head .brk{color:var(--sith);text-shadow:0 0 16px var(--sith-glow);animation:none}
+body.sith-active .story-box{border-color:rgba(180,0,0,.28);background:rgba(120,0,0,.02)}
+body.sith-active .story-box::after{background:linear-gradient(90deg,var(--sith),transparent 55%);opacity:.45}
+body.sith-active .story-headline{text-shadow:0 0 16px rgba(180,0,0,.4)}
+body.sith-active .bot{border-top-color:rgba(160,0,0,.3)}
+.log-entry.psi::before{background:var(--sith);box-shadow:0 0 5px var(--sith-glow)}
+.log-entry.psi{border-color:rgba(160,0,0,.22);background:rgba(120,0,0,.02)}
+.log-entry.psi:hover{border-color:rgba(180,0,0,.42);background:rgba(120,0,0,.045)}
+.log-entry.psi .le-hl{text-shadow:0 0 8px rgba(180,0,0,.3);color:rgba(255,180,180,.9)}
+.le-tag.sith{color:var(--sith)}
+.story-priority.sith{color:var(--sith);border-color:rgba(180,0,0,.5);background:rgba(120,0,0,.07);box-shadow:0 0 10px rgba(180,0,0,.2)}
+
+/* ══ JEDI COUNCIL ═════════════════════════════════════════════════════════ */
+body.jedi-active::after{background:radial-gradient(ellipse at center,rgba(68,221,204,.04) 0%,rgba(0,0,0,.7) 100%)}
+body.jedi-active .topbar{background:linear-gradient(to bottom,rgba(0,28,26,.97),rgba(0,18,16,.95));border-bottom-color:rgba(68,221,204,.4)}
+body.jedi-active .topbar::after{background:linear-gradient(90deg,transparent,var(--jedi),rgba(212,168,42,.4),var(--jedi),transparent);background-size:200% 100%;animation:shimmer 4s linear infinite}
+body.jedi-active .banner{background:linear-gradient(135deg,rgba(68,221,204,.1),rgba(20,80,70,.07));border-top-color:var(--jedi);border-bottom-color:rgba(68,221,204,.28)}
+body.jedi-active .brk-lbl{background:linear-gradient(135deg,#006655,#004440);animation:none}
+body.jedi-active .ticker{color:#aaffee;animation:tick 60s linear infinite}
+body.jedi-active .c-header{background:linear-gradient(to bottom,rgba(0,28,26,.9),transparent)}
+body.jedi-active .c-tag{color:var(--jedi);text-shadow:0 0 10px var(--jedi-glow)}
+body.jedi-active .c-head .brk{color:var(--jedi);text-shadow:0 0 16px var(--jedi-glow);animation:none}
+body.jedi-active .story-box{border-color:rgba(68,221,204,.22);background:rgba(68,221,204,.015)}
+body.jedi-active .story-box::after{background:linear-gradient(90deg,var(--jedi),transparent 55%);opacity:.35}
+body.jedi-active .story-headline{text-shadow:0 0 16px rgba(68,221,204,.3)}
+body.jedi-active .bot{border-top-color:rgba(68,221,204,.25)}
+.log-entry.pjc::before{background:linear-gradient(to bottom,var(--jedi),var(--gold));box-shadow:0 0 6px var(--jedi-glow)}
+.log-entry.pjc{border-color:rgba(68,221,204,.18);background:rgba(68,221,204,.012)}
+.log-entry.pjc:hover{border-color:rgba(68,221,204,.35);background:rgba(68,221,204,.03)}
+.log-entry.pjc .le-hl{text-shadow:0 0 8px rgba(68,221,204,.25);color:rgba(200,255,248,.9)}
+.le-tag.jedi{color:var(--jedi)}
+.story-priority.jedi{color:var(--jedi);border-color:rgba(68,221,204,.45);background:rgba(68,221,204,.05);box-shadow:0 0 10px rgba(68,221,204,.18)}
+
+/* ══ SEPARATIST INTEL ═════════════════════════════════════════════════════ */
+body.sep-active::after{background:radial-gradient(ellipse at center,rgba(68,187,68,.04) 0%,rgba(0,0,0,.78) 100%)}
+body.sep-active .topbar{background:linear-gradient(to bottom,rgba(0,22,0,.98),rgba(0,14,0,.96));border-bottom-color:rgba(68,187,68,.38)}
+body.sep-active .topbar::after{background:linear-gradient(90deg,transparent,var(--sep),rgba(0,80,0,.4),var(--sep),transparent);background-size:200% 100%;animation:shimmer 3s linear infinite}
+body.sep-active .banner{background:linear-gradient(135deg,rgba(68,187,68,.09),rgba(0,50,0,.07));border-top-color:var(--sep);border-bottom-color:rgba(68,187,68,.28)}
+body.sep-active .brk-lbl{background:#1a4a1a;animation:none}
+body.sep-active .ticker{color:#aaffaa;animation:tick 55s linear infinite}
+body.sep-active .c-header{background:linear-gradient(to bottom,rgba(0,22,0,.9),transparent)}
+body.sep-active .c-tag{color:var(--sep);text-shadow:0 0 10px var(--sep-glow)}
+body.sep-active .c-head .brk{color:var(--sep);text-shadow:0 0 14px var(--sep-glow);animation:none}
+body.sep-active .story-box{border-color:rgba(68,187,68,.2);background:rgba(68,187,68,.012)}
+body.sep-active .story-box::after{background:linear-gradient(90deg,var(--sep),transparent 55%);opacity:.32}
+body.sep-active .story-headline{text-shadow:0 0 14px rgba(68,187,68,.28)}
+body.sep-active .bot{border-top-color:rgba(68,187,68,.22)}
+.log-entry.psep::before{background:var(--sep);box-shadow:0 0 5px var(--sep-glow)}
+.log-entry.psep{border-color:rgba(68,187,68,.18);background:rgba(68,187,68,.01)}
+.log-entry.psep:hover{border-color:rgba(68,187,68,.36);background:rgba(68,187,68,.03)}
+.log-entry.psep .le-hl{text-shadow:0 0 7px rgba(68,187,68,.25);color:rgba(200,245,200,.9)}
+.le-tag.sep{color:var(--sep)}
+.story-priority.sep{color:var(--sep);border-color:rgba(68,187,68,.4);background:rgba(68,187,68,.05);box-shadow:0 0 9px rgba(68,187,68,.16)}
+
+/* ══ ORDER CLASSIFIED ═════════════════════════════════════════════════════ */
+body.order-active::after{background:radial-gradient(ellipse at center,rgba(255,136,0,.05) 0%,rgba(0,0,0,.75) 100%)}
+body.order-active .topbar{background:linear-gradient(to bottom,rgba(30,14,0,.98),rgba(18,8,0,.96));border-bottom-color:rgba(255,136,0,.42)}
+body.order-active .topbar::after{background:linear-gradient(90deg,transparent,var(--order),rgba(200,80,0,.4),var(--order),transparent);background-size:200% 100%;animation:shimmer 2.5s linear infinite}
+body.order-active .banner{background:linear-gradient(135deg,rgba(255,136,0,.12),rgba(100,44,0,.08));border-top-color:var(--order);border-bottom-color:rgba(255,136,0,.32);animation:orderFlash 2.2s ease-in-out infinite}
+@keyframes orderFlash{0%,100%{background:linear-gradient(135deg,rgba(255,136,0,.12),rgba(100,44,0,.08))}50%{background:linear-gradient(135deg,rgba(255,136,0,.2),rgba(100,44,0,.13))}}
+body.order-active .brk-lbl{background:var(--order);color:#0a0500;animation:orderLbl 1.6s ease-in-out infinite}
+@keyframes orderLbl{0%,100%{background:#ff8800}50%{background:#cc5500}}
+body.order-active .ticker{color:#ffddaa;animation:tick 35s linear infinite}
+body.order-active .c-header{background:linear-gradient(to bottom,rgba(30,14,0,.9),transparent)}
+body.order-active .c-tag{color:var(--order);text-shadow:0 0 12px var(--order-glow)}
+body.order-active .c-head .brk{color:var(--order);text-shadow:0 0 18px var(--order-glow);animation:orderFlicker 1.5s ease-in-out infinite}
+@keyframes orderFlicker{0%,100%{opacity:1}30%{opacity:.6}60%{opacity:1}85%{opacity:.75}95%{opacity:1}}
+body.order-active .story-box{border-color:rgba(255,136,0,.28);background:rgba(255,100,0,.02)}
+body.order-active .story-box::after{background:linear-gradient(90deg,var(--order),transparent 55%);opacity:.42}
+body.order-active .story-headline{text-shadow:0 0 16px rgba(255,136,0,.32)}
+body.order-active .bot{border-top-color:rgba(255,136,0,.28)}
+.log-entry.pord::before{background:var(--order);box-shadow:0 0 6px var(--order-glow);animation:orderStrip 1.6s ease-in-out infinite}
+@keyframes orderStrip{0%,100%{box-shadow:0 0 6px var(--order-glow)}50%{box-shadow:0 0 14px var(--order-glow)}}
+.log-entry.pord{border-color:rgba(255,136,0,.2);background:rgba(255,100,0,.015)}
+.log-entry.pord:hover{border-color:rgba(255,136,0,.4);background:rgba(255,100,0,.04)}
+.log-entry.pord .le-hl{text-shadow:0 0 8px rgba(255,136,0,.28);color:rgba(255,232,200,.9)}
+.le-tag.order{color:var(--order)}
+.story-priority.order{color:var(--order);border-color:rgba(255,136,0,.5);background:rgba(255,100,0,.06);box-shadow:0 0 10px rgba(255,136,0,.2)}
+
 #status{transition:color .4s}
 </style>
 </head>
@@ -1193,7 +1327,32 @@ const PRIORITY_CONFIG = {
   low:    { tag:'DELTA',  badgeClass:'low',    bodyClass:null,           tagClass:'low',    label:'▷ PRIORITY DELTA', headerTag:'◆ PRIORITY DELTA TRANSMISSION ◆ AUTHENTICATED ◆ CORUSCANT BUREAU ◆', headerBrk:'▷ STANDARD REPORT ▷',   bannerLabel:'STANDARD REPORT',     logClass:'pl' },
   // ── HIDDEN PRIORITIES ───────────────────────────────────────────────────
   omega:  { tag:'OMEGA',  badgeClass:'omega',  bodyClass:'omega-active', tagClass:'omega',  label:'▲▲ OMEGA — CLASSIFIED',  headerTag:'◆◆ OMEGA CLEARANCE — EYES ONLY ◆◆ SUPREME CLASSIFIED ◆◆',    headerBrk:'▲▲ OMEGA TRANSMISSION ▲▲', bannerLabel:'▲▲ OMEGA TRANSMISSION ▲▲', logClass:'po' },
-  shadow: { tag:'SHADOW', badgeClass:'shadow-p',bodyClass:'shadow-active',tagClass:'shadow', label:'◈ SHADOW — RESTRICTED', headerTag:'◈ SHADOW PROTOCOL ◈ CLASSIFIED INTEL ◈ RESTRICTED DISTRIBUTION ◈', headerBrk:'◈ SHADOW PROTOCOL ◈',  bannerLabel:'◈ SHADOW PROTOCOL ◈',  logClass:'ps' }
+  shadow: { tag:'SHADOW', badgeClass:'shadow-p',bodyClass:'shadow-active',tagClass:'shadow', label:'◈ SHADOW — RESTRICTED', headerTag:'◈ SHADOW PROTOCOL ◈ CLASSIFIED INTEL ◈ RESTRICTED DISTRIBUTION ◈', headerBrk:'◈ SHADOW PROTOCOL ◈',  bannerLabel:'◈ SHADOW PROTOCOL ◈',  logClass:'ps' },
+  // ── CLONE WARS HIDDEN PRIORITIES ────────────────────────────────────────
+  // "repemg"  — ⚠ REPUBLIC EMERGENCY DECREE
+  //             Amber/gold. Senate martial law or Chancellor emergency powers invoked.
+  //             Pulsing gold banner, fast ticker. Use for: emergency session votes,
+  //             clone army mobilizations, planetary blockades ratified by the Senate.
+  repemg: { tag:'REP.EMG', badgeClass:'repemg', bodyClass:'repemg-active', tagClass:'repemg', label:'⚠ REPUBLIC EMERGENCY', headerTag:'⚠ REPUBLIC EMERGENCY DECREE ⚠ SENATE AUTHORIZED ⚠ CHANCELLOR PALPATINE ⚠', headerBrk:'⚠ EMERGENCY DECREE IN EFFECT ⚠', bannerLabel:'⚠ REPUBLIC EMERGENCY DECREE', logClass:'pre' },
+  // "sith"    — ◼ SITH PROTOCOL
+  //             Deep red/black. Sith Lord involvement confirmed or strongly suspected.
+  //             Static, heavy, minimal animation — ominous and cold.
+  //             Use for: darksider sightings, Sith artifact discoveries, confirmed Sith action.
+  sith:   { tag:'SITH',   badgeClass:'sith',   bodyClass:'sith-active',   tagClass:'sith',   label:'◼ SITH PROTOCOL',       headerTag:'◼ SITH PROTOCOL ◼ EYES ONLY — JEDI COUNCIL & CHANCELLOR ◼ DO NOT DISTRIBUTE ◼', headerBrk:'◼ SITH PROTOCOL ◼',    bannerLabel:'◼ SITH PROTOCOL — RESTRICTED',  logClass:'psi' },
+  // "jedi"    — ✦ JEDI COUNCIL DISPATCH
+  //             Teal/cyan-gold. Official Jedi Order classified communication or
+  //             council-level decision. Calm but authoritative.
+  //             Use for: Council rulings, Jedi mission orders, Force-sensitive events.
+  jedi:   { tag:'JEDI',   badgeClass:'jedi',   bodyClass:'jedi-active',   tagClass:'jedi',   label:'✦ JEDI COUNCIL DISPATCH', headerTag:'✦ JEDI COUNCIL DISPATCH ✦ ORDER OF THE JEDI ✦ CLASSIFIED COMMUNIQUÉ ✦', headerBrk:'✦ JEDI COUNCIL — CLASSIFIED ✦', bannerLabel:'✦ JEDI COUNCIL DISPATCH',    logClass:'pjc' },
+  // "sep"     — ▼ SEPARATIST INTEL
+  //             Cold green. Intercepted CIS comms or confirmed Separatist intelligence.
+  //             Use for: intercepted battle plans, CIS command movement, droid army orders.
+  sep:    { tag:'SEP.INTEL',badgeClass:'sep',  bodyClass:'sep-active',    tagClass:'sep',    label:'▼ SEPARATIST INTEL',    headerTag:'▼ INTERCEPTED CIS TRANSMISSION ▼ REPUBLIC INTELLIGENCE ▼ CLASSIFIED ▼',    headerBrk:'▼ SEPARATIST INTEL ▼',     bannerLabel:'▼ INTERCEPTED SEPARATIST COMM',  logClass:'psep' },
+  // "order"   — ◉ ORDER CLASSIFIED
+  //             Military orange. Clone army blackout / GAR classified order-level directive.
+  //             Fast ticker, flickering header. Use for: clone order activations,
+  //             Republic military blackouts, GAR strategic command directives.
+  order:  { tag:'ORDER',  badgeClass:'order',  bodyClass:'order-active',  tagClass:'order',  label:'◉ ORDER CLASSIFIED',    headerTag:'◉ GAR CLASSIFIED ORDER ◉ GRAND ARMY OF THE REPUBLIC ◉ MILITARY BLACKOUT ◉',  headerBrk:'◉ ORDER CLASSIFIED ◉',     bannerLabel:'◉ ORDER CLASSIFIED — GAR DIRECTIVE', logClass:'pord' }
 };
 
 // ══ LANGUAGE SYSTEM ═══════════════════════════════════════════════════════
@@ -1331,7 +1490,7 @@ let dynamicLogs = [];
 // ══ PRIORITY BODY CLASS MANAGER ══════════════════════════════════════════
 function applyPriorityBodyClass(priority){
   // Remove all priority body classes
-  document.body.classList.remove('omega-active','shadow-active');
+  document.body.classList.remove('omega-active','shadow-active','repemg-active','sith-active','jedi-active','sep-active','order-active');
   const cfg = PRIORITY_CONFIG[priority] || PRIORITY_CONFIG.high;
   if(cfg.bodyClass) document.body.classList.add(cfg.bodyClass);
   activePriority = priority;
@@ -1505,7 +1664,7 @@ async function removeLog(e,logId){
     if(activeDynId===logId){
       document.getElementById('story-placeholder').style.display='';
       document.querySelectorAll('.story-content').forEach(e=>e.classList.remove('active'));
-      document.body.classList.remove('omega-active','shadow-active');
+      document.body.classList.remove('omega-active','shadow-active','repemg-active','sith-active','jedi-active','sep-active','order-active');
       document.getElementById('banner-label-text').textContent='BREAKING NEWS';
       activeStory=-1; activeDynId=null;
     }
