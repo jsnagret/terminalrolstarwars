@@ -681,6 +681,103 @@ body.shadow-active .story-headline{text-shadow:0 0 16px rgba(136,68,204,.35)}
 .m-post{background:linear-gradient(135deg,rgba(0,200,240,.15),rgba(0,130,170,.1));border:1px solid rgba(0,200,240,.35);color:var(--blue);font-family:'Orbitron',sans-serif;font-size:.48rem;font-weight:700;letter-spacing:.2em;padding:10px 22px;cursor:pointer;border-radius:2px;transition:all .2s;text-shadow:0 0 8px var(--blue)}
 .m-post:hover{border-color:var(--blue);box-shadow:0 0 16px rgba(0,200,240,.28)}
 
+/* ── TAGS ── */
+.tag-pill{display:inline-block;font-size:.38rem;letter-spacing:.12em;padding:2px 6px;border-radius:10px;border:1px solid;margin:0 2px 2px 0;font-family:'Orbitron',sans-serif;font-weight:600;cursor:default;white-space:nowrap}
+.tag-pill.era{color:#d4a82a;border-color:rgba(212,168,42,.4);background:rgba(212,168,42,.07)}
+.tag-pill.sector{color:#00c8f0;border-color:rgba(0,200,240,.35);background:rgba(0,200,240,.06)}
+.tag-pill.topic{color:#22ffaa;border-color:rgba(34,255,170,.3);background:rgba(34,255,170,.05)}
+.tag-pill.faction{color:#ff9966;border-color:rgba(255,153,102,.35);background:rgba(255,153,102,.06)}
+.tag-pill.classified{color:#ff0055;border-color:rgba(255,0,85,.4);background:rgba(255,0,55,.06)}
+.tag-pill.shadow-t{color:#8844cc;border-color:rgba(136,68,204,.4);background:rgba(136,68,204,.06)}
+.story-tags{display:flex;flex-wrap:wrap;margin-bottom:10px}
+.le-tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
+.le-tag-pill{font-size:.32rem;letter-spacing:.08em;padding:1px 4px;border-radius:8px;border:1px solid;font-family:'Orbitron',sans-serif}
+.le-tag-pill.era{color:#d4a82a;border-color:rgba(212,168,42,.35)}
+.le-tag-pill.sector{color:#00c8f0;border-color:rgba(0,200,240,.3)}
+.le-tag-pill.topic{color:#22ffaa;border-color:rgba(34,255,170,.25)}
+.le-tag-pill.faction{color:#ff9966;border-color:rgba(255,153,102,.3)}
+
+/* ── TAG FILTER BAR ── */
+.filter-bar{padding:6px 10px;background:rgba(0,200,240,.03);border-bottom:1px solid rgba(0,200,240,.07);display:flex;flex-wrap:wrap;gap:4px;align-items:center;flex-shrink:0}
+.filter-label{font-size:.36rem;letter-spacing:.16em;color:var(--blue-dim);margin-right:2px;font-family:'Orbitron',sans-serif}
+.filter-pill{font-size:.34rem;letter-spacing:.1em;padding:2px 7px;border-radius:10px;border:1px solid rgba(0,200,240,.2);background:transparent;color:rgba(0,153,204,.5);cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .15s}
+.filter-pill:hover{border-color:rgba(0,200,240,.45);color:var(--blue)}
+.filter-pill.active-f{border-color:var(--red);color:var(--red);background:rgba(255,68,68,.07)}
+.filter-pill.omega-f{border-color:rgba(255,0,55,.4);color:rgba(255,0,85,.7)}
+.filter-pill.omega-f.active-f{background:rgba(255,0,55,.1);color:var(--omega)}
+.filter-pill.clear-f{border-color:rgba(212,168,42,.25);color:rgba(212,168,42,.5)}
+.filter-pill.clear-f:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── REPORTER PROFILE MODAL ── */
+#reporter-modal{
+  position:fixed;inset:0;z-index:7500;
+  background:rgba(0,8,15,.88);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+}
+#reporter-modal.open{display:flex}
+.rp-box{
+  background:linear-gradient(135deg,rgba(0,22,38,.98),rgba(0,15,28,.98));
+  border:1px solid rgba(0,200,240,.28);border-radius:4px;
+  padding:28px 32px;width:min(520px,92vw);
+  max-height:88vh;overflow-y:auto;
+  box-shadow:0 0 70px rgba(0,200,240,.1);
+  display:flex;flex-direction:column;gap:14px;
+  position:relative;
+}
+.rp-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),var(--gold),var(--blue),transparent);animation:shimmer 3s linear infinite;background-size:200% 100%}
+.rp-header{display:flex;align-items:center;gap:16px}
+.rp-avatar{width:56px;height:56px;border-radius:2px;border:1px solid rgba(0,200,240,.3);background:rgba(0,200,240,.06);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;font-family:'Orbitron',sans-serif;color:var(--blue);text-shadow:0 0 14px var(--blue)}
+.rp-name{font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:var(--white);letter-spacing:.12em;text-shadow:0 0 14px rgba(0,200,240,.4)}
+.rp-title{font-size:.46rem;letter-spacing:.22em;color:var(--gold);text-shadow:0 0 8px var(--gold-dim);margin-top:3px}
+.rp-id{font-size:.4rem;letter-spacing:.12em;color:rgba(0,153,204,.5);margin-top:2px}
+.rp-divider{height:1px;background:linear-gradient(90deg,rgba(0,200,240,.2),transparent)}
+.rp-section-t{font-family:'Orbitron',sans-serif;font-size:.42rem;letter-spacing:.22em;color:var(--gold);text-shadow:0 0 8px var(--gold-dim);margin-bottom:5px}
+.rp-bio{font-size:.68rem;color:rgba(210,238,252,.82);line-height:1.85;letter-spacing:.03em}
+.rp-bio p{margin-bottom:.85em}.rp-bio p:last-child{margin-bottom:0}
+.rp-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rp-stat{border:1px solid rgba(0,200,240,.1);border-radius:2px;padding:7px 10px;background:rgba(0,200,240,.02)}
+.rp-stat-l{font-size:.36rem;letter-spacing:.14em;color:var(--blue-dim);margin-bottom:2px}
+.rp-stat-v{font-size:.52rem;letter-spacing:.08em;color:var(--blue);font-family:'Orbitron',sans-serif}
+.rp-close{position:absolute;top:12px;right:14px;background:transparent;border:1px solid rgba(255,68,68,.22);color:rgba(255,68,68,.45);font-size:.38rem;letter-spacing:.12em;padding:4px 8px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace}
+.rp-close:hover{border-color:var(--red);color:var(--red)}
+.reporter-clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;transition:color .2s}
+.reporter-clickable:hover{color:var(--gold)!important;text-shadow:0 0 8px var(--gold-dim)!important}
+
+/* ── BANNER MODAL ── */
+#banner-modal{
+  position:fixed;inset:0;z-index:7600;
+  background:rgba(0,8,15,.9);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(5px);
+}
+#banner-modal.open{display:flex}
+.bm-box{
+  background:linear-gradient(135deg,rgba(0,22,38,.98),rgba(0,15,28,.98));
+  border:1px solid rgba(212,168,42,.35);border-radius:4px;
+  padding:26px 30px;width:min(600px,92vw);
+  max-height:88vh;overflow-y:auto;
+  box-shadow:0 0 60px rgba(212,168,42,.08);
+  display:flex;flex-direction:column;gap:12px;
+  position:relative;
+}
+.bm-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),var(--gold),transparent);animation:shimmer 3s linear infinite;background-size:200% 100%}
+.bm-title{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:.28em;color:var(--gold);text-shadow:0 0 12px var(--gold-dim);text-align:center}
+.bm-sub{font-size:.42rem;letter-spacing:.16em;color:var(--blue-dim);text-align:center}
+.bm-items{display:flex;flex-direction:column;gap:6px}
+.bm-item{display:flex;gap:6px;align-items:center}
+.bm-item-inp{flex:1;background:rgba(0,200,240,.04);border:1px solid rgba(0,200,240,.15);border-radius:2px;color:rgba(210,238,252,.85);font-family:'Share Tech Mono',monospace;font-size:.68rem;padding:7px 10px;outline:none;letter-spacing:.03em;caret-color:var(--blue);transition:border-color .2s}
+.bm-item-inp:focus{border-color:rgba(0,200,240,.4);box-shadow:0 0 10px rgba(0,200,240,.1)}
+.bm-del{background:transparent;border:1px solid rgba(255,68,68,.2);color:rgba(255,68,68,.4);font-size:.38rem;padding:5px 8px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace;flex-shrink:0}
+.bm-del:hover{border-color:var(--red);color:var(--red)}
+.bm-add{background:rgba(0,200,240,.04);border:1px dashed rgba(0,200,240,.22);color:rgba(0,153,204,.6);font-size:.42rem;letter-spacing:.14em;padding:8px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace;text-align:center}
+.bm-add:hover{border-color:rgba(0,200,240,.45);color:var(--blue)}
+.bm-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.bm-cancel{background:transparent;border:1px solid rgba(255,68,68,.25);color:rgba(255,68,68,.5);font-family:'Orbitron',sans-serif;font-size:.42rem;letter-spacing:.14em;padding:8px 16px;cursor:pointer;border-radius:2px;transition:all .2s}
+.bm-cancel:hover{border-color:var(--red);color:var(--red)}
+.bm-save{background:linear-gradient(135deg,rgba(212,168,42,.15),rgba(160,120,20,.1));border:1px solid rgba(212,168,42,.4);color:var(--gold);font-family:'Orbitron',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:.18em;padding:9px 20px;cursor:pointer;border-radius:2px;transition:all .2s;text-shadow:0 0 8px var(--gold-dim)}
+.bm-save:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(212,168,42,.2)}
+
 /* ── BOTTOM BAR ── */
 .bot{border-top:1px solid rgba(0,200,240,.1);background:rgba(0,8,14,.97);padding:5px 18px;display:flex;justify-content:space-between;align-items:center;font-size:.44rem;color:rgba(0,153,204,.48);letter-spacing:.1em;flex-shrink:0;position:relative;overflow:hidden}
 .bot::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,240,.18),transparent)}
@@ -746,7 +843,6 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
         <button class="logout-btn" onclick="doLogout()">✕ LOG OUT</button>
       </div>
       <button id="banner-edit-btn" style="display:none;font-size:.38rem;color:rgba(212,168,42,.6);letter-spacing:.12em;padding:4px 8px;cursor:pointer;border:1px solid rgba(212,168,42,.3);background:transparent;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace" onclick="openBannerEditor()">✎ EDIT BANNER</button>
-      <button id="lang-toggle" style="font-size:.38rem;color:rgba(0,200,240,.6);letter-spacing:.12em;padding:4px 8px;cursor:pointer;border:1px solid rgba(0,200,240,.3);background:transparent;border-radius:2px;transition:all .2s;font-family:'Share Tech Mono',monospace" onclick="toggleLanguage()">🌐 ES/EN</button>
       <div id="login-hint" style="font-size:.44rem;color:rgba(0,153,204,.5);letter-spacing:.1em;cursor:pointer;border:1px solid rgba(0,200,240,.15);padding:4px 9px;border-radius:2px" onclick="showLogin()">⚿ PRESS LOGIN</div>
     </div>
   </div>
@@ -812,7 +908,10 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
             <div class="story-meta">
               <span>◆ BBY 22 — 06:14:02 GST</span>
               <span>◆ CORUSCANT BUREAU</span>
-              <span>◆ JEST ICKLE, CORRESPONDENT</span>
+              <span class="reporter-clickable" onclick="openReporterProfile('jest')">◆ JEST ICKLE, CORRESPONDENT</span>
+            </div>
+            <div class="story-tags">
+              <span class="tag-pill era">BBY 22</span><span class="tag-pill era">CLONE WARS</span><span class="tag-pill topic">FORCE DROIDS</span><span class="tag-pill faction">CII</span><span class="tag-pill sector">CORUSCANT</span><span class="tag-pill topic">JEDI COUNCIL</span>
             </div>
             <div class="story-body">
               <p>CORUSCANT — In what Republic Intelligence is describing as one of the most sudden and complete military annihilations in the history of the Clone Wars, the <strong style="color:var(--blue)">Confederación de la Igualdad e Independencia</strong> — known across the Outer Rim and among dissident circles under the initials <strong style="color:var(--blue)">CII</strong> — has been utterly destroyed. The organization, which had been growing in size and influence for several standard years, was wiped out in a single engagement against a series of unidentified droid units displaying capabilities that senior Republic analysts and at least two members of the Jedi Council are struggling to classify. The working designation applied to the attackers in classified Senate briefings is <em>"Force Droids."</em> No such designation has any known precedent in the military doctrine of either the Galactic Republic or the Confederacy of Independent Systems.</p>
@@ -830,7 +929,10 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
             <div class="story-meta">
               <span>◆ BBY 22 — 08:47:33 GST</span>
               <span>◆ OUTER RIM BUREAU — FIELD TRANSMISSION</span>
-              <span>◆ VINE CALEIS, CORRESPONDENT</span>
+              <span class="reporter-clickable" onclick="openReporterProfile('vine')">◆ VINE CALEIS, CORRESPONDENT</span>
+            </div>
+            <div class="story-tags">
+              <span class="tag-pill era">BBY 22</span><span class="tag-pill era">CLONE WARS</span><span class="tag-pill faction">GEONOSIAN INSURGENTS</span><span class="tag-pill sector">OUTER RIM</span><span class="tag-pill topic">WARRIOR CASTE</span><span class="tag-pill faction">TRUE HIVE</span>
             </div>
             <div class="story-body">
               <p>OUTER RIM TERRITORIES — A series of coordinated and ferocious attacks across multiple Outer Rim sectors has been attributed to an emerging Geonosian faction whose identity, command structure, and objectives remain almost entirely unknown to Republic forces. What is known — pieced together from survivor accounts, damaged surveillance records, and two Republic patrols who survived contact — paints the portrait of a movement unlike anything the Clone Wars has produced. This faction does not fight like the Separatists. It does not fight like the Republic. It fights like something <em>older.</em></p>
@@ -846,8 +948,10 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
             <div class="story-priority mid" id="dyn-priority">▶ PRIORITY BETA</div>
             <div class="story-headline" id="dyn-headline"></div>
             <div class="story-meta" id="dyn-meta"></div>
+            <div class="story-tags" id="dyn-tags"></div>
             <div class="story-body" id="dyn-body"></div>
           </div>
+
         </div>
       </div>
 
@@ -881,6 +985,14 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
         <div class="log-sub" id="log-sub">LOADING...</div>
       </div>
       <button class="add-log-btn" id="add-log-btn" onclick="openModal()">＋ FILE NEW TRANSMISSION</button>
+      <div class="filter-bar" id="filter-bar">
+        <span class="filter-label">FILTER:</span>
+        <button class="filter-pill omega-f" id="fpill-omega" onclick="toggleFilter('omega')">▲▲ OMEGA</button>
+        <button class="filter-pill" id="fpill-alpha" onclick="toggleFilter('high')">ALPHA</button>
+        <button class="filter-pill" id="fpill-beta" onclick="toggleFilter('mid')">BETA</button>
+        <button class="filter-pill" id="fpill-delta" onclick="toggleFilter('low')">DELTA</button>
+        <button class="filter-pill clear-f" onclick="clearFilter()">✕ ALL</button>
+      </div>
       <div class="log-list" id="log-list"></div>
     </div>
   </div><!-- /grid -->
@@ -949,6 +1061,11 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
     </div>
 
     <div>
+      <div class="modal-label">TAGS <span style="font-size:.38rem;color:rgba(0,153,204,.4);letter-spacing:.08em;font-family:'Share Tech Mono',monospace;font-weight:400">(COMMA-SEPARATED — e.g. CLONE WARS, KAMINO, SENATE)</span></div>
+      <input class="m-inp" id="m-tags" type="text" placeholder="e.g. CLONE WARS, OUTER RIM, JEDI COUNCIL, SEPARATISTS..." maxlength="200">
+    </div>
+
+    <div>
       <div class="modal-label">TRANSMISSION BODY</div>
       <div class="editor-wrap">
         <div class="toolbar">
@@ -984,6 +1101,45 @@ body.shadow-active .bot{border-top-color:rgba(136,68,204,.25)}
     <div class="modal-footer">
       <button class="m-cancel" onclick="closeModal()">◼ CANCEL</button>
       <button class="m-post" onclick="submitLog()">▶ TRANSMIT TO HOLONET</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORTER PROFILE MODAL -->
+<div id="reporter-modal">
+  <div class="rp-box">
+    <button class="rp-close" onclick="closeReporterProfile()">✕ CLOSE</button>
+    <div class="rp-header">
+      <div class="rp-avatar" id="rp-avatar">—</div>
+      <div>
+        <div class="rp-name" id="rp-name">—</div>
+        <div class="rp-title" id="rp-title">—</div>
+        <div class="rp-id" id="rp-id">—</div>
+      </div>
+    </div>
+    <div class="rp-divider"></div>
+    <div>
+      <div class="rp-section-t">▸ CORRESPONDENT DOSSIER</div>
+      <div class="rp-bio" id="rp-bio"></div>
+    </div>
+    <div class="rp-divider"></div>
+    <div>
+      <div class="rp-section-t">▸ FIELD DATA</div>
+      <div class="rp-stats" id="rp-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BANNER EDIT MODAL -->
+<div id="banner-modal">
+  <div class="bm-box">
+    <div class="bm-title">✎ EDIT BREAKING NEWS BANNER</div>
+    <div class="bm-sub">EACH LINE SCROLLS IN THE TICKER ◆ AUTHORIZED CORRESPONDENTS ONLY</div>
+    <div class="bm-items" id="bm-items"></div>
+    <button class="bm-add" onclick="bannerAddItem()">＋ ADD NEWS ITEM</button>
+    <div class="bm-footer">
+      <button class="bm-cancel" onclick="closeBannerModal()">◼ CANCEL</button>
+      <button class="bm-save" onclick="saveBannerModal()">▶ BROADCAST TO HOLONET</button>
     </div>
   </div>
 </div>
@@ -1041,8 +1197,6 @@ const PRIORITY_CONFIG = {
 };
 
 // ══ LANGUAGE SYSTEM ═══════════════════════════════════════════════════════
-let currentLang = 'en';
-
 const TRANSLATIONS = {
   en: {
     live:'LIVE', freq:'FREQ', correspondent:'CORRESPONDENT', logout:'LOG OUT',
@@ -1096,131 +1250,10 @@ const TRANSLATIONS = {
     insufficientPerms:'⚠ INSUFFICIENT PERMISSIONS',
     deleteConfirm:'Delete this transmission?',
     editBannerPrompt:'Edit Breaking News (one per line, separated by blank lines):\n\nCurrent news items:\n'
-  },
-  es: {
-    live:'EN VIVO', freq:'FREC', correspondent:'CORRESPONSAL', logout:'CERRAR SESIÓN',
-    pressLogin:'⚿ PRESIONAR PARA ENTRAR', editBanner:'✎ EDITAR BANNER',
-    loginTitle:'CREDENCIALES DE PRENSA HOLONET',
-    loginSub:'SOLO CORRESPONSALES AUTORIZADOS — OFICINA DE LA REPÚBLICA GALÁCTICA',
-    username:'USUARIO', password:'CONTRASEÑA', authenticate:'▶ AUTENTICAR',
-    pressEnter:'PRESIONA ENTER PARA ENVIAR',
-    invalidCreds:'⚠ CREDENCIALES INVÁLIDAS — ACCESO DENEGADO',
-    breakingNews:'NOTICIAS DE ÚLTIMA HORA',
-    republicAuth:'REPÚBLICA GALÁCTICA<br>TRANSMISIÓN AUTENTICADA',
-    networkStatus:'▸ ESTADO DE RED', uplink:'ENLACE', encryption:'ENCRIPTACIÓN',
-    active:'ACTIVO', senateFeed:'FEED SENADO', jediComms:'COMMS JEDI',
-    limited:'LIMITADO', outerRim:'BORDE EXTERIOR', disrupted:'INTERRUMPIDO',
-    coreWorlds:'MUNDOS NÚCLEO', nominal:'NOMINAL',
-    sectorUplinks:'▸ ENLACES SECTORIALES', online:'EN LÍNEA', hostile:'HOSTIL',
-    monitored:'MONITOREADO', unmon:'SIN MON.', signalChannels:'▸ CANALES DE SEÑAL',
-    main:'PRINCIPAL', senate:'SENADO', encrypted:'ENCRIPTADO',
-    activeTransmission:'TRANSMISIÓN ACTIVA',
-    selectTransmission:'◆ SELECCIONA UNA TRANSMISIÓN DEL REGISTRO PARA VER EL REPORTE COMPLETO ◆',
-    citizenTransmissions:'▸ TRANSMISIONES CIUDADANAS',
-    connecting:'CONECTANDO...', firebaseLive:'FIREBASE EN VIVO', configRequired:'CONFIG REQUERIDA',
-    transmission:'TRANSMISIÓN', transmissions:'TRANSMISIONES',
-    selectStory:'◇ SELECCIONA UNA HISTORIA PARA VER TRANSMISIONES CIUDADANAS ◇',
-    noTransmissions:'◇ AÚN NO HAY TRANSMISIONES — SÉ EL PRIMER CIUDADANO EN RESPONDER ◇',
-    citizenName:'NOMBRE DE CIUDADANO', planet:'PLANETA',
-    enterTransmission:'Ingresa tu transmisión... (Ctrl+Enter)', post:'PUBLICAR',
-    transmissionLog:'▸ REGISTRO DE TRANSMISIÓN', loading:'CARGANDO...',
-    entry:'ENTRADA', entries:'ENTRADAS', selectToView:'SELECCIONAR PARA VER',
-    fileNewTransmission:'＋ ARCHIVAR NUEVA TRANSMISIÓN', viewing:'◀ VIENDO',
-    fileNewTransmissionTitle:'ARCHIVAR NUEVA TRANSMISIÓN',
-    authorizedOnly:'SOLO CORRESPONSALES AUTORIZADOS ◆ OFICINA HOLONET REPÚBLICA',
-    headlineTitle:'TITULAR / TÍTULO', enterHeadline:'Ingresa el titular de la transmisión...',
-    priorityLevel:'NIVEL DE PRIORIDAD',
-    alphaBreaking:'▲ ALFA — ÚLTIMA HORA', betaDeveloping:'▶ BETA — EN DESARROLLO', deltaStandard:'▷ DELTA — ESTÁNDAR',
-    locationOptional:'UBICACIÓN (OPCIONAL)',
-    locationPlaceholder:'ej., OFICINA BORDE EXTERIOR, TRANSMISIÓN DE CAMPO, CORUSCANT',
-    transmissionBody:'CUERPO DE TRANSMISIÓN',
-    editorPlaceholder:'Escribe tu transmisión aquí... Usa la barra de herramientas arriba para formatear el texto.',
-    cancel:'◼ CANCELAR', transmitToHolonet:'▶ TRANSMITIR A HOLONET',
-    authenticatedBroadcast:'NOTICIAS HOLONET REPÚBLICA GALÁCTICA ◆ CORUSCANT ◆ TRANSMISIÓN SEGURA AUTENTICADA',
-    terminalActive:'TERMINAL ACTIVA — EN NOMBRE DE LA REPÚBLICA',
-    welcome:'✓ BIENVENIDO, CORRESPONSAL', sessionTerminated:'SESIÓN TERMINADA — TERMINAL ACTIVA',
-    mustLogin:'⚠ DEBES INICIAR SESIÓN PARA ELIMINAR', loginRequired:'⚠ SE REQUIERE INICIO DE SESIÓN',
-    transmissionFiled:'✓ TRANSMISIÓN ARCHIVADA EN HOLONET',
-    transmissionFailed:'⚠ TRANSMISIÓN FALLÓ — VERIFICA FIREBASE',
-    selectStoryFirst:'⚠ SELECCIONA UNA HISTORIA PRIMERO', firebaseNotReady:'⚠ FIREBASE NO ESTÁ LISTO',
-    enterText:'⚠ INGRESA TEXTO DE TRANSMISIÓN', transmissionReceived:'✓ TRANSMISIÓN RECIBIDA',
-    bannerSaved:'✓ NOTICIAS DE ÚLTIMA HORA GUARDADAS EN FIREBASE',
-    bannerFailed:'⚠ FALLÓ AL GUARDAR BANNER - VERIFICA CONSOLA',
-    insufficientPerms:'⚠ PERMISOS INSUFICIENTES',
-    deleteConfirm:'¿Eliminar esta transmisión?',
-    editBannerPrompt:'Editar Noticias de Última Hora (una por línea, separadas por líneas en blanco):\n\nElementos de noticias actuales:\n'
   }
 };
 
-function t(key){ return TRANSLATIONS[currentLang][key] || TRANSLATIONS.en[key] || key; }
-
-function toggleLanguage(){
-  currentLang = currentLang === 'en' ? 'es' : 'en';
-  updateAllTranslations();
-  setStatus(currentLang === 'es' ? '✓ IDIOMA CAMBIADO A ESPAÑOL' : '✓ LANGUAGE CHANGED TO ENGLISH','var(--green)',2000);
-}
-
-function updateAllTranslations(){
-  document.querySelector('.login-title').textContent = t('loginTitle');
-  document.querySelector('.login-sub').textContent = t('loginSub');
-  document.getElementById('l-user').placeholder = t('username');
-  document.getElementById('l-pass').placeholder = t('password');
-  document.querySelector('.l-btn').textContent = t('authenticate');
-  document.querySelector('.holo-lbl').innerHTML = t('republicAuth');
-  const secTitles = document.querySelectorAll('.sec-t');
-  if(secTitles[0]) secTitles[0].textContent = t('networkStatus');
-  if(secTitles[1]) secTitles[1].textContent = t('sectorUplinks');
-  if(secTitles[2]) secTitles[2].textContent = t('signalChannels');
-  document.querySelectorAll('.srow').forEach(row=>{
-    const label=row.querySelector('span:first-child');
-    const value=row.querySelector('.sv');
-    if(label){
-      const tx=label.textContent.trim();
-      const map={'UPLINK':'uplink','ENLACE':'uplink','ENCRYPTION':'encryption','ENCRIPTACIÓN':'encryption','SENATE FEED':'senateFeed','FEED SENADO':'senateFeed','JEDI COMMS':'jediComms','COMMS JEDI':'jediComms','OUTER RIM':'outerRim','BORDE EXTERIOR':'outerRim','CORE WORLDS':'coreWorlds','MUNDOS NÚCLEO':'coreWorlds'};
-      if(map[tx]) label.textContent=t(map[tx]);
-    }
-    if(value){
-      const vt=value.textContent.trim();
-      const vm={'ACTIVE':'active','ACTIVO':'active','LIVE':'live','EN VIVO':'live','LIMITED':'limited','LIMITADO':'limited','DISRUPTED':'disrupted','INTERRUMPIDO':'disrupted','NOMINAL':'nominal','ONLINE':'online','EN LÍNEA':'online','HOSTILE':'hostile','HOSTIL':'hostile','MONITORED':'monitored','MONITOREADO':'monitored','UNMON.':'unmon','SIN MON.':'unmon'};
-      if(vm[vt]) value.textContent=t(vm[vt]);
-    }
-  });
-  document.querySelector('.story-box').setAttribute('data-label',t('activeTransmission'));
-  if(document.getElementById('story-placeholder').style.display!=='none')
-    document.getElementById('story-placeholder').textContent=t('selectTransmission');
-  document.querySelector('.cmt-title').innerHTML=`<div class="lpulse"></div>${t('citizenTransmissions')}`;
-  document.getElementById('cf-name').placeholder=t('citizenName');
-  document.getElementById('cf-planet').placeholder=t('planet');
-  document.getElementById('cf-txt').placeholder=t('enterTransmission');
-  document.querySelector('.cf-sub').innerHTML=`${t('post')}<br>◆`;
-  document.querySelector('.log-title').innerHTML=`<div class="lpulse"></div>${t('transmissionLog')}`;
-  const addBtn=document.getElementById('add-log-btn');
-  if(addBtn) addBtn.textContent=t('fileNewTransmission');
-  document.querySelector('.modal-title').textContent=t('fileNewTransmissionTitle');
-  document.querySelector('.modal-sub').textContent=t('authorizedOnly');
-  const ml=document.querySelectorAll('.modal-label');
-  if(ml[0]) ml[0].textContent=t('headlineTitle');
-  if(ml[1]) ml[1].textContent=t('priorityLevel');
-  if(ml[2]) ml[2].textContent=t('locationOptional');
-  if(ml[3]) ml[3].textContent=t('transmissionBody');
-  document.getElementById('m-title').placeholder=t('enterHeadline');
-  document.getElementById('m-location').placeholder=t('locationPlaceholder');
-  document.getElementById('editor-body').setAttribute('data-placeholder',t('editorPlaceholder'));
-  const opts=document.querySelectorAll('.m-select option');
-  if(opts[0]) opts[0].textContent=t('alphaBreaking');
-  if(opts[1]) opts[1].textContent=t('betaDeveloping');
-  if(opts[2]) opts[2].textContent=t('deltaStandard');
-  document.querySelector('.m-cancel').textContent=t('cancel');
-  document.querySelector('.m-post').textContent=t('transmitToHolonet');
-  document.querySelector('.bot span:first-child').textContent=t('authenticatedBroadcast');
-  const lh=document.getElementById('login-hint');
-  if(lh) lh.textContent=t('pressLogin');
-  const bb=document.getElementById('banner-edit-btn');
-  if(bb) bb.textContent=t('editBanner');
-  const lb=document.querySelector('.logout-btn');
-  if(lb) lb.textContent=t('logout');
-  renderLogList();
-}
+function t(key){ return TRANSLATIONS.en[key] || key; }
 
 // ══ SESSION ══════════════════════════════════════════════════════════════
 let currentUser = null;
@@ -1249,18 +1282,38 @@ function renderBreakingNews(){
 
 async function openBannerEditor(){
   if(!currentUser||!currentUser.canEditBanner){ setStatus(t('insufficientPerms'),'var(--red)',2000); return; }
-  const newsList=breakingNews.map((n,i)=>`${i+1}. ${n.replace(/▲|◆|◈/g,'').trim()}`).join('\n\n');
-  const input=prompt(t('editBannerPrompt'),newsList);
-  if(input!==null){
-    const items=input.split('\n\n').map(s=>s.replace(/^\d+\.\s*/,'').trim()).filter(Boolean);
-    if(items.length>0){
-      if(window.saveFirebaseBanner){
-        const newId=await window.saveFirebaseBanner(items);
-        setStatus(newId?t('bannerSaved'):t('bannerFailed'),newId?'var(--green)':'var(--red)',2500);
-      } else setStatus(t('firebaseNotReady'),'var(--red)',2000);
-    }
+  openBannerModal();
+}
+
+// ══ BANNER MODAL ══════════════════════════════════════════════════════════
+function openBannerModal(){
+  const items=document.getElementById('bm-items');
+  items.innerHTML='';
+  breakingNews.forEach((item,i)=>bannerAddItemWithText(item));
+  document.getElementById('banner-modal').classList.add('open');
+}
+function closeBannerModal(){ document.getElementById('banner-modal').classList.remove('open'); }
+function bannerAddItem(){ bannerAddItemWithText(''); }
+function bannerAddItemWithText(text){
+  const div=document.createElement('div'); div.className='bm-item';
+  div.innerHTML=`<input class="bm-item-inp" type="text" value="${text.replace(/"/g,'&quot;')}" placeholder="Enter breaking news item..."><button class="bm-del" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('bm-items').appendChild(div);
+  if(!text) div.querySelector('input').focus();
+}
+async function saveBannerModal(){
+  const inputs=document.querySelectorAll('#bm-items .bm-item-inp');
+  const items=[...inputs].map(i=>i.value.trim()).filter(Boolean);
+  if(!items.length){ setStatus('⚠ ADD AT LEAST ONE ITEM','var(--red)',2000); return; }
+  if(window.saveFirebaseBanner){
+    const newId=await window.saveFirebaseBanner(items);
+    if(newId){ breakingNews=items; renderBreakingNews(); closeBannerModal(); setStatus(t('bannerSaved'),'var(--green)',2500); }
+    else setStatus(t('bannerFailed'),'var(--red)',3000);
+  } else {
+    // fallback: update local only
+    breakingNews=items; renderBreakingNews(); closeBannerModal(); setStatus('✓ BANNER UPDATED (LOCAL ONLY)','var(--gold)',2500);
   }
 }
+document.getElementById('banner-modal').addEventListener('click',function(e){ if(e.target===this) closeBannerModal(); });
 
 // ══ CLOCK ════════════════════════════════════════════════════════════════
 function tick(){ const n=new Date(),p=x=>String(x).padStart(2,'0'); document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())} GST`; }
@@ -1270,8 +1323,8 @@ setInterval(tick,1000); tick();
 // To use omega/shadow for a static log: change priority to 'omega' or 'shadow'
 // and update the badge class in the HTML above from 'high' to 'omega' or 'shadow-p'
 const STATIC_LOGS = [
-  {id:'s0',staticId:0,time:'BBY 22 — 06:14 GST',priority:'high', tag:'ALPHA', headline:'CII OBLITERATED — "FORCE DROIDS" ANNIHILATE DISSIDENT FACTION'},
-  {id:'s1',staticId:1,time:'BBY 22 — 08:47 GST',priority:'high', tag:'ALPHA', headline:'GEONOSIAN INSURGENTS STRIKE OUTER RIM — ANCIENT WARRIOR FACTION CONFIRMED'}
+  {id:'s0',staticId:0,time:'BBY 22 — 06:14 GST',priority:'high', tag:'ALPHA', headline:'CII OBLITERATED — "FORCE DROIDS" ANNIHILATE DISSIDENT FACTION', tags:['CLONE WARS','FORCE DROIDS','CII','CORUSCANT']},
+  {id:'s1',staticId:1,time:'BBY 22 — 08:47 GST',priority:'high', tag:'ALPHA', headline:'GEONOSIAN INSURGENTS STRIKE OUTER RIM — ANCIENT WARRIOR FACTION CONFIRMED', tags:['CLONE WARS','OUTER RIM','GEONOSIAN','TRUE HIVE']}
 ];
 let dynamicLogs = [];
 
@@ -1330,13 +1383,28 @@ function updateAuthUI(){
 
 ['l-user','l-pass'].forEach(id=>{ document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); }); });
 
+// ══ FILTER ════════════════════════════════════════════════════════════════
+let activeFilter = null;
+function toggleFilter(val){
+  activeFilter = activeFilter === val ? null : val;
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active-f'));
+  if(activeFilter){
+    const idMap={omega:'fpill-omega',high:'fpill-alpha',mid:'fpill-beta',low:'fpill-delta'};
+    const el=document.getElementById(idMap[activeFilter]);
+    if(el) el.classList.add('active-f');
+  }
+  renderLogList();
+}
+function clearFilter(){ activeFilter=null; document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active-f')); renderLogList(); }
+
 // ══ RENDER LOG LIST ═══════════════════════════════════════════════════════
 function getPriorityCfg(p){ return PRIORITY_CONFIG[p] || PRIORITY_CONFIG.high; }
 
 function renderLogList(){
   const list=document.getElementById('log-list');
   list.innerHTML='';
-  const all=[...STATIC_LOGS,...dynamicLogs];
+  let all=[...STATIC_LOGS,...dynamicLogs];
+  if(activeFilter) all=all.filter(n=>n.priority===activeFilter);
   all.forEach(n=>{
     const cfg=getPriorityCfg(n.priority);
     const d=document.createElement('div');
@@ -1347,12 +1415,15 @@ function renderLogList(){
     const delBtn=isDynamic?`<button class="le-del" onclick="removeLog(event,'${n.id}')">✕</button>`:'';
     const now=new Date(),p=x=>String(x).padStart(2,'0');
     const timeDisplay=n.time||`BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`;
+    const tagArr=n.tags||[];
+    const tagHtml=tagArr.length?`<div class="le-tags">${tagArr.slice(0,3).map(tg=>`<span class="le-tag-pill topic">${esc(tg)}</span>`).join('')}</div>`:'';
     d.innerHTML=`
       <div class="le-top">
         <span class="le-time">${timeDisplay}</span>
         <span class="le-tag ${cfg.tagClass}">${cfg.tag}</span>
       </div>
       <div class="le-hl">${esc(n.headline)}</div>
+      ${tagHtml}
       ${delBtn}`;
     d.addEventListener('click',(e)=>{
       if(e.target.classList.contains('le-del')) return;
@@ -1361,8 +1432,10 @@ function renderLogList(){
     });
     list.appendChild(d);
   });
-  const count=all.length;
-  document.getElementById('log-sub').textContent=`${count} ${count===1?t('entry'):t('entries')} — ${t('selectToView')}`;
+  const total=[...STATIC_LOGS,...dynamicLogs].length;
+  const showing=all.length;
+  const filterNote=activeFilter?` (${showing} SHOWN)`:'';
+  document.getElementById('log-sub').textContent=`${total} ${total===1?t('entry'):t('entries')}${filterNote} — ${t('selectToView')}`;
   updateAuthUI();
 }
 
@@ -1392,7 +1465,12 @@ function showDynStory(n){
   const timeStr=n.time||`BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`;
   const reporter=n.reporter||'UNKNOWN CORRESPONDENT';
   const location=n.location?` — ${esc(n.location).toUpperCase()}`:'';
-  document.getElementById('dyn-meta').innerHTML=`<span>◆ ${esc(timeStr)}</span><span>◆ ${esc(reporter.toUpperCase())}, CORRESPONDENT${location}</span>`;
+  const repKey=reporter.toLowerCase().includes('vine')?'vine':reporter.toLowerCase().includes('jest')?'jest':null;
+  const repSpan=repKey?`<span class="reporter-clickable" onclick="openReporterProfile('${repKey}')">◆ ${esc(reporter.toUpperCase())}, CORRESPONDENT${location}</span>`:`<span>◆ ${esc(reporter.toUpperCase())}, CORRESPONDENT${location}</span>`;
+  document.getElementById('dyn-meta').innerHTML=`<span>◆ ${esc(timeStr)}</span>${repSpan}`;
+  // render tags
+  const tagArr=n.tags||[];
+  document.getElementById('dyn-tags').innerHTML=tagArr.map(tg=>`<span class="tag-pill topic">${esc(tg)}</span>`).join('');
   document.getElementById('dyn-body').innerHTML=n.bodyHtml||esc(n.body||'');
   document.getElementById('sc-dynamic').classList.add('active');
   markActive(n.id);
@@ -1440,6 +1518,7 @@ function openModal(){
   document.getElementById('log-modal').classList.add('open');
   document.getElementById('m-title').value='';
   document.getElementById('m-location').value='';
+  document.getElementById('m-tags').value='';
   document.getElementById('editor-body').innerHTML='';
   document.getElementById('m-priority').value=currentUser.priority||'mid';
   setTimeout(()=>document.getElementById('m-title').focus(),80);
@@ -1455,13 +1534,15 @@ async function submitLog(){
   if(!currentUser){ setStatus(t('loginRequired'),'var(--red)',2000); return; }
   const title=document.getElementById('m-title').value.trim();
   const location=document.getElementById('m-location').value.trim();
+  const tagsRaw=document.getElementById('m-tags').value.trim();
   const bodyEl=document.getElementById('editor-body');
   const bodyHtml=bodyEl.innerHTML.trim();
   const priority=document.getElementById('m-priority').value;
+  const tags=tagsRaw?tagsRaw.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean):[];
   if(!title){ bodyEl.parentElement.parentElement.style.borderColor='rgba(255,68,68,.5)'; setTimeout(()=>bodyEl.parentElement.parentElement.style.borderColor='',1500); return; }
   if(!bodyEl.textContent.trim()){ bodyEl.style.boxShadow='inset 0 0 0 1px rgba(255,68,68,.4)'; setTimeout(()=>bodyEl.style.boxShadow='',1500); return; }
   const now=new Date(),p=x=>String(x).padStart(2,'0');
-  const logData={ headline:title, location, bodyHtml, priority, reporter:currentUser.reporter, time:`BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST` };
+  const logData={ headline:title, location, bodyHtml, priority, reporter:currentUser.reporter, time:`BBY 22 — ${p(now.getHours())}:${p(now.getMinutes())} GST`, tags };
   if(window.postFirebaseLog){
     const id=await window.postFirebaseLog(logData);
     if(id){ closeModal(); setStatus(t('transmissionFiled'),'var(--green)',3000); }
@@ -1536,6 +1617,55 @@ setTimeout(()=>{
 
 // ══ UTILS ═════════════════════════════════════════════════════════════════
 function esc(t){ if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ══ REPORTER PROFILES ═════════════════════════════════════════════════════
+const REPORTER_PROFILES = {
+  vine: {
+    name: 'VINE CALEIS',
+    title: 'FIELD CORRESPONDENT — GALACTIC NEWS STATION',
+    id: 'GNS-FIELD-VC-441 ◆ OUTER RIM BUREAU',
+    avatar: 'VC',
+    bio: `<p>Vine Caleis is exactly what he says he is — <strong style="color:var(--blue)">your honest and only</strong> correspondent on the ground. He shows up where the story is and tells you what he saw. No polish. No spin. No waiting for the Senate to issue a statement.</p>
+<p>His style is direct to the point of being blunt. He talks to citizens, not officials. He goes to where the noise is and points a recorder at it. The Coruscant bureau calls this <em>"unrefined."</em> Vine calls it <em>"the job."</em></p>
+<p>He calls himself <em>"from the nearest galactic news station,"</em> which is less a bureau address and more a philosophy — he goes to where the news happens and files from there. His datapads have been through at least three active warzones and what he describes as <em>"a very uncomfortable cargo hold somewhere on the Hydian Way."</em></p>
+<p>Vine doesn't sign off with network slogans. He signs off with his name, because he means what he filed. <strong style="color:var(--gold)">Vine Caleis. Correspondent.</strong> That's the whole credential.</p>`,
+    stats: [
+      {label:'BUREAU', value:'OUTER RIM / FIELD'},
+      {label:'ACTIVE SINCE', value:'BBY 24'},
+      {label:'SPECIALIZATION', value:'GROUND REPORTS'},
+      {label:'CLEARANCE', value:'PRESS LEVEL 2'}
+    ]
+  },
+  jest: {
+    name: 'JEST ICKLE',
+    title: 'SENIOR CORRESPONDENT — CORUSCANT BUREAU',
+    id: 'HNN-SENIOR-JI-117 ◆ CORUSCANT BUREAU',
+    avatar: 'JI',
+    bio: `<p><strong style="color:var(--blue)">Jest Ickle</strong> is the Coruscant Bureau's senior correspondent — placeholder dossier pending full classification review.</p>
+<p>Known for deep sourcing within Senate Intelligence and Republic High Command. Cross-reference transmission <strong style="color:var(--gold)">SC-0 — CII OBLITERATION</strong> for representative field work.</p>
+<p><em style="color:rgba(0,153,204,.5)">Full biographical file: PENDING — BUREAU RECORDS DIVISION</em></p>`,
+    stats: [
+      {label:'BUREAU', value:'CORUSCANT'},
+      {label:'ACTIVE SINCE', value:'BBY 26'},
+      {label:'SPECIALIZATION', value:'SENATE / INTEL'},
+      {label:'CLEARANCE', value:'PRESS LEVEL 4'}
+    ]
+  }
+};
+
+function openReporterProfile(key){
+  const p=REPORTER_PROFILES[key]; if(!p) return;
+  document.getElementById('rp-avatar').textContent=p.avatar;
+  document.getElementById('rp-name').textContent=p.name;
+  document.getElementById('rp-title').textContent=p.title;
+  document.getElementById('rp-id').textContent=p.id;
+  document.getElementById('rp-bio').innerHTML=p.bio;
+  const statsEl=document.getElementById('rp-stats');
+  statsEl.innerHTML=p.stats.map(s=>`<div class="rp-stat"><div class="rp-stat-l">${s.label}</div><div class="rp-stat-v">${s.value}</div></div>`).join('');
+  document.getElementById('reporter-modal').classList.add('open');
+}
+function closeReporterProfile(){ document.getElementById('reporter-modal').classList.remove('open'); }
+document.getElementById('reporter-modal').addEventListener('click',function(e){ if(e.target===this) closeReporterProfile(); });
 
 // ══ INIT ══════════════════════════════════════════════════════════════════
 renderLogList();
