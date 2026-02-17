@@ -798,7 +798,49 @@ body.shadow-active .story-headline{text-shadow:0 0 16px rgba(136,68,204,.35)}
 .bm-save{background:linear-gradient(135deg,rgba(212,168,42,.15),rgba(160,120,20,.1));border:1px solid rgba(212,168,42,.4);color:var(--gold);font-family:'Orbitron',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:.18em;padding:9px 20px;cursor:pointer;border-radius:2px;transition:all .2s;text-shadow:0 0 8px var(--gold-dim)}
 .bm-save:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(212,168,42,.2)}
 
-/* ── BOTTOM BAR ── */
+/* ══ GALACTIC MAP ════════════════════════════════════════════════════════ */
+.map-wrap{
+  position:relative;border:1px solid rgba(0,200,240,.14);border-radius:2px;
+  background:rgba(0,5,12,.9);overflow:hidden;margin-bottom:6px;
+}
+.map-wrap::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,180,230,.025) 2px,rgba(0,180,230,.025) 3px);
+}
+#gal-map{display:block;cursor:crosshair;position:relative;z-index:1}
+.map-coords{
+  font-size:.32rem;letter-spacing:.1em;color:rgba(0,153,204,.4);
+  padding:2px 6px;border-top:1px solid rgba(0,200,240,.07);
+  display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;
+}
+.map-info-panel{
+  border:1px solid rgba(0,200,240,.12);border-radius:2px;
+  background:rgba(0,12,22,.8);padding:7px 9px;min-height:54px;
+  display:flex;flex-direction:column;gap:4px;
+  transition:all .2s;
+}
+.map-info-empty{
+  font-size:.46rem;color:rgba(0,153,204,.3);letter-spacing:.1em;
+  font-style:italic;display:flex;align-items:center;justify-content:center;
+  height:40px;
+}
+.map-planet-name{
+  font-family:'Orbitron',sans-serif;font-size:.5rem;font-weight:700;
+  letter-spacing:.14em;color:var(--white);text-shadow:0 0 10px rgba(0,200,240,.4);
+  display:flex;align-items:center;gap:6px;
+}
+.map-planet-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.map-planet-region{font-size:.38rem;letter-spacing:.14em;color:var(--blue-dim);margin-bottom:2px}
+.map-planet-status{font-size:.46rem;letter-spacing:.05em;color:rgba(210,238,252,.8);line-height:1.5;padding:3px 0;border-top:1px solid rgba(0,200,240,.07);border-bottom:1px solid rgba(0,200,240,.07);margin:2px 0}
+.map-fleet-label{font-family:'Orbitron',sans-serif;font-size:.34rem;letter-spacing:.18em;color:var(--gold);text-shadow:0 0 6px var(--gold-dim);margin-top:2px;margin-bottom:3px}
+.map-fleet-entry{font-size:.42rem;color:rgba(180,220,240,.7);letter-spacing:.04em;padding:1px 0;display:flex;align-items:center;gap:5px;line-height:1.4}
+.map-fleet-entry::before{content:'▸';color:var(--blue-dim);font-size:.36rem;flex-shrink:0}
+.map-ctrl-rep{background:#00c8f0}.map-ctrl-sep{background:#44bb44}
+.map-ctrl-contested{background:#d4a82a}.map-ctrl-neutral{background:rgba(0,153,204,.5)}
+.map-ctrl-unknown{background:rgba(100,100,120,.6)}
+
+/* ══ BOTTOM BAR ══════════════════════════════════════════════════════════ */
 .bot{border-top:1px solid rgba(0,200,240,.1);background:rgba(0,8,14,.97);padding:5px 18px;display:flex;justify-content:space-between;align-items:center;font-size:.44rem;color:rgba(0,153,204,.48);letter-spacing:.1em;flex-shrink:0;position:relative;overflow:hidden}
 .bot::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,240,.18),transparent)}
 /* OMEGA bottom bar */
@@ -1021,6 +1063,25 @@ body.order-active .bot{border-top-color:rgba(255,136,0,.28)}
         <div class="freq-row"><div class="freq-lbl"><span>MAIN — 1138.4</span><span class="sv ok" style="font-size:.4rem">●</span></div><div class="freq-track"><div class="freq-fill ff1"></div></div></div>
         <div class="freq-row"><div class="freq-lbl"><span>SENATE — 5501.0</span><span class="sv ok" style="font-size:.4rem">●</span></div><div class="freq-track"><div class="freq-fill ff3"></div></div></div>
         <div class="freq-row"><div class="freq-lbl"><span>ENCRYPTED</span><span class="sv wrn" style="font-size:.4rem">●</span></div><div class="freq-track"><div class="freq-fill ff2"></div></div></div>
+      </div>
+
+      <!-- GALACTIC MAP -->
+      <div>
+        <div class="sec-t">▸ GALACTIC POSITIONING</div>
+        <div class="map-wrap">
+          <canvas id="gal-map" width="208" height="172"></canvas>
+          <div class="map-coords"><span id="map-coord-x">X: —</span><span id="map-coord-y">Y: —</span></div>
+        </div>
+        <div class="map-info-panel" id="map-info-panel">
+          <div class="map-info-empty" id="map-info-empty">◇ SELECT A PLANET ◇</div>
+          <div id="map-planet-detail" style="display:none">
+            <div class="map-planet-name"><div class="map-planet-dot" id="map-pdot"></div><span id="map-pname">—</span></div>
+            <div class="map-planet-region" id="map-pregion">—</div>
+            <div class="map-planet-status" id="map-pstatus">—</div>
+            <div class="map-fleet-label">◆ NEARBY FLEETS</div>
+            <div id="map-pfleets"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1825,6 +1886,280 @@ function openReporterProfile(key){
 }
 function closeReporterProfile(){ document.getElementById('reporter-modal').classList.remove('open'); }
 document.getElementById('reporter-modal').addEventListener('click',function(e){ if(e.target===this) closeReporterProfile(); });
+
+// ══ GALACTIC MAP ══════════════════════════════════════════════════════════
+const PLANETS = [
+  // ── CORE & CORE WORLDS ──
+  { id:'coruscant',  name:'CORUSCANT',    region:'CORE WORLDS',      control:'republic',  ox:0,   oy:-4,
+    status:'REPUBLIC CAPITAL — ALL SYSTEMS NOMINAL',
+    fleets:['7TH SKY CORPS — IN HIGH ORBIT','CHANCELLOR GUARD FLOTILLA','SENATE COMMANDO GARRISON'] },
+  { id:'alderaan',   name:'ALDERAAN',     region:'CORE WORLDS',      control:'republic',  ox:-8,  oy:-10,
+    status:'REPUBLIC — PEACEFUL, SENATOR BAIL ORGANA',
+    fleets:['NO REPUBLIC FLEET STATIONED — PACIFIST WORLD'] },
+  { id:'corellia',   name:'CORELLIA',     region:'CORE WORLDS',      control:'republic',  ox:-13, oy:3,
+    status:'REPUBLIC — ACTIVE SHIPYARD OPERATIONS',
+    fleets:['CORELLIAN HOME DEFENSE FLEET','REPUBLIC PROCUREMENT CONVOY — INBOUND'] },
+  // ── MID & EXPANSION RIM ──
+  { id:'naboo',      name:'NABOO',        region:'MID RIM',          control:'republic',  ox:8,   oy:24,
+    status:'REPUBLIC — SENATOR PADMÉ AMIDALA, PEACEFUL',
+    fleets:['NABOO ROYAL STARFIGHTER CORPS — PLANETARY PATROL'] },
+  { id:'kashyyyk',   name:'KASHYYYK',     region:'MID RIM',          control:'republic',  ox:20,  oy:16,
+    status:'REPUBLIC ALLIED — WOOKIEE HOMEWORLD, TENSE',
+    fleets:['MASTER YODA — FLEET EN ROUTE','41ST ELITE CORPS — STAGING'] },
+  { id:'umbara',     name:'UMBARA',       region:'EXPANSION REGION', control:'separatist',ox:4,   oy:20,
+    status:'SEPARATIST OCCUPIED — SHADOW WORLD, MILITIA ACTIVE',
+    fleets:['501ST LEGION — ENGAGED PLANETSIDE','CIS UMBARAN MILITIA — ENTRENCHED'] },
+  // ── OUTER RIM ──
+  { id:'geonosis',   name:'GEONOSIS',     region:'OUTER RIM',        control:'separatist',ox:38,  oy:32,
+    status:'SEPARATIST — DROID FOUNDRIES ACTIVE',
+    fleets:['SEPARATIST DROID FLEET — BLOCKADE','3RD SYSTEMS ARMY — MOBILIZING OFF WORLD'] },
+  { id:'ryloth',     name:'RYLOTH',       region:'OUTER RIM',        control:'contested', ox:34,  oy:5,
+    status:'CONTESTED — SEPARATIST BLOCKADE, LIBERATION ONGOING',
+    fleets:['SEPARATIST BLOCKADE SQUADRON — PARTIAL','REPUBLIC RELIEF FORCE — INBOUND','CLONE LIGHTNING SQUADRON'] },
+  { id:'christophsis',name:'CHRISTOPHSIS',region:'OUTER RIM',        control:'republic',  ox:32,  oy:22,
+    status:'REPUBLIC — RECENTLY LIBERATED, GARRISON ACTIVE',
+    fleets:['501ST LEGION DETACHMENT — GARRISONED','REPUBLIC SUPPLY CONVOY — IN TRANSIT'] },
+  { id:'felucia',    name:'FELUCIA',      region:'OUTER RIM',        control:'contested', ox:40,  oy:26,
+    status:'CONTESTED — SEPARATIST FORCES, REPUBLIC PUSH UNDERWAY',
+    fleets:['CIS DROID ARMY — OCCUPYING','REPUBLIC RELIEF EXPEDITIONARY — REQUESTED'] },
+  { id:'rodia',      name:'RODIA',        region:'OUTER RIM',        control:'republic',  ox:30,  oy:14,
+    status:'REPUBLIC — SENATOR ONACONDA FARR, STABILIZED',
+    fleets:['NO MAJOR FLEET — PATROLS ONLY'] },
+  { id:'mustafar',   name:'MUSTAFAR',     region:'OUTER RIM',        control:'separatist',ox:34,  oy:40,
+    status:'SEPARATIST — CIS STRATEGIC ASSET, MINING OPS',
+    fleets:['CIS COMMAND SHUTTLE — UNCONFIRMED REPORT','SEPARATIST MINING ESCORT'] },
+  { id:'mandalore',  name:'MANDALORE',    region:'OUTER RIM',        control:'neutral',   ox:28,  oy:-38,
+    status:'NEUTRAL — NEW MANDALORIAN GOVERNMENT, PACIFIST POLICY',
+    fleets:['MANDALORIAN GUARD FRIGATES — SOVEREIGN SPACE','DEATH WATCH CELLS — UNCONFIRMED'] },
+  { id:'tatooine',   name:'TATOOINE',     region:'OUTER RIM',        control:'neutral',   ox:-44, oy:30,
+    status:'HUTT SPACE — UNMONITORED, OUTSIDE REPUBLIC JURISDICTION',
+    fleets:['HUTT CARTEL PATROL CRAFT','NO REPUBLIC PRESENCE'] },
+  // ── BEYOND OUTER RIM ──
+  { id:'kamino',     name:'KAMINO',       region:'BEYOND OUTER RIM', control:'republic',  ox:14,  oy:54,
+    status:'REPUBLIC — PRIME CLONE PRODUCTION FACILITY',
+    fleets:['KAMINOAN DEFENSE FLEET','REPUBLIC GUARD — PERIMETER PATROL','ARC TROOPER RESPONSE TEAMS'] },
+];
+
+// Control color map
+const CTRL_COLORS = {
+  republic:   { dot:'#00c8f0', ring:'rgba(0,200,240,.7)',  fill:'rgba(0,200,240,.12)', label:'REPUBLIC'   },
+  separatist: { dot:'#44bb44', ring:'rgba(68,187,68,.7)',  fill:'rgba(68,187,68,.12)', label:'SEPARATIST' },
+  contested:  { dot:'#d4a82a', ring:'rgba(212,168,42,.7)', fill:'rgba(212,168,42,.12)',label:'CONTESTED'  },
+  neutral:    { dot:'#8899aa', ring:'rgba(136,153,170,.6)',fill:'rgba(136,153,170,.1)',label:'NEUTRAL'    },
+};
+
+(function initGalMap(){
+  const canvas = document.getElementById('gal-map');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const CX = W/2, CY = H/2 - 6; // center, shifted slightly up
+
+  // Galaxy ring definitions: [xRadius, yRadius, color, alpha]
+  const RINGS = [
+    [6,   5,   '#88ccff', .55, 'DEEP CORE'],
+    [12,  10,  '#66aaee', .45, 'CORE'],
+    [19,  16,  '#4488cc', .35, 'COLONIES'],
+    [27,  23,  '#3366aa', .28, 'INNER RIM'],
+    [36,  31,  '#224488', .22, 'EXPANSION'],
+    [47,  40,  '#1a3366', .18, 'MID RIM'],
+    [64,  55,  '#0f1e44', .15, 'OUTER RIM'],
+    [78,  67,  '#080f22', .10, ''],
+  ];
+
+  let hoveredPlanet = null;
+  let selectedPlanet = null;
+  let animFrame = 0;
+
+  function drawMap(){
+    ctx.clearRect(0, 0, W, H);
+
+    // Deep space background
+    const bg = ctx.createRadialGradient(CX, CY, 0, CX, CY, 80);
+    bg.addColorStop(0, 'rgba(2,15,30,.95)');
+    bg.addColorStop(0.5, 'rgba(1,8,18,.98)');
+    bg.addColorStop(1, 'rgba(0,4,10,1)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Starfield dots
+    const stars = [[14,8],[42,22],[18,55],[66,18],[88,40],[120,12],[148,28],[174,10],[196,45],[30,145],[78,160],[140,155],[188,138],[200,72],[6,100],[55,88],[105,170],[170,165]];
+    stars.forEach(([sx,sy])=>{
+      ctx.beginPath(); ctx.arc(sx, sy, 0.7, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(180,220,255,${0.2+Math.random()*0.2})`; ctx.fill();
+    });
+
+    // Arm glow hint (subtle spiral feel)
+    const armGrad = ctx.createRadialGradient(CX, CY, 3, CX, CY, 62);
+    armGrad.addColorStop(0,   'rgba(10,50,100,.5)');
+    armGrad.addColorStop(0.3, 'rgba(0,30,70,.3)');
+    armGrad.addColorStop(0.7, 'rgba(0,15,40,.15)');
+    armGrad.addColorStop(1,   'transparent');
+    ctx.fillStyle = armGrad;
+    ctx.beginPath(); ctx.ellipse(CX, CY, 62, 53, 0, 0, Math.PI*2); ctx.fill();
+
+    // Ring ellipses
+    RINGS.forEach(([rx, ry, color, alpha], i) => {
+      ctx.beginPath();
+      ctx.ellipse(CX, CY, rx, ry, 0, 0, Math.PI*2);
+      ctx.strokeStyle = `${color}${Math.round(alpha*255).toString(16).padStart(2,'0')}`;
+      ctx.lineWidth = i === 6 ? 1.2 : 0.6;
+      ctx.setLineDash(i >= 5 ? [3,4] : []);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // Kamino satellite indicator (small external ring)
+    ctx.beginPath();
+    ctx.ellipse(CX+14, CY+54, 7, 5, 0, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(0,120,180,.3)';
+    ctx.lineWidth = 0.5; ctx.setLineDash([2,3]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Trade route lines (Hydian Way, Corellian Run hints)
+    ctx.strokeStyle = 'rgba(0,160,200,.08)';
+    ctx.lineWidth = 0.8; ctx.setLineDash([2,6]);
+    // Corellian Run: core to outer rim NE
+    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX+42, CY+28); ctx.stroke();
+    // Hydian Way: core sweeping north-south  
+    ctx.beginPath(); ctx.moveTo(CX-2, CY-38); ctx.lineTo(CX+4, CY+52); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Pulse ring for selected planet
+    if(selectedPlanet){
+      const p = selectedPlanet;
+      const cc = CTRL_COLORS[p.control] || CTRL_COLORS.neutral;
+      const pulse = 0.4 + 0.3 * Math.sin(animFrame * 0.08);
+      ctx.beginPath();
+      ctx.arc(CX + p.ox, CY + p.oy, 7 + pulse*3, 0, Math.PI*2);
+      ctx.strokeStyle = cc.ring.replace(')', `,${pulse})`).replace('rgba(','rgba(');
+      ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    // Fleet indicators (tiny triangles near planets that have active fleets)
+    const fleetPlanets = ['geonosis','ryloth','kashyyyk','umbara','kamino'];
+    PLANETS.forEach(p => {
+      if(!fleetPlanets.includes(p.id)) return;
+      const fx = CX + p.ox + 6;
+      const fy = CY + p.oy - 6;
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.beginPath();
+      ctx.moveTo(0, -3); ctx.lineTo(2.5, 2); ctx.lineTo(-2.5, 2); ctx.closePath();
+      const cc = CTRL_COLORS[p.control] || CTRL_COLORS.neutral;
+      ctx.fillStyle = cc.dot;
+      ctx.globalAlpha = 0.5 + 0.3*Math.sin(animFrame*0.05 + p.ox);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Planet dots
+    PLANETS.forEach(p => {
+      const px = CX + p.ox, py = CY + p.oy;
+      const cc = CTRL_COLORS[p.control] || CTRL_COLORS.neutral;
+      const isHov = hoveredPlanet === p.id;
+      const isSel = selectedPlanet && selectedPlanet.id === p.id;
+      const r = isHov||isSel ? 4.5 : 3;
+
+      // Outer glow
+      if(isHov || isSel){
+        const glow = ctx.createRadialGradient(px, py, 0, px, py, 10);
+        glow.addColorStop(0, cc.fill);
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill();
+      }
+
+      // Planet circle
+      ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI*2);
+      ctx.fillStyle = cc.dot;
+      ctx.globalAlpha = isHov||isSel ? 1 : 0.85;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // White center highlight
+      ctx.beginPath(); ctx.arc(px-0.7, py-0.7, r*0.4, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
+
+      // Name label (only on hover/select or for core planets)
+      const alwaysLabel = ['coruscant','geonosis','kamino','mandalore','tatooine'].includes(p.id);
+      if(isHov || isSel || alwaysLabel){
+        ctx.font = `${isHov||isSel?'600 ':''} ${isHov||isSel?'5.5px':'4.8px'} "Share Tech Mono", monospace`;
+        ctx.fillStyle = isHov||isSel ? '#dff4ff' : 'rgba(150,200,230,0.7)';
+        ctx.textAlign = 'left';
+        const lx = px + (p.ox < 0 ? -(ctx.measureText(p.name).width + 5) : 5);
+        const ly = py - 5;
+        ctx.fillText(p.name, lx, ly);
+      }
+    });
+
+    animFrame++;
+    requestAnimationFrame(drawMap);
+  }
+
+  drawMap();
+
+  // Hit testing
+  function getPlanetAt(mx, my){
+    for(const p of PLANETS){
+      const px = CX + p.ox, py = CY + p.oy;
+      const d = Math.sqrt((mx-px)**2 + (my-py)**2);
+      if(d < 8) return p;
+    }
+    return null;
+  }
+
+  function toGalCoords(mx, my){
+    const gx = ((mx - CX) * 0.8).toFixed(1);
+    const gy = ((my - CY) * 0.8).toFixed(1);
+    return { gx, gy };
+  }
+
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W / rect.width);
+    const my = (e.clientY - rect.top) * (H / rect.height);
+    const p = getPlanetAt(mx, my);
+    hoveredPlanet = p ? p.id : null;
+    canvas.style.cursor = p ? 'pointer' : 'crosshair';
+    const {gx, gy} = toGalCoords(mx, my);
+    document.getElementById('map-coord-x').textContent = `X: ${gx}`;
+    document.getElementById('map-coord-y').textContent = `Y: ${gy}`;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    hoveredPlanet = null;
+    document.getElementById('map-coord-x').textContent = 'X: —';
+    document.getElementById('map-coord-y').textContent = 'Y: —';
+  });
+
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W / rect.width);
+    const my = (e.clientY - rect.top) * (H / rect.height);
+    const p = getPlanetAt(mx, my);
+    if(!p) return;
+    selectedPlanet = p;
+    showPlanetInfo(p);
+  });
+
+  function showPlanetInfo(p){
+    const cc = CTRL_COLORS[p.control] || CTRL_COLORS.neutral;
+    document.getElementById('map-info-empty').style.display = 'none';
+    const det = document.getElementById('map-planet-detail');
+    det.style.display = 'block';
+    const dot = document.getElementById('map-pdot');
+    dot.style.background = cc.dot;
+    dot.style.boxShadow = `0 0 6px ${cc.dot}`;
+    document.getElementById('map-pname').textContent = p.name;
+    document.getElementById('map-pregion').textContent =
+      `◆ ${p.region}  ◆ CTRL: ${cc.label}`;
+    document.getElementById('map-pstatus').textContent = p.status;
+    const fleetsEl = document.getElementById('map-pfleets');
+    fleetsEl.innerHTML = p.fleets.map(f =>
+      `<div class="map-fleet-entry">${f}</div>`
+    ).join('');
+  }
+})();
 
 // ══ INIT ══════════════════════════════════════════════════════════════════
 renderLogList();
