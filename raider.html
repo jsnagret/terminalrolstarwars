@@ -95,6 +95,8 @@ const firebaseConfig = {
     --red: #cc2200;
     --red-bright: #ff3300;
     --green: #00ff44;
+    --blue: #0000FF;
+    --dark-blue: #00008B;
     --scan-speed: 6s;
   }
 
@@ -288,6 +290,7 @@ const firebaseConfig = {
   .tags { display:flex; flex-wrap:wrap; gap:4px; }
   .tag { font-size:9px; padding:2px 7px; border:1px solid var(--amber-dim); border-radius:2px; color:var(--amber); letter-spacing:0.05em; }
   .tag.danger { border-color:var(--red); color:var(--red-bright); animation:wanted-pulse 3s infinite; }
+  .tag.droid { border-color:var(--blue); color:var(--dark-blue); animation:wanted-pulse 3s infinite; }
 
   .stat-row { display:flex; justify-content:space-between; margin-bottom:5px; }
   .stat-key { font-size:9px; letter-spacing:0.15em; color:var(--amber-dim); }
@@ -420,7 +423,7 @@ const firebaseConfig = {
       <span class="status-dot"></span>UPLINK ACTIVE<br>
       SECTOR: OUTER RIM<br>
       REF: BHG-7731-α<br>
-      DATE: 34 ABY
+      DATE: 22 BBY
     </div>
   </div>
 
@@ -450,7 +453,7 @@ const firebaseConfig = {
         <div class="tag-label">CLASSIFICATION TAGS</div>
         <div class="tags">
           <span class="tag danger">EXTREME RISK</span>
-          <span class="tag">DROID</span>
+          <span class="tag droid">DROID</span>
           <span class="tag">MERC</span>
           <span class="tag">OLD REPUBLIC</span>
           <span class="tag">ARMED</span>
