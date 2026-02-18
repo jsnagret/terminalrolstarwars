@@ -4,6 +4,82 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DATAPAD — WANTED</title>
+
+<!-- ═══════════════════════════════════════════════════
+     FIREBASE CONFIG — REPLACE WITH YOUR OWN VALUES
+     Firebase Console → Project Settings → Your apps
+     ═══════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDOlzHlSSwfbBBrv8mxDVvBeWTcoQFULyw",
+  authDomain: "galactive-new-network.firebaseapp.com",
+  projectId: "galactive-new-network",
+  storageBucket: "galactive-new-network.firebasestorage.app",
+  messagingSenderId: "674462233718",
+  appId: "1:674462233718:web:a709b51245834e36ba1b57",
+  measurementId: "G-V56216WQD1"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const bountyRef = ref(db, "bounties/r3p2");
+
+  // ── Listen for realtime changes ────────────────────────
+  onValue(bountyRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.status === "killed") {
+      showKilledState(data.killedAt);
+    } else {
+      showActiveState();
+    }
+  });
+
+  // ── Mark as KILLED ─────────────────────────────────────
+  window.markKilled = function() {
+    if (!confirm("CONFIRM TARGET ELIMINATION?")) return;
+    set(bountyRef, {
+      status:   "killed",
+      killedAt: new Date().toISOString()
+    });
+  };
+
+  // ── Reset / set new bounty ─────────────────────────────
+  window.resetBounty = function() {
+    if (!confirm("SET NEW BOUNTY? This will reactivate the target.")) return;
+    set(bountyRef, { status: "active", killedAt: null });
+  };
+
+  function showKilledState(killedAt) {
+    document.getElementById("killed-overlay").classList.add("visible");
+    document.getElementById("kill-btn").style.display  = "none";
+    document.getElementById("reset-btn").style.display = "inline-flex";
+    const banner = document.querySelector(".wanted-text");
+    banner.textContent = "ELIMINATED";
+    banner.style.animation = "none";
+    banner.style.color = "var(--red-bright)";
+    banner.style.textShadow = "0 0 20px var(--red), 0 0 50px rgba(200,0,0,0.6)";
+    if (killedAt) {
+      const d = new Date(killedAt);
+      document.getElementById("killed-timestamp").textContent =
+        "TERMINATED: " + d.toUTCString().toUpperCase();
+    }
+  }
+
+  function showActiveState() {
+    document.getElementById("killed-overlay").classList.remove("visible");
+    document.getElementById("kill-btn").style.display  = "inline-flex";
+    document.getElementById("reset-btn").style.display = "none";
+    const banner = document.querySelector(".wanted-text");
+    banner.textContent = "WANTED";
+    banner.style.animation = "";
+    banner.style.color = "";
+    banner.style.textShadow = "";
+  }
+</script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap');
 
@@ -13,11 +89,11 @@
     --amber-bright: #ffcc44;
     --amber-glow: #ff9900;
     --bg: #0a0800;
-    --bg2: #0e0c02;
     --panel: #111005;
     --border: #3a2800;
     --red: #cc2200;
     --red-bright: #ff3300;
+    --green: #00ff44;
     --scan-speed: 6s;
   }
 
@@ -33,32 +109,20 @@
     align-items: center;
     padding: 20px;
     overflow-x: hidden;
-    cursor: default;
   }
 
-  /* CRT scanline overlay */
   body::before {
     content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.25) 2px,
-      rgba(0,0,0,0.25) 4px
-    );
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.25) 2px, rgba(0,0,0,0.25) 4px);
     pointer-events: none;
     z-index: 999;
   }
 
-  /* Scan line animation */
   body::after {
     content: '';
     position: fixed;
-    top: -100%;
-    left: 0;
-    right: 0;
+    top: -200px; left: 0; right: 0;
     height: 200px;
     background: linear-gradient(transparent, rgba(232,160,32,0.04), transparent);
     animation: scan var(--scan-speed) linear infinite;
@@ -66,51 +130,29 @@
     z-index: 998;
   }
 
-  @keyframes scan {
-    0% { top: -200px; }
-    100% { top: 110%; }
+  @keyframes scan        { 0%{top:-200px} 100%{top:110%} }
+  @keyframes flicker     { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.85} 94%{opacity:1} 96%{opacity:.9} 97%{opacity:1} }
+  @keyframes pulse-border{ 0%,100%{border-color:var(--border);box-shadow:0 0 8px rgba(232,160,32,.15)} 50%{border-color:var(--amber-dim);box-shadow:0 0 16px rgba(232,160,32,.3)} }
+  @keyframes blink       { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  @keyframes glitch      { 0%,90%,100%{transform:translateX(0);clip-path:none} 91%{transform:translateX(-3px);clip-path:inset(20% 0 60% 0)} 92%{transform:translateX(3px);clip-path:inset(60% 0 10% 0)} 93%{transform:translateX(-2px);clip-path:inset(40% 0 40% 0)} 94%{transform:translateX(0);clip-path:none} }
+  @keyframes wanted-pulse{ 0%,100%{color:var(--red-bright);text-shadow:0 0 20px var(--red),0 0 40px var(--red),0 0 80px rgba(200,0,0,.5)} 50%{color:var(--red);text-shadow:0 0 10px var(--red),0 0 20px rgba(200,0,0,.3)} }
+  @keyframes fadeInUp    { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  @keyframes stamp-in {
+    0%   { transform:scale(2.5) rotate(-12deg); opacity:0; }
+    60%  { transform:scale(0.9) rotate(-12deg); opacity:1; }
+    80%  { transform:scale(1.05) rotate(-12deg); }
+    100% { transform:scale(1) rotate(-12deg); opacity:1; }
   }
 
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    92% { opacity: 1; }
-    93% { opacity: 0.85; }
-    94% { opacity: 1; }
-    96% { opacity: 0.9; }
-    97% { opacity: 1; }
+  @keyframes redflash {
+    0%,100% { background:rgba(200,0,0,0); }
+    15%     { background:rgba(200,0,0,0.3); }
   }
 
-  @keyframes pulse-border {
-    0%, 100% { border-color: var(--border); box-shadow: 0 0 8px rgba(232,160,32,0.15); }
-    50% { border-color: var(--amber-dim); box-shadow: 0 0 16px rgba(232,160,32,0.3); }
-  }
-
-  @keyframes blink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-
-  @keyframes glitch {
-    0%, 90%, 100% { transform: translateX(0); clip-path: none; }
-    91% { transform: translateX(-3px); clip-path: inset(20% 0 60% 0); }
-    92% { transform: translateX(3px); clip-path: inset(60% 0 10% 0); }
-    93% { transform: translateX(-2px); clip-path: inset(40% 0 40% 0); }
-    94% { transform: translateX(0); clip-path: none; }
-  }
-
-  @keyframes wanted-pulse {
-    0%, 100% { color: var(--red-bright); text-shadow: 0 0 20px var(--red), 0 0 40px var(--red), 0 0 80px rgba(200,0,0,0.5); }
-    50% { color: var(--red); text-shadow: 0 0 10px var(--red), 0 0 20px rgba(200,0,0,0.3); }
-  }
-
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
+  /* ── SHELL ── */
   .datapad {
-    width: 100%;
-    max-width: 760px;
+    width: 100%; max-width: 760px;
     border: 2px solid var(--border);
     border-radius: 4px;
     background: var(--panel);
@@ -118,405 +160,234 @@
     position: relative;
     overflow: hidden;
   }
-
-  /* Corner decorations */
-  .datapad::before, .datapad::after {
-    content: '';
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    border-color: var(--amber);
-    border-style: solid;
-    z-index: 5;
+  .datapad::before,.datapad::after {
+    content:''; position:absolute;
+    width:24px; height:24px;
+    border-color:var(--amber); border-style:solid;
+    z-index:5; pointer-events:none;
   }
-  .datapad::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
-  .datapad::after  { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+  .datapad::before { top:8px; left:8px; border-width:2px 0 0 2px; }
+  .datapad::after  { bottom:8px; right:8px; border-width:0 2px 2px 0; }
+
+  /* ══ KILLED OVERLAY ══ */
+  #killed-overlay {
+    position:absolute; inset:0;
+    background:rgba(0,0,0,0);
+    pointer-events:none;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:background 0.5s;
+  }
+  #killed-overlay.visible {
+    background:rgba(80,0,0,0.2);
+    animation:redflash 0.7s ease-out;
+  }
+
+  .killed-stamp {
+    opacity:0;
+    transform:scale(2.5) rotate(-12deg);
+    border:8px solid var(--red-bright);
+    color:var(--red-bright);
+    font-family:'Orbitron',monospace;
+    font-size:48px; font-weight:900;
+    letter-spacing:0.15em;
+    padding:12px 28px;
+    text-shadow:0 0 20px var(--red),0 0 40px var(--red);
+    box-shadow:0 0 30px var(--red),inset 0 0 20px rgba(200,0,0,0.2),0 0 60px rgba(200,0,0,0.3);
+    user-select:none;
+  }
+  #killed-overlay.visible .killed-stamp {
+    animation:stamp-in 0.5s cubic-bezier(0.22,0.61,0.36,1) 0.1s forwards;
+  }
+
+  #killed-timestamp {
+    position:absolute;
+    bottom:18px; left:0; right:0;
+    text-align:center;
+    font-size:9px; letter-spacing:0.2em;
+    color:var(--red-bright);
+    opacity:0;
+    transition:opacity 0.5s 0.6s;
+  }
+  #killed-overlay.visible #killed-timestamp { opacity:0.7; }
 
   /* ── HEADER ── */
   .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px 10px;
-    border-bottom: 1px solid var(--border);
-    position: relative;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px 10px;
+    border-bottom:1px solid var(--border);
   }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .logo-icon svg {
-    width: 52px;
-    height: 52px;
-    filter: drop-shadow(0 0 6px var(--amber));
-  }
-
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .logo-icon svg { width:52px; height:52px; filter:drop-shadow(0 0 6px var(--amber)); }
   .datapad-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: 0.3em;
-    color: var(--amber-bright);
-    text-shadow: 0 0 12px var(--amber-glow), 0 0 30px rgba(255,153,0,0.4);
-    animation: glitch 10s infinite;
+    font-family:'Orbitron',monospace;
+    font-size:28px; font-weight:900; letter-spacing:0.3em;
+    color:var(--amber-bright);
+    text-shadow:0 0 12px var(--amber-glow),0 0 30px rgba(255,153,0,0.4);
+    animation:glitch 10s infinite;
   }
-
-  .datapad-subtitle {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--amber-dim);
-    margin-top: 2px;
-  }
-
-  .header-right {
-    text-align: right;
-    font-size: 11px;
-    color: var(--amber-dim);
-    line-height: 1.7;
-  }
-
-  .header-right .status-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    background: #00ff44;
-    border-radius: 50%;
-    box-shadow: 0 0 6px #00ff44;
-    margin-right: 5px;
-    animation: blink 1.2s infinite;
+  .datapad-subtitle { font-size:10px; letter-spacing:0.2em; color:var(--amber-dim); margin-top:2px; }
+  .header-right { text-align:right; font-size:11px; color:var(--amber-dim); line-height:1.7; }
+  .status-dot {
+    display:inline-block; width:6px; height:6px;
+    background:var(--green); border-radius:50%;
+    box-shadow:0 0 6px var(--green); margin-right:5px;
+    animation:blink 1.2s infinite;
   }
 
   /* ── WANTED BANNER ── */
   .wanted-banner {
-    background: #0d0400;
-    border-top: 1px solid #4a1500;
-    border-bottom: 1px solid #4a1500;
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    background:#0d0400;
+    border-top:1px solid #4a1500; border-bottom:1px solid #4a1500;
+    padding:10px 20px;
+    display:flex; align-items:center; justify-content:space-between;
   }
-
   .wanted-text {
-    font-family: 'Orbitron', monospace;
-    font-size: 36px;
-    font-weight: 900;
-    letter-spacing: 0.4em;
-    animation: wanted-pulse 2s infinite;
+    font-family:'Orbitron',monospace;
+    font-size:36px; font-weight:900; letter-spacing:0.4em;
+    animation:wanted-pulse 2s infinite;
   }
-
-  .bounty-amount {
-    text-align: right;
-  }
-
-  .bounty-label {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--amber-dim);
-  }
-
+  .bounty-amount { text-align:right; }
+  .bounty-label { font-size:10px; letter-spacing:0.2em; color:var(--amber-dim); }
   .bounty-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--amber-bright);
-    text-shadow: 0 0 10px var(--amber-glow);
+    font-family:'Orbitron',monospace; font-size:22px; font-weight:700;
+    color:var(--amber-bright); text-shadow:0 0 10px var(--amber-glow);
   }
-
-  .bounty-unit {
-    font-size: 12px;
-    color: var(--amber-dim);
-    letter-spacing: 0.1em;
-  }
+  .bounty-unit { font-size:12px; color:var(--amber-dim); letter-spacing:0.1em; }
 
   /* ── BODY ── */
-  .body {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 0;
-  }
+  .body { display:grid; grid-template-columns:220px 1fr; position:relative; }
 
   /* ── LEFT PANEL ── */
-  .left-panel {
-    border-right: 1px solid var(--border);
-    padding: 16px;
-  }
+  .left-panel { border-right:1px solid var(--border); padding:16px; }
 
   .portrait-frame {
-    width: 100%;
-    aspect-ratio: 3/4;
-    border: 1px solid var(--amber-dim);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-    background: #0a0900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 10px rgba(232,160,32,0.1);
+    width:100%; aspect-ratio:3/4;
+    border:1px solid var(--amber-dim); border-radius:2px; overflow:hidden;
+    position:relative; background:#0a0900;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 0 20px rgba(0,0,0,0.8),0 0 10px rgba(232,160,32,0.1);
   }
-
-  .portrait-frame::before {
-    content: 'IMG UNAVAILABLE';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: #2a1e00;
-    text-align: center;
-    line-height: 1.8;
+  .portrait-frame img {
+    width:100%; height:100%;
+    object-fit:cover; object-position:center top;
+    filter:sepia(0.4) brightness(0.85);
+    position:relative; z-index:1;
   }
-
   .portrait-frame::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 8px,
-      rgba(232,160,32,0.03) 8px,
-      rgba(232,160,32,0.03) 10px
-    );
+    content:''; position:absolute; inset:0; z-index:2;
+    background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(232,160,32,0.03) 8px,rgba(232,160,32,0.03) 10px);
   }
+  .portrait-label { text-align:center; font-size:9px; letter-spacing:0.2em; color:var(--amber-dim); margin-top:6px; border-top:1px solid var(--border); padding-top:6px; }
 
-  /* Silhouette of bounty hunter */
-  .silhouette {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: 85%;
-    background: linear-gradient(to top, #1a1200 60%, transparent);
-    clip-path: polygon(
-      35% 100%, 32% 75%, 20% 65%, 18% 50%, 22% 35%, 28% 28%, 28% 15%, 35% 8%, 50% 6%, 65% 8%, 72% 15%, 72% 28%, 78% 35%, 82% 50%, 80% 65%, 68% 75%, 65% 100%
-    );
-    opacity: 0.6;
-    z-index: 1;
-  }
+  .divider-h { border:none; border-top:1px solid var(--border); margin:12px 0; }
+  .tag-label { font-size:9px; letter-spacing:0.2em; color:var(--amber-dim); margin-bottom:5px; }
+  .tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .tag { font-size:9px; padding:2px 7px; border:1px solid var(--amber-dim); border-radius:2px; color:var(--amber); letter-spacing:0.05em; }
+  .tag.danger { border-color:var(--red); color:var(--red-bright); animation:wanted-pulse 3s infinite; }
 
-  .portrait-label {
-    text-align: center;
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    color: var(--amber-dim);
-    margin-top: 6px;
-    border-top: 1px solid var(--border);
-    padding-top: 6px;
-  }
+  .stat-row { display:flex; justify-content:space-between; margin-bottom:5px; }
+  .stat-key { font-size:9px; letter-spacing:0.15em; color:var(--amber-dim); }
+  .stat-val { font-size:11px; color:var(--amber); text-align:right; }
 
-  .tags-section {
-    margin-top: 12px;
-  }
-
-  .tag-label {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    color: var(--amber-dim);
-    margin-bottom: 5px;
-  }
-
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .tag {
-    font-size: 9px;
-    padding: 2px 7px;
-    border: 1px solid var(--amber-dim);
-    border-radius: 2px;
-    color: var(--amber);
-    letter-spacing: 0.05em;
-  }
-
-  .tag.danger {
-    border-color: var(--red);
-    color: var(--red-bright);
-    animation: wanted-pulse 3s infinite;
-  }
-
-  .divider-h {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 12px 0;
-  }
-
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
-  }
-
-  .stat-key {
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    color: var(--amber-dim);
-  }
-
-  .stat-val {
-    font-size: 11px;
-    color: var(--amber);
-    text-align: right;
-  }
+  .skill-row  { margin-bottom:6px; }
+  .skill-name { font-size:9px; letter-spacing:0.1em; color:var(--amber-dim); margin-bottom:3px; }
+  .skill-bar  { height:4px; background:#1a1200; border:1px solid var(--border); }
+  .skill-fill { height:100%; background:var(--amber); box-shadow:0 0 4px var(--amber-glow); }
 
   /* ── RIGHT PANEL ── */
-  .right-panel {
-    padding: 16px 20px;
-  }
+  .right-panel { padding:16px 20px; }
 
   .section-header {
-    font-size: 9px;
-    letter-spacing: 0.3em;
-    color: var(--amber-dim);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 5px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size:9px; letter-spacing:0.3em; color:var(--amber-dim);
+    border-bottom:1px solid var(--border);
+    padding-bottom:5px; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-header::before { content:'▶'; font-size:8px; color:var(--amber); }
+
+  .char-designation { font-size:10px; letter-spacing:0.2em; color:var(--amber-dim); margin-bottom:3px; }
+  .char-name { font-family:'Orbitron',monospace; font-size:28px; font-weight:700; letter-spacing:0.08em; color:var(--amber-bright); text-shadow:0 0 15px var(--amber-glow); line-height:1.1; }
+  .char-alias { font-size:12px; color:var(--amber-dim); margin-top:4px; font-style:italic; }
+  .name-block { margin-bottom:14px; }
+
+  .bio-text { font-size:12.5px; line-height:1.85; color:#c8901a; margin-bottom:14px; letter-spacing:0.02em; }
+  .bio-text p+p { margin-top:8px; }
+
+  .warning-box { border:1px solid var(--red); background:rgba(200,0,0,0.06); padding:10px 14px; margin-top:6px; position:relative; }
+  .warning-box::before { content:'⚠ THREAT ASSESSMENT'; position:absolute; top:-7px; left:10px; background:var(--panel); padding:0 6px; font-size:9px; letter-spacing:0.2em; color:var(--red-bright); }
+  .warning-text { font-size:11.5px; color:#cc5533; line-height:1.7; letter-spacing:0.02em; }
+
+  .last-seen-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .info-cell { border:1px solid var(--border); padding:8px 10px; }
+  .cell-label { font-size:9px; letter-spacing:0.2em; color:var(--amber-dim); margin-bottom:3px; }
+  .cell-value { font-size:12px; color:var(--amber); }
+
+  /* ══ ACTION BAR ══ */
+  .action-bar {
+    border-top:1px solid var(--border);
+    padding:12px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#0c0a02;
+  }
+  .action-label { font-size:9px; letter-spacing:0.2em; color:var(--amber-dim); flex:1; }
+
+  .btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 22px;
+    border:2px solid; border-radius:2px;
+    font-family:'Orbitron',monospace;
+    font-size:12px; font-weight:700; letter-spacing:0.2em;
+    cursor:pointer; background:transparent;
+    transition:all 0.15s ease;
+    position:relative; overflow:hidden;
+  }
+  .btn::before { content:''; position:absolute; inset:0; background:currentColor; opacity:0; transition:opacity 0.15s; }
+  .btn:hover::before  { opacity:0.08; }
+  .btn:active::before { opacity:0.18; }
+
+  .btn-kill {
+    border-color:var(--red-bright); color:var(--red-bright);
+    box-shadow:0 0 10px rgba(200,0,0,0.3),inset 0 0 10px rgba(200,0,0,0.05);
+    text-shadow:0 0 8px var(--red);
+  }
+  .btn-kill:hover {
+    box-shadow:0 0 20px rgba(255,50,0,0.5),inset 0 0 15px rgba(200,0,0,0.1);
+    border-color:#ff5500; color:#ff5500;
   }
 
-  .section-header::before {
-    content: '▶';
-    font-size: 8px;
-    color: var(--amber);
+  .btn-reset {
+    display:none;
+    border-color:var(--green); color:var(--green);
+    box-shadow:0 0 10px rgba(0,255,68,0.2),inset 0 0 10px rgba(0,255,68,0.03);
+    text-shadow:0 0 8px rgba(0,255,68,0.6);
   }
-
-  .name-block {
-    margin-bottom: 14px;
+  .btn-reset:hover {
+    box-shadow:0 0 20px rgba(0,255,68,0.4),inset 0 0 15px rgba(0,255,68,0.08);
   }
-
-  .char-designation {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--amber-dim);
-    margin-bottom: 3px;
-  }
-
-  .char-name {
-    font-family: 'Orbitron', monospace;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--amber-bright);
-    text-shadow: 0 0 15px var(--amber-glow);
-    line-height: 1.1;
-  }
-
-  .char-alias {
-    font-size: 12px;
-    color: var(--amber-dim);
-    margin-top: 4px;
-    font-style: italic;
-  }
-
-  .bio-text {
-    font-size: 12.5px;
-    line-height: 1.85;
-    color: #c8901a;
-    margin-bottom: 14px;
-    letter-spacing: 0.02em;
-  }
-
-  .bio-text p + p {
-    margin-top: 8px;
-  }
-
-  .warning-box {
-    border: 1px solid var(--red);
-    background: rgba(200,0,0,0.06);
-    padding: 10px 14px;
-    margin-top: 6px;
-    position: relative;
-  }
-
-  .warning-box::before {
-    content: '⚠ THREAT ASSESSMENT';
-    position: absolute;
-    top: -7px;
-    left: 10px;
-    background: var(--panel);
-    padding: 0 6px;
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    color: var(--red-bright);
-  }
-
-  .warning-text {
-    font-size: 11.5px;
-    color: #cc5533;
-    line-height: 1.7;
-    letter-spacing: 0.02em;
-  }
-
-  /* ── LAST SEEN ── */
-  .last-seen-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .info-cell {
-    border: 1px solid var(--border);
-    padding: 8px 10px;
-  }
-
-  .cell-label {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    color: var(--amber-dim);
-    margin-bottom: 3px;
-  }
-
-  .cell-value {
-    font-size: 12px;
-    color: var(--amber);
-  }
+  .btn .btn-icon { font-size:14px; }
 
   /* ── FOOTER ── */
   .footer {
-    border-top: 1px solid var(--border);
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 9px;
-    color: var(--amber-dim);
-    letter-spacing: 0.15em;
+    border-top:1px solid var(--border);
+    padding:10px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:9px; color:var(--amber-dim); letter-spacing:0.15em;
   }
-
   .blink-cursor {
-    display: inline-block;
-    width: 8px; height: 13px;
-    background: var(--amber);
-    margin-left: 4px;
-    vertical-align: middle;
-    animation: blink 1s infinite;
+    display:inline-block; width:8px; height:13px;
+    background:var(--amber); margin-left:4px; vertical-align:middle;
+    animation:blink 1s infinite;
   }
 
-  /* Progress bars */
-  .skill-row { margin-bottom: 6px; }
-  .skill-name { font-size: 9px; letter-spacing: 0.1em; color: var(--amber-dim); margin-bottom: 3px; }
-  .skill-bar { height: 4px; background: #1a1200; border: 1px solid var(--border); }
-  .skill-fill { height: 100%; background: var(--amber); box-shadow: 0 0 4px var(--amber-glow); }
-
-  /* Noise texture overlay */
   .noise {
-    position: fixed;
-    inset: 0;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 997;
+    position:fixed; inset:0; opacity:0.03;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:997;
   }
 </style>
 </head>
@@ -525,12 +396,18 @@
 
 <div class="datapad">
 
+  <!-- KILLED STAMP OVERLAY -->
+  <div id="killed-overlay">
+    <div class="killed-stamp">ELIMINATED</div>
+    <div id="killed-timestamp"></div>
+  </div>
+
   <!-- HEADER -->
   <div class="header">
     <div class="header-left">
       <div class="logo-icon">
         <svg viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg">
-          <path fill="#e8a020" fill-opacity="1" stroke-linejoin="round" d="M 30.351,23.3949L 38.0169,19L 45.679,23.4244C 45.3991,23.8942 45.1188,24.364 44.8338,24.8309L 38.013,20.9065C 35.7412,22.216 33.4687,23.5251 31.1941,24.8298L 30.351,23.3949 Z M 33.2788,25.9482L 37.982,23.0164L 42.691,25.9458L 42.2196,26.6994L 39.8535,25.331C 39.6,27.7058 39.3291,30.0798 39.0822,32.4544C 40.1354,33.0708 41.1944,33.6778 42.2507,34.2898L 48.0344,30.0592L 45.6707,28.6901C 45.8087,28.4294 45.94,28.1645 46.0811,27.9054C 47.7098,28.7809 49.3427,29.6484 50.9705,30.5251L 50.7839,36.0726L 49.9052,36.0392L 49.9052,33.3032L 43.3427,36.1976L 43.3427,39.8346L 49.9048,42.7275L 49.9048,39.9911L 50.7831,39.96C 50.8475,41.8096 50.9116,43.6596 50.9689,45.5096L 46.0788,48.1261C 45.9443,47.863 45.8039,47.6029 45.6719,47.3387C 46.4612,46.8858 47.2471,46.4274 48.0348,45.9718L 42.2196,41.7106L 39.0465,43.546L 39.8539,50.7001L 42.2204,49.3321L 42.691,50.0841L 38.0169,53.0139L 33.2784,50.0833L 33.7506,49.3309L 36.1458,50.7001L 36.9194,43.5436C 36.9331,43.5062 36.8891,43.4977 36.8674,43.4819L 33.7804,41.7106L 27.9651,45.9722L 30.3294,47.3717L 29.8902,48.156C 28.269,47.2844 26.6475,46.4137 25.0295,45.5366C 25.0805,43.6875 25.1305,41.8383 25.1859,39.9891L 26.0897,40.0217L 26.0897,42.7617L 32.6574,39.8645L 32.6569,36.1976L 26.0897,33.3016L 26.0897,36.04L 25.1859,36.0726C 25.132,34.2329 25.0774,32.3923 25.031,30.5526L 29.8887,27.9062L 30.3294,28.6901L 27.9644,30.0592L 33.7187,34.2895C 34.7848,33.6775 35.8544,33.0708 36.9174,32.4544C 36.6705,30.0798 36.3997,27.7058 36.1461,25.331L 33.7501,26.699C 33.5897,26.4505 33.4361,26.1982 33.2788,25.9482 Z M 21.5461,28.4939C 24.0993,27.0241 26.6506,25.5504 29.2007,24.075C 29.4893,24.5401 29.7676,25.0122 30.0455,25.4835L 23.1948,29.4385L 23.194,37.3156L 21.5438,37.316C 21.5454,34.3752 21.5411,31.4343 21.5461,28.4939 Z M 45.9829,25.5137L 46.8257,24.0753C 49.3698,25.5464 51.9089,27.0253 54.4538,28.4939C 54.459,31.4343 54.4547,34.3752 54.4563,37.316L 52.8059,37.3156L 52.8052,29.4385L 45.9829,25.5137 Z M 21.5438,38.653L 23.1944,38.653L 23.1944,46.5233C 25.5385,47.898 28.0139,49.3129 30.0475,50.4855L 29.2066,51.923C 26.6502,50.456 24.1017,48.974 21.5457,47.5053C 21.5414,44.5546 21.5446,41.604 21.5438,38.653 Z M 52.8055,38.653L 54.4559,38.653C 54.4551,41.604 54.459,44.555 54.4539,47.5057C 51.9089,48.9747 49.3699,50.4537 46.8257,51.9246L 45.9829,50.4863C 48.2554,49.1638 50.5381,47.8532 52.804,46.5233L 52.8055,38.653 Z M 30.3513,52.5757L 31.1953,51.1377L 38.013,55.093L 44.8349,51.1377L 45.679,52.5757L 38.0169,57L 30.3513,52.5757 Z "/>
+          <path fill="#e8a020" stroke-linejoin="round" d="M 30.351,23.3949L 38.0169,19L 45.679,23.4244C 45.3991,23.8942 45.1188,24.364 44.8338,24.8309L 38.013,20.9065C 35.7412,22.216 33.4687,23.5251 31.1941,24.8298L 30.351,23.3949 Z M 33.2788,25.9482L 37.982,23.0164L 42.691,25.9458L 42.2196,26.6994L 39.8535,25.331C 39.6,27.7058 39.3291,30.0798 39.0822,32.4544C 40.1354,33.0708 41.1944,33.6778 42.2507,34.2898L 48.0344,30.0592L 45.6707,28.6901C 45.8087,28.4294 45.94,28.1645 46.0811,27.9054C 47.7098,28.7809 49.3427,29.6484 50.9705,30.5251L 50.7839,36.0726L 49.9052,36.0392L 49.9052,33.3032L 43.3427,36.1976L 43.3427,39.8346L 49.9048,42.7275L 49.9048,39.9911L 50.7831,39.96C 50.8475,41.8096 50.9116,43.6596 50.9689,45.5096L 46.0788,48.1261C 45.9443,47.863 45.8039,47.6029 45.6719,47.3387C 46.4612,46.8858 47.2471,46.4274 48.0348,45.9718L 42.2196,41.7106L 39.0465,43.546L 39.8539,50.7001L 42.2204,49.3321L 42.691,50.0841L 38.0169,53.0139L 33.2784,50.0833L 33.7506,49.3309L 36.1458,50.7001L 36.9194,43.5436C 36.9331,43.5062 36.8891,43.4977 36.8674,43.4819L 33.7804,41.7106L 27.9651,45.9722L 30.3294,47.3717L 29.8902,48.156C 28.269,47.2844 26.6475,46.4137 25.0295,45.5366C 25.0805,43.6875 25.1305,41.8383 25.1859,39.9891L 26.0897,40.0217L 26.0897,42.7617L 32.6574,39.8645L 32.6569,36.1976L 26.0897,33.3016L 26.0897,36.04L 25.1859,36.0726C 25.132,34.2329 25.0774,32.3923 25.031,30.5526L 29.8887,27.9062L 30.3294,28.6901L 27.9644,30.0592L 33.7187,34.2895C 34.7848,33.6775 35.8544,33.0708 36.9174,32.4544C 36.6705,30.0798 36.3997,27.7058 36.1461,25.331L 33.7501,26.699C 33.5897,26.4505 33.4361,26.1982 33.2788,25.9482 Z M 21.5461,28.4939C 24.0993,27.0241 26.6506,25.5504 29.2007,24.075C 29.4893,24.5401 29.7676,25.0122 30.0455,25.4835L 23.1948,29.4385L 23.194,37.3156L 21.5438,37.316C 21.5454,34.3752 21.5411,31.4343 21.5461,28.4939 Z M 45.9829,25.5137L 46.8257,24.0753C 49.3698,25.5464 51.9089,27.0253 54.4538,28.4939C 54.459,31.4343 54.4547,34.3752 54.4563,37.316L 52.8059,37.3156L 52.8052,29.4385L 45.9829,25.5137 Z M 21.5438,38.653L 23.1944,38.653L 23.1944,46.5233C 25.5385,47.898 28.0139,49.3129 30.0475,50.4855L 29.2066,51.923C 26.6502,50.456 24.1017,48.974 21.5457,47.5053C 21.5414,44.5546 21.5446,41.604 21.5438,38.653 Z M 52.8055,38.653L 54.4559,38.653C 54.4551,41.604 54.459,44.555 54.4539,47.5057C 51.9089,48.9747 49.3699,50.4537 46.8257,51.9246L 45.9829,50.4863C 48.2554,49.1638 50.5381,47.8532 52.804,46.5233L 52.8055,38.653 Z M 30.3513,52.5757L 31.1953,51.1377L 38.013,55.093L 44.8349,51.1377L 45.679,52.5757L 38.0169,57L 30.3513,52.5757 Z "/>
         </svg>
       </div>
       <div>
@@ -562,8 +439,7 @@
     <!-- LEFT PANEL -->
     <div class="left-panel">
       <div class="portrait-frame">
-        <img src="https://static.wikia.nocookie.net/starwars/images/6/6d/R3astromech-SWE.png/revision/latest?cb=20160913051744" jsaction="" class="sFlh5c FyHeAf iPVvYb" style="max-width: 214px; height: 205.5px; margin: 0px; width: 156.6px;" alt="R3-series astromech droid | Wookieepedia | Fandom" jsname="kn3ccd">
-        <div class="silhouette"></div>
+        <img src="https://static.wikia.nocookie.net/starwars/images/6/6d/R3astromech-SWE.png/revision/latest?cb=20160913051744" alt="R3-P2">
       </div>
       <div class="portrait-label">VISUAL RECORD — CLASSIFIED</div>
 
@@ -573,9 +449,9 @@
         <div class="tag-label">CLASSIFICATION TAGS</div>
         <div class="tags">
           <span class="tag danger">EXTREME RISK</span>
-          <span class="tag">MANDALORIAN</span>
+          <span class="tag">DROID</span>
           <span class="tag">MERC</span>
-          <span class="tag">FUGITIVE</span>
+          <span class="tag">OLD REPUBLIC</span>
           <span class="tag">ARMED</span>
         </div>
       </div>
@@ -584,41 +460,25 @@
 
       <div class="stat-row"><span class="stat-key">SPECIES</span><span class="stat-val">DROID</span></div>
       <div class="stat-row"><span class="stat-key">SEX</span><span class="stat-val">N/A</span></div>
-      <div class="stat-row"><span class="stat-key">HEIGHT</span><span class="stat-val">1m</span></div>
-      <div class="stat-row"><span class="stat-key">BUILD</span><span class="stat-val">Plasteel</span></div>
+      <div class="stat-row"><span class="stat-key">HEIGHT</span><span class="stat-val">1M</span></div>
+      <div class="stat-row"><span class="stat-key">BUILD</span><span class="stat-val">PLASTEEL</span></div>
       <div class="stat-row"><span class="stat-key">AFFIL.</span><span class="stat-val">OLD REPUBLIC</span></div>
       <div class="stat-row"><span class="stat-key">ARMED</span><span class="stat-val">CONFIRMED</span></div>
 
       <hr class="divider-h">
 
       <div class="tag-label">COMBAT PROFICIENCY</div>
-      <div class="skill-row">
-        <div class="skill-name">MARKSMANSHIP</div>
-        <div class="skill-bar"><div class="skill-fill" style="width:0%"></div></div>
-      </div>
-      <div class="skill-row">
-        <div class="skill-name">HAND-TO-HAND</div>
-        <div class="skill-bar"><div class="skill-fill" style="width:50%"></div></div>
-      </div>
-      <div class="skill-row">
-        <div class="skill-name">EXPLOSIVES</div>
-        <div class="skill-bar"><div class="skill-fill" style="width:0%"></div></div>
-      </div>
-      <div class="skill-row">
-        <div class="skill-name">INFILTRATION</div>
-        <div class="skill-bar"><div class="skill-fill" style="width:85%"></div></div>
-      </div>
-      <div class="skill-row">
-        <div class="skill-name">PILOTING</div>
-        <div class="skill-bar"><div class="skill-fill" style="width:100%"></div></div>
-      </div>
+      <div class="skill-row"><div class="skill-name">MARKSMANSHIP</div><div class="skill-bar"><div class="skill-fill" style="width:0%"></div></div></div>
+      <div class="skill-row"><div class="skill-name">HAND-TO-HAND</div><div class="skill-bar"><div class="skill-fill" style="width:50%"></div></div></div>
+      <div class="skill-row"><div class="skill-name">EXPLOSIVES</div><div class="skill-bar"><div class="skill-fill" style="width:0%"></div></div></div>
+      <div class="skill-row"><div class="skill-name">INFILTRATION</div><div class="skill-bar"><div class="skill-fill" style="width:85%"></div></div></div>
+      <div class="skill-row"><div class="skill-name">PILOTING</div><div class="skill-bar"><div class="skill-fill" style="width:100%"></div></div></div>
     </div>
 
     <!-- RIGHT PANEL -->
     <div class="right-panel">
 
       <div class="section-header">SUBJECT IDENTIFICATION</div>
-
       <div class="name-block">
         <div class="char-designation">DESIGNATION / PRIMARY ALIAS</div>
         <div class="char-name">R3-P2</div>
@@ -626,35 +486,34 @@
       </div>
 
       <div class="section-header">BIOGRAPHICAL RECORD</div>
-
       <div class="bio-text">
-        <p>Not much is known about R3-P2 only that he's been a astromechanic droid that has worked for the Old Republic.</p>
+        <p>Not much is known about R3-P2 only that he's been an astromechanic droid that has worked for the Old Republic.</p>
       </div>
 
       <div class="warning-box">
-        <div class="warning-text">
-            R3-P2 hasn't been seen since a long time ago.
-        </div>
+        <div class="warning-text">R3-P2 hasn't been seen since a long time ago.</div>
       </div>
 
       <div class="section-header" style="margin-top:14px;">LAST KNOWN LOCATION</div>
-
       <div class="last-seen-grid">
-        <div class="info-cell">
-          <div class="cell-label">SYSTEM</div>
-          <div class="cell-value">CORE SYSTEMS</div>
-        </div>
-        <div class="info-cell">
-          <div class="cell-label">PLANET / STATION</div>
-          <div class="cell-value">CORUSCANT</div>
-        </div>
-        <div class="info-cell">
-          <div class="cell-label">LAST SIGHTED</div>
-          <div class="cell-value">12 CYCLES AGO</div>
-        </div>
+        <div class="info-cell"><div class="cell-label">SYSTEM</div><div class="cell-value">CORE SYSTEMS</div></div>
+        <div class="info-cell"><div class="cell-label">PLANET / STATION</div><div class="cell-value">CORUSCANT</div></div>
+        <div class="info-cell"><div class="cell-label">LAST SIGHTED</div><div class="cell-value">12 CYCLES AGO</div></div>
+        <div class="info-cell"><div class="cell-label">VESSEL ID</div><div class="cell-value">UNKNOWN</div></div>
       </div>
 
     </div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <div class="action-label">GUILD OPERATIVE ACCESS · AUTHORIZED PERSONNEL ONLY</div>
+    <button id="kill-btn" class="btn btn-kill" onclick="markKilled()">
+      <span class="btn-icon">✕</span> MARK ELIMINATED
+    </button>
+    <button id="reset-btn" class="btn btn-reset" onclick="resetBounty()">
+      <span class="btn-icon">↺</span> SET NEW BOUNTY
+    </button>
   </div>
 
   <!-- FOOTER -->
